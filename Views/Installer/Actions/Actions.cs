@@ -852,7 +852,7 @@ public static class ProcessActions
                     string testPath = Path.Combine(drive.Name, relativePath);
                     if (Directory.Exists(testPath))
                     {
-                        gameObj["InstallLocation"] = testPath;
+                        gameObj["InstallLocation"] = testPath.Replace('\\', '/');
                         break;
                     }
                 }
@@ -888,25 +888,47 @@ public static class ProcessActions
 
             if (itemJson is JsonObject itemObj && itemObj.ContainsKey("InstallLocation"))
             {
-                string originalInstallLocation = itemObj["InstallLocation"]!.ToString();
-                string originalDrive = Path.GetPathRoot(originalInstallLocation) ?? "";
+                string originalInstallLocation = itemObj["InstallLocation"]!.ToString().Replace('\\', '/');
+                string originalDrive = Path.GetPathRoot(originalInstallLocation)?.Replace('\\', '/') ?? "";
                 string relativePath = originalInstallLocation.Substring(originalDrive.Length);
+
+                string? newInstallLocation = null;
 
                 foreach (var drive in DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Fixed && d.Name != @"C:\"))
                 {
                     string testPath = Path.Combine(drive.Name, relativePath);
                     if (Directory.Exists(testPath))
                     {
-                        string newDrive = Path.GetPathRoot(testPath)!;
-
-                        itemObj["InstallLocation"] = newDrive + relativePath;
-                        itemObj["ManifestLocation"] = itemObj["ManifestLocation"]!.ToString().Replace(originalDrive, newDrive);
-                        itemObj["StagingLocation"] = itemObj["StagingLocation"]!.ToString().Replace(originalDrive, newDrive);
-
+                        newInstallLocation = testPath.Replace('\\', '/');
                         break;
                     }
                 }
-                await File.WriteAllTextAsync(file,itemObj.ToJsonString(jsonOptions));
+
+                if (newInstallLocation != null)
+                {
+                    itemObj["InstallLocation"] = newInstallLocation;
+
+                    string oldRoot = originalDrive;
+                    string newRoot = Path.GetPathRoot(newInstallLocation)!.Replace('\\', '/');
+
+                    if (itemObj.ContainsKey("ManifestLocation"))
+                    {
+                        string manifest = itemObj["ManifestLocation"]!.ToString().Replace('\\', '/');
+                        itemObj["ManifestLocation"] = manifest.Replace(oldRoot, newRoot);
+                    }
+
+                    if (itemObj.ContainsKey("StagingLocation"))
+                    {
+                        string staging = itemObj["StagingLocation"]!.ToString().Replace('\\', '/');
+                        itemObj["StagingLocation"] = staging.Replace(oldRoot, newRoot);
+                    }
+
+                    await File.WriteAllTextAsync(file, itemObj.ToJsonString(new JsonSerializerOptions
+                    {
+                        WriteIndented = true,
+                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    }));
+                }
             }
         }
     }
