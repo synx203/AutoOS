@@ -537,8 +537,9 @@ public static class BiosSettingRecommendationsList
         new BiosSettingRecommendation { SetupQuestion = "Scan Matrix Keyboard Support", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Security Device Support", Type = "Option", RecommendedOption = "Enable" }, // required for TPM
         new BiosSettingRecommendation { SetupQuestion = "Security Device Support", Type = "Option", RecommendedOption = "Enabled" }, // required for TPM
-        new BiosSettingRecommendation { SetupQuestion = "SelfRefresh Enable", Type = "Option", RecommendedOption = "Disabled" },
-        new BiosSettingRecommendation { SetupQuestion = "selfrefresh enable", Type = "Value", RecommendedOption = "0" },
+        //new BiosSettingRecommendation { SetupQuestion = "SelfRefresh Enable", Type = "Option", RecommendedOption = "Disabled" }, // breaks shutdown
+        //new BiosSettingRecommendation { SetupQuestion = "selfrefresh enable", Type = "Value", RecommendedOption = "0" }, // breaks shutdown
+        new BiosSettingRecommendation { SetupQuestion = "SelfRefresh IdleTimer", Type = "Value", RecommendedOption = "65535" },
         //new BiosSettingRecommendation { SetupQuestion = "Sensor Standby", Type = "Option", RecommendedOption = "Disabled" }, // already disabled by default
         new BiosSettingRecommendation { SetupQuestion = "Serial Debug Messages", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Serial IO UART", Type = "Value", RecommendedOption = "0" },
