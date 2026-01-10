@@ -86,6 +86,7 @@ namespace AutoOS.Views.Settings
                 if (originalServicesState == false)
                 {
                     StatusText.Text = "Update will resume after a restart.";
+                    localSettings.Values["originalServicesState"] = true;
                 }
                 else
                 {

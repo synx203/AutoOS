@@ -598,6 +598,7 @@ public static class BiosSettingRecommendationsList
         new BiosSettingRecommendation { SetupQuestion = "XHCI LTR Mode", Type = "Option", RecommendedOption = "Disabled" },
         //new BiosSettingRecommendation { SetupQuestion = "ZPODD", Type = "Option", RecommendedOption = "Disabled" }, // already disabled by default
         new BiosSettingRecommendation { SetupQuestion = "[*]Power Down Control", Type = "Value", RecommendedOption = "0" },
+        new BiosSettingRecommendation { SetupQuestion = "80 Port Display Mode", Type = "Option", RecommendedOption = "Disabled" },
 
         //new BiosSettingRecommendation { SetupQuestion = "Active E-Cores", Type = "Option", RecommendedOption = "0" },
         //new BiosSettingRecommendation { SetupQuestion = "Active Efficient Cores", Type = "Option", RecommendedOption = "0" },
@@ -818,6 +819,7 @@ public static class BiosSettingRecommendationsList
         new BiosSettingRecommendation { SetupQuestion = "Nitro Rx Burst Length", Type = "Option", RecommendedOption = "8x" },
         new BiosSettingRecommendation { SetupQuestion = "Nitro TX Data", Type = "Option", RecommendedOption = "2" },
         new BiosSettingRecommendation { SetupQuestion = "Nitro Tx Burst Length", Type = "Option", RecommendedOption = "8x" },
+        new BiosSettingRecommendation { SetupQuestion = "Onboard Debug Port LED", Type = "Option", RecommendedOption = "Off" },
         new BiosSettingRecommendation { SetupQuestion = "Onboard PCIE LAN PXE ROM", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Opcache Control", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "PBO Fmax Enhancer", Type = "Option", RecommendedOption = "Disabled" },
