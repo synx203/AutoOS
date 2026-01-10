@@ -74,7 +74,7 @@ public partial class HeaderCarousel : ItemsControl
     private string currentSortKey = "Title";
     private bool ascending = true;
 
-    private RadioMenuFlyoutItem SortByName, SortByLauncher, SortByRating, SortByPlaytime, SortByRecentlyPlayed;
+    private RadioMenuFlyoutItem SortByName, SortByLauncher, SortByRating, SortByTimePlayed, SortByRecentlyPlayed;
     private RadioMenuFlyoutItem SortAscending, SortDescending;
 
     //public event EventHandler<HeaderCarouselEventArgs> ItemClick;
@@ -116,7 +116,7 @@ public partial class HeaderCarousel : ItemsControl
         SortByName = GetTemplateChild("SortByName") as RadioMenuFlyoutItem;
         SortByLauncher = GetTemplateChild("SortByLauncher") as RadioMenuFlyoutItem;
         SortByRating = GetTemplateChild("SortByRating") as RadioMenuFlyoutItem;
-        SortByPlaytime = GetTemplateChild("SortByPlaytime") as RadioMenuFlyoutItem;
+        SortByTimePlayed = GetTemplateChild("SortByTimePlayed") as RadioMenuFlyoutItem;
         SortByRecentlyPlayed = GetTemplateChild("SortByRecentlyPlayed") as RadioMenuFlyoutItem;
         SortAscending = GetTemplateChild("SortAscending") as RadioMenuFlyoutItem;
         SortDescending = GetTemplateChild("SortDescending") as RadioMenuFlyoutItem;
@@ -124,7 +124,7 @@ public partial class HeaderCarousel : ItemsControl
         SortByName.Click += SortKey_Click;
         SortByLauncher.Click += SortKey_Click;
         SortByRating.Click += SortKey_Click;
-        SortByPlaytime.Click += SortKey_Click;
+        SortByTimePlayed.Click += SortKey_Click;
         SortByRecentlyPlayed.Click += SortKey_Click;
         SortAscending.Click += SortOrder_Click;
         SortDescending.Click += SortOrder_Click;
@@ -430,6 +430,7 @@ public partial class HeaderCarousel : ItemsControl
     {
         if (selectedTile != null)
         {
+            selectedTile.IsSelected = true;
 
             ElementSoundPlayer.Play(ElementSoundKind.Focus);
 
@@ -465,8 +466,6 @@ public partial class HeaderCarousel : ItemsControl
             Genres = selectedTile?.Genres;
             Features = selectedTile?.Features;
             Description = selectedTile?.Description;
-
-            selectedTile.IsSelected = true;
 
             InstallLocation = selectedTile?.InstallLocation;
 
@@ -672,8 +671,8 @@ public partial class HeaderCarousel : ItemsControl
                 "SortByName" => "Title",
                 "SortByLauncher" => "Launcher",
                 "SortByRating" => "Rating",
-                "SortByPlaytime" => "Playtime",
-                "SortByRecentlyPlayed" => "Recently played",
+                "SortByTimePlayed" => "Time Played",
+                "SortByRecentlyPlayed" => "Recently Played",
                 _ => currentSortKey
             };
 
@@ -712,12 +711,12 @@ public partial class HeaderCarousel : ItemsControl
                 .ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase)
                 : items.OrderByDescending(g => g.Rating)
                 .ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase),
-            "Playtime" => ascending
+            "Time Played" => ascending
                 ? items.OrderBy(g => ParseMinutes(g.PlayTime))
                       .ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase)
                 : items.OrderByDescending(g => ParseMinutes(g.PlayTime))
                       .ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase),
-            "Recently played" => ascending
+            "Recently Played" => ascending
                 ? items.OrderBy(g =>
                     localSettings.Values.TryGetValue($"LastPlayed_{g.Title}", out var val) && val is long ts ? ts : 0)
                        .ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase)
@@ -752,8 +751,8 @@ public partial class HeaderCarousel : ItemsControl
         SortByName.IsChecked = currentSortKey == "Title";
         SortByLauncher.IsChecked = currentSortKey == "Launcher";
         SortByRating.IsChecked = currentSortKey == "Rating";
-        SortByPlaytime.IsChecked = currentSortKey == "Playtime";
-        SortByRecentlyPlayed.IsChecked = currentSortKey == "Recently played";
+        SortByTimePlayed.IsChecked = currentSortKey == "Time Played";
+        SortByRecentlyPlayed.IsChecked = currentSortKey == "Recently Played";
 
         SortAscending.IsChecked = ascending;
         SortDescending.IsChecked = !ascending;
