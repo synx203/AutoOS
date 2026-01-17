@@ -1598,6 +1598,7 @@ public partial class HeaderCarousel : ItemsControl
             "EasyAntiCheat_EOS",
             "EpicGamesLauncher",
             "explorer",
+            "Everything",
             //"Files",
             "FortniteClient-Win64-Shipping_EAC_EOS",
             "GameBar",
@@ -1653,6 +1654,7 @@ public partial class HeaderCarousel : ItemsControl
             "DispBrokerDesktopSvc",
             //"Dnscache",
             "DoSvc",
+            "Everything (1.5a)",
             "gpsvc",
             "InstallService",
             //"KeyIso",
@@ -1741,6 +1743,7 @@ public partial class HeaderCarousel : ItemsControl
                 "DispBrokerDesktopSvc",
                 //"Dnscache",
                 "DoSvc",
+                "Everything (1.5a)",
                 "gpsvc",
                 "InstallService",
                 "KeyIso",
@@ -1778,6 +1781,14 @@ public partial class HeaderCarousel : ItemsControl
                 }
                 catch { }
             }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = @"C:\Program Files\Everything 1.5a\Everything.exe",
+                WindowStyle = ProcessWindowStyle.Hidden,
+                Arguments = "-startup",
+            });
+
         });
     }
 
