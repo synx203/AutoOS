@@ -294,7 +294,7 @@ namespace AutoOS.Helpers
             string decryptedJson = decryptedFull.Contains('\0') ? decryptedFull.Substring(0, decryptedFull.IndexOf('\0')) : decryptedFull;
             string trailingData = decryptedFull.Contains('\0') ? decryptedFull.Substring(decryptedFull.IndexOf('\0')) : "";
             JsonArray jsonArray = JsonNode.Parse(decryptedJson).AsArray();
-            
+
             // get old refresh token
             string oldRefreshToken = jsonArray[0]["Token"].GetValue<string>();
 
@@ -476,8 +476,39 @@ namespace AutoOS.Helpers
                     _ => "PEGI"
                 };
 
+                var manifestFiles = Directory.GetFiles(EpicGamesManifestDir, "*.item", SearchOption.TopDirectoryOnly)
+                                             .Select(f => new FileInfo(f))
+                                             .ToList();
+
+                var latestManifests = new Dictionary<string, FileInfo>();
+
+                foreach (var file in manifestFiles)
+                {
+                    var json = JsonNode.Parse(File.ReadAllText(file.FullName));
+                    var manifestHash = json?["ManifestHash"]?.GetValue<string>();
+                    if (string.IsNullOrEmpty(manifestHash))
+                        continue;
+
+                    if (!latestManifests.ContainsKey(manifestHash))
+                    {
+                        latestManifests[manifestHash] = file;
+                    }
+                    else
+                    {
+                        if (file.LastWriteTime > latestManifests[manifestHash].LastWriteTime)
+                        {
+                            File.Delete(latestManifests[manifestHash].FullName);
+                            latestManifests[manifestHash] = file;
+                        }
+                        else
+                        {
+                            File.Delete(file.FullName);
+                        }
+                    }
+                }
+
                 // for each manifest
-                await Parallel.ForEachAsync(Directory.GetFiles(EpicGamesManifestDir, "*.item", SearchOption.TopDirectoryOnly), new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, async (file, _) =>
+                await Parallel.ForEachAsync(latestManifests.Values, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, async (file, _) =>
                 {
                     try
                     {
@@ -485,7 +516,7 @@ namespace AutoOS.Helpers
                         var token = cts.Token;
 
                         // read manifest
-                        var itemJson = JsonNode.Parse(await File.ReadAllTextAsync(file).ConfigureAwait(false));
+                        var itemJson = JsonNode.Parse(await File.ReadAllTextAsync(file.FullName).ConfigureAwait(false));
 
                         // return if not a game
                         if (itemJson?["bIsApplication"]?.GetValue<bool>() != true) return;
@@ -505,7 +536,7 @@ namespace AutoOS.Helpers
 
                         // get offer id
                         //var itemOfferTask = loginClient.PostAsync("https://graphql.unrealengine.com/ue/graphql", new StringContent(JsonSerializer.Serialize(new { query = itemOfferQuery, variables = new { allowCountries = "US", country = "US", locale = "en-US", count = 1, withPrice = true, withPromotions = true, sortBy = "releaseDate", sortDir = "DESC", @namespace = itemJson["MainGameCatalogNamespace"]?.GetValue<string>(), category = "games/edition/base" } }), Encoding.UTF8, "application/json"), token);
-                        
+
                         //var itemOfferData = JsonNode.Parse(await (await itemOfferTask.ConfigureAwait(false)).Content.ReadAsStringAsync(token).ConfigureAwait(false));
 
                         //string offerId;
