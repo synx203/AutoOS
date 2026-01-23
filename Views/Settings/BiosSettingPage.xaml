@@ -392,7 +392,6 @@
                                     </StackPanel>
                                     <!--  Counter  -->
                                     <TextBlock Grid.Column="1"
-                                               VerticalAlignment="Center"
                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                Style="{StaticResource CaptionTextBlockStyle}"
                                                Text="{x:Bind recommendedSettings.Count, Mode=OneWay}" />
@@ -491,7 +490,6 @@
                                                Text="All Settings" />
                                     <!--  Counter  -->
                                     <TextBlock Grid.Column="1"
-                                               VerticalAlignment="Center"
                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                Style="{StaticResource CaptionTextBlockStyle}"
                                                Text="{x:Bind biosSettings.Count, Mode=OneWay}" />

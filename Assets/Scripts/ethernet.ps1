@@ -188,6 +188,11 @@ Get-NetAdapter | Where-Object { $_.PhysicalMediaType -eq "802.3" } | ForEach-Obj
         Set-NetAdapterAdvancedProperty -Name $adapterName -DisplayName "Energy Efficient Ethernet" -DisplayValue "Disabled"
     }
 
+    # Energy Efficient Ethernet
+    if ($adapterProperties | Where-Object { $_.DisplayName -eq "Energy Efficient Ethernet" }) {
+        Set-NetAdapterAdvancedProperty -Name $adapterName -DisplayName "Energy Efficient Ethernet" -DisplayValue "Off"
+    }
+
     # Energy-Efficient Ethernet
     if ($adapterProperties | Where-Object { $_.DisplayName -eq "Energy-Efficient Ethernet" }) {
         Set-NetAdapterAdvancedProperty -Name $adapterName -DisplayName "Energy-Efficient Ethernet" -DisplayValue "Disabled"

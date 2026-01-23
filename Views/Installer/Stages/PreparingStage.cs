@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Management;
+using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using ValveKeyValue;
@@ -15,7 +16,6 @@ public static class PreparingStage
 {
     public static IntPtr WindowHandle { get; private set; }
     public static bool? Desktop;
-    public static bool? IdleStates;
 
     public static bool? SSD;
     public static bool? Wifi;
@@ -36,6 +36,7 @@ public static class PreparingStage
     public static bool? TaskbarAlignment;
 
     public static bool? WOL;
+    public static bool? NetAdapterCx;
     public static bool? TxIntDelay;
 
     public static bool? HID;
@@ -117,6 +118,7 @@ public static class PreparingStage
     public static bool? FACEIT;
 
     public static int? PCores;
+    public static bool? HyperThreading;
 
     private static readonly ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
 
@@ -158,7 +160,6 @@ public static class PreparingStage
                 SSD = true;
             }
 
-            IdleStates = (localSettings.Values["IdleStates"]?.ToString() == "1");
             Wifi = (localSettings.Values["WiFi"]?.ToString() == "1");
             Bluetooth = (localSettings.Values["Bluetooth"]?.ToString() == "1");
             WindowsDefender = (localSettings.Values["WindowsDefender"]?.ToString() == "1");
@@ -251,6 +252,8 @@ public static class PreparingStage
             var cpuSetsInfo = CpuDetectionService.GetCpuSets();
             var (pCores, eCores) = CpuDetectionService.GroupCpuSetsByEfficiencyClass(cpuSetsInfo);
             PCores = pCores.Count;
+            HyperThreading = cpuSetsInfo.HyperThreading;
+
 
             EpicGamesAccount = DriveInfo.GetDrives()
                 .Where(d => d.DriveType == DriveType.Fixed && d.Name != @"C:\")
@@ -311,24 +314,30 @@ public static class PreparingStage
                 .Cast<ManagementObject>()
                 .Any(obj => ((ushort[])obj["ChassisTypes"])?.Any(type => new ushort[] { 3, 4, 5, 6, 7, 15, 16, 17 }.Contains(type)) == true);
 
-            foreach (var obj in new ManagementObjectSearcher("SELECT * FROM Win32_NetworkAdapter").Get())
-            {
-                var pnpDeviceId = obj["PNPDeviceID"]?.ToString();
-                if (!string.IsNullOrEmpty(pnpDeviceId) && pnpDeviceId.StartsWith("PCI\\VEN_"))
-                {
-                    string regPath = $@"SYSTEM\CurrentControlSet\Enum\{pnpDeviceId}";
-                    using var regKey = Registry.LocalMachine.OpenSubKey(regPath);
-                    var driver = regKey?.GetValue("Driver")?.ToString();
-                    string classKeyPath = $@"SYSTEM\CurrentControlSet\Control\Class\{driver}";
-                    using var classKey = Registry.LocalMachine.OpenSubKey(classKeyPath);
-                    var physicalMediaType = classKey?.GetValue("*PhysicalMediaType")?.ToString();
-                    if (physicalMediaType == "14" && classKey.GetValue("TxIntDelay") != null)
-                    {
-                        TxIntDelay = true;
-                        break;
-                    }
-                }
-            }
+            var adapters = new ManagementObjectSearcher("SELECT * FROM Win32_NetworkAdapter WHERE AdapterTypeID = 0").Get().Cast<ManagementObject>().ToList();
+
+            var mainAdapter = adapters.FirstOrDefault(a => (ushort?)a["NetConnectionStatus"] == 2) ?? adapters.First();
+            string pnpDeviceId = mainAdapter["PNPDeviceID"]?.ToString();
+
+            using var key = Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Enum\{pnpDeviceId}");
+            string driver = key?.GetValue("Driver") as string;
+            using var classKey = Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Control\Class\{driver}");
+            using var ndiKey = classKey?.OpenSubKey("Ndi");
+            string serviceName = ndiKey?.GetValue("Service")?.ToString()?.TrimEnd('.');
+            using var serviceKey = Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Services\{serviceName}");
+            string imagePath = serviceKey?.GetValue("ImagePath") as string;
+
+            string systemRoot = Environment.GetEnvironmentVariable("SystemRoot")!;
+            string resolved = Environment.ExpandEnvironmentVariables(imagePath.StartsWith(@"\??\") ? imagePath[4..] : imagePath);
+
+            resolved = resolved.StartsWith(@"\SystemRoot", StringComparison.OrdinalIgnoreCase)
+                ? resolved.Replace(@"\SystemRoot", systemRoot, StringComparison.OrdinalIgnoreCase)
+                : resolved.StartsWith("System32", StringComparison.OrdinalIgnoreCase)
+                    ? Path.Combine(systemRoot, resolved)
+                    : resolved;
+
+            NetAdapterCx = Encoding.ASCII.GetString(File.ReadAllBytes(resolved)).Contains("NetAdapter", StringComparison.OrdinalIgnoreCase);
+            TxIntDelay = classKey?.GetValue("TxIntDelay") != null;
         });
 
         InstallPage.Info.Severity = InfoBarSeverity.Informational;
