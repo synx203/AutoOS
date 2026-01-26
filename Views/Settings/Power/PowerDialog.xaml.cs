@@ -37,6 +37,9 @@ namespace AutoOS.Views.Settings.Power
 
                 index++;
             }
+            
+            State.OnPropertyChanged(nameof(State.AcValueItem));
+            State.OnPropertyChanged(nameof(State.DcValueItem));
         }
 
         public uint GetAcValue() => State.AcValue;
@@ -68,6 +71,8 @@ namespace AutoOS.Views.Settings.Power
                 {
                     _acValue = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(AcValueText));
+                    OnPropertyChanged(nameof(AcValueItem));
                 }
             }
         }
@@ -81,6 +86,56 @@ namespace AutoOS.Views.Settings.Power
                 {
                     _dcValue = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(DcValueText));
+                    OnPropertyChanged(nameof(DcValueItem));
+                }
+            }
+        }
+
+        public string AcValueText
+        {
+            get => _acValue.ToString();
+            set
+            {
+                if (uint.TryParse(value, out uint parsedValue))
+                {
+                    AcValue = parsedValue;
+                }
+            }
+        }
+
+        public string DcValueText
+        {
+            get => _dcValue.ToString();
+            set
+            {
+                if (uint.TryParse(value, out uint parsedValue))
+                {
+                    DcValue = parsedValue;
+                }
+            }
+        }
+
+        public PowerSettingValueInfo AcValueItem
+        {
+            get => EnumValues.FirstOrDefault(x => x.Index == _acValue);
+            set
+            {
+                if (value != null && _acValue != value.Index)
+                {
+                    AcValue = value.Index;
+                }
+            }
+        }
+
+        public PowerSettingValueInfo DcValueItem
+        {
+            get => EnumValues.FirstOrDefault(x => x.Index == _dcValue);
+            set
+            {
+                if (value != null && _dcValue != value.Index)
+                {
+                    DcValue = value.Index;
                 }
             }
         }
@@ -101,10 +156,16 @@ namespace AutoOS.Views.Settings.Power
             Setting = setting;
             _acValue = _originalAc = setting.AcValueIndex;
             _dcValue = _originalDc = setting.DcValueIndex;
+            OnPropertyChanged(nameof(AcValue));
+            OnPropertyChanged(nameof(DcValue));
+            OnPropertyChanged(nameof(AcValueText));
+            OnPropertyChanged(nameof(DcValueText));
+            OnPropertyChanged(nameof(AcValueItem));
+            OnPropertyChanged(nameof(DcValueItem));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string name = null)
+        internal void OnPropertyChanged([CallerMemberName] string name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

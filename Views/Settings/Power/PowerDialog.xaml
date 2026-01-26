@@ -22,10 +22,10 @@
                 <TextBlock Text="Plugged in (AC):" />
                 <Grid Grid.Row="1">
                     <!--  Option  -->
-                    <ComboBox HorizontalAlignment="Stretch"
+                    <ComboBox x:Name="AcComboBox"
+                              HorizontalAlignment="Stretch"
                               ItemsSource="{x:Bind State.EnumValues}"
-                              SelectedValue="{x:Bind State.AcValue, Mode=TwoWay}"
-                              SelectedValuePath="Index"
+                              SelectedItem="{x:Bind State.AcValueItem, Mode=TwoWay}"
                               Visibility="{x:Bind State.IsOption, Converter={StaticResource BoolToVisibilityConverter}}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate x:DataType="local:PowerSettingValueInfo">
@@ -39,7 +39,7 @@
                     </ComboBox>
                     <!--  Value  -->
                     <TextBox HorizontalAlignment="Stretch"
-                             Text="{x:Bind State.AcValue, Mode=TwoWay}"
+                             Text="{x:Bind State.AcValueText, Mode=TwoWay}"
                              Visibility="{x:Bind State.IsValue, Converter={StaticResource BoolToVisibilityConverter}}">
                         <ToolTipService.ToolTip>
                             <TextBlock Text="{x:Bind State.ValueToolTip}" />
@@ -56,10 +56,10 @@
                 <TextBlock Text="On battery (DC):" />
                 <Grid Grid.Row="1">
                     <!--  Option  -->
-                    <ComboBox HorizontalAlignment="Stretch"
+                    <ComboBox x:Name="DcComboBox"
+                              HorizontalAlignment="Stretch"
                               ItemsSource="{x:Bind State.EnumValues}"
-                              SelectedValue="{x:Bind State.DcValue, Mode=TwoWay}"
-                              SelectedValuePath="Index"
+                              SelectedItem="{x:Bind State.DcValueItem, Mode=TwoWay}"
                               Visibility="{x:Bind State.IsOption, Converter={StaticResource BoolToVisibilityConverter}}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate x:DataType="local:PowerSettingValueInfo">
@@ -73,7 +73,7 @@
                     </ComboBox>
                     <!--  Value  -->
                     <TextBox HorizontalAlignment="Stretch"
-                             Text="{x:Bind State.DcValue, Mode=TwoWay}"
+                             Text="{x:Bind State.DcValueText, Mode=TwoWay}"
                              Visibility="{x:Bind State.IsValue, Converter={StaticResource BoolToVisibilityConverter}}">
                         <ToolTipService.ToolTip>
                             <TextBlock Text="{x:Bind State.ValueToolTip}" />
