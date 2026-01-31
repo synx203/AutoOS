@@ -173,7 +173,6 @@ namespace AutoOS.Helpers
 
                         // get metadata
                         var gameData = JsonDocument.Parse(await httpClient.GetStringAsync($"https://store.steampowered.com/api/appdetails?appids={gameId}&l=english", _)).RootElement.GetProperty(gameId);
-
                         // get playtime data
                         //var playTimeData = XDocument.Parse(await httpClient.GetStringAsync($"https://steamcommunity.com/profiles/{GetSteam64ID()}/?tab=all&xml=1", _));
 
@@ -197,17 +196,18 @@ namespace AutoOS.Helpers
                         string rating = null;
                         string descriptors = null;
 
-                        if (gameData.GetProperty("data").GetProperty("ratings").TryGetProperty(ratingKey.ToLowerInvariant(), out JsonElement ratingData))
+                        var data = gameData.GetProperty("data");
+
+                        if (data.TryGetProperty("ratings", out var ratings) && ratings.ValueKind == JsonValueKind.Object && ratings.TryGetProperty(ratingKey.ToLowerInvariant(), out var ratingData))
                         {
-                            if (ratingData.TryGetProperty("rating", out JsonElement ratingElement) && ratingElement.ValueKind == JsonValueKind.String)
+                            if (ratingData.TryGetProperty("rating", out var ratingElement) && ratingElement.ValueKind == JsonValueKind.String)
                             {
                                 rating = ratingElement.GetString();
                             }
 
-                            if (ratingData.TryGetProperty("descriptors", out JsonElement descElement) && descElement.ValueKind == JsonValueKind.String)
+                            if (ratingData.TryGetProperty("descriptors", out var descElement) && descElement.ValueKind == JsonValueKind.String)
                             {
-                                descriptors = descElement
-                                    .GetString()?
+                                descriptors = descElement.GetString()?
                                     .Replace("\r\n", ", ")
                                     .Replace("\n", ", ")
                                     .Replace("\r", ", ");
@@ -250,10 +250,11 @@ namespace AutoOS.Helpers
                                 AgeRatingTitle = !string.IsNullOrEmpty(rating) ? (ratingTitles.TryGetValue(rating.ToLowerInvariant(), out var title) ? title : rating) : null,
                                 AgeRatingDescription = !string.IsNullOrEmpty(descriptors) ? descriptors : null,
                                 Description = gameData.GetProperty("data").GetProperty("short_description").GetString(),
-                                Screenshots = [.. gameData.GetProperty("data").GetProperty("screenshots")
-                                                .EnumerateArray()
-                                                .Select(s => s.GetProperty("path_thumbnail").GetString())
-                                                .Where(s => !string.IsNullOrWhiteSpace(s))],
+                                Screenshots = gameData.GetProperty("data").TryGetProperty("screenshots", out var screenshots)
+                                    ? [.. screenshots.EnumerateArray()
+                                        .Select(s => s.GetProperty("path_thumbnail").GetString())
+                                        .Where(s => !string.IsNullOrWhiteSpace(s))]
+                                    : [],
                                 InstallLocation = Path.Combine(steamAppsDir, "common", appManifestData["installdir"]?.ToString()),
                                 ReleaseDate = releaseDate.ToString("d"),
                                 Size = sizeBytes >= 1024 * 1024 * 1024
