@@ -58,6 +58,8 @@ public sealed partial class GraphicsPage : Page
             }
         }
 
+        static string Normalize(string s) => s.Replace(" ", "").Replace("-", "").ToLowerInvariant();
+
         foreach (ManagementObject obj in new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity WHERE PNPClass='Display'").Get().Cast<ManagementObject>().ToArray())
         {
             string pnpDeviceId = obj["PNPDeviceID"]?.ToString();
@@ -83,7 +85,7 @@ public sealed partial class GraphicsPage : Page
 
                 case "1002":
                     string[] amdRx = { "Navi 10", "Navi 14", "Navi 21", "Navi 22", "Navi 23", "Navi 31", "Navi 32", "Navi 33", "Navi 44", "Navi 48" };
-                    if (amdRx.Any(c => codename.Contains(c)))
+                    if (amdRx.Any(c => Normalize(codename).Contains(Normalize(c))))
                     {
                         Amd_SettingsGroup.Visibility = Visibility.Visible;
                         Amd_SettingsGroup.Header = $"AMD {deviceName}";
@@ -100,18 +102,18 @@ public sealed partial class GraphicsPage : Page
                     string[] intel11to14 = { "Tiger Lake", "Alder Lake", "Raptor Lake", "DG1" };
                     string[] intelArc = { "Battlemage", "Meteor Lake", "Lunar Lake", "Arrow Lake", "Panther Lake" };
 
-                    if (intel6th.Any(c => codename.Contains(c)) || intel7to10.Any(c => codename.Contains(c)) || intel11to14.Any(c => codename.Contains(c)) || intelArc.Any(c => codename.Contains(c)))
+                    if (intel6th.Any(c => Normalize(codename).Contains(Normalize(c))) || intel7to10.Any(c => Normalize(codename).Contains(Normalize(c))) || intel11to14.Any(c => Normalize(codename).Contains(Normalize(c))) || intelArc.Any(c => Normalize(codename).Contains(Normalize(c))))
                     {
                         Intel_SettingsGroup.Visibility = Visibility.Visible;
                         Intel_SettingsGroup.Header = $"INTEL {deviceName}";
 
-                        if (intel6th.Any(c => codename.Contains(c)))
+                        if (intel6th.Any(c => Normalize(codename).Contains(Normalize(c))))
                             detectedGPUs.Add("Intel® 6th Gen Processor Graphics");
-                        else if (intel7to10.Any(c => codename.Contains(c)))
+                        else if (intel7to10.Any(c => Normalize(codename).Contains(Normalize(c))))
                             detectedGPUs.Add("Intel® 7th-10th Gen Processor Graphics");
-                        else if (intel11to14.Any(c => codename.Contains(c)))
+                        else if (intel11to14.Any(c => Normalize(codename).Contains(Normalize(c))))
                             detectedGPUs.Add("Intel® 11th-14th Gen Processor Graphics");
-                        else if (intelArc.Any(c => codename.Contains(c)))
+                        else if (intelArc.Any(c => Normalize(codename).Contains(Normalize(c))))
                             detectedGPUs.Add("Intel® Arc™ Graphics");
                     }
                     break;

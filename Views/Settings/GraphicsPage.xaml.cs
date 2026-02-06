@@ -3,7 +3,6 @@ using AutoOS.Views.Installer.Actions;
 using AutoOS.Views.Settings.Scheduling.Models;
 using AutoOS.Views.Settings.Scheduling.Services;
 using Downloader;
-using Markdig.Extensions.Tables;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Management;
@@ -65,8 +64,6 @@ public sealed partial class GraphicsPage : Page
     {
         if (NvidiaUpdateCheck.Content.ToString().Contains("Update to"))
         {
-            NvidiaUpdateCheck.CheckedContent = NvidiaUpdateCheck.Content.ToString();
-
             if (new ServiceController("Beep").Status == ServiceControllerStatus.Running)
             {
                 var (_, newestVersion, newestDownloadUrl) = await NvidiaHelper.CheckUpdate();

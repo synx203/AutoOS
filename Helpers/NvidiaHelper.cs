@@ -17,31 +17,32 @@ namespace AutoOS.Helpers
             string newestVersion = string.Empty;
             string newestDownloadUrl = string.Empty;
 
-            using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_SystemEnclosure");
-            foreach (ManagementObject obj in searcher.Get().Cast<ManagementObject>().ToArray())
+            foreach (ManagementObject obj in new ManagementObjectSearcher("SELECT * FROM Win32_SystemEnclosure").Get().Cast<ManagementObject>().ToArray())
             {
                 ushort[] chassisTypes = (ushort[])obj["ChassisTypes"];
-                isNotebook = chassisTypes != null && chassisTypes.Any(t => new ushort[] { 1, 8, 9, 10, 11, 12, 14, 18, 21, 31, 32 }.Contains(t));
+                isNotebook = chassisTypes != null && chassisTypes.Any(type => new ushort[] { 1, 8, 9, 10, 11, 12, 14, 18, 21, 31, 32 }.Contains(type));
             }
 
-            string deviceName = null;
+            string deviceName = string.Empty;
 
             foreach (ManagementBaseObject gpu in new ManagementObjectSearcher("SELECT Name, DriverVersion, PNPDeviceID FROM Win32_VideoController").Get())
             {
-                string pnp = gpu["PNPDeviceID"]?.ToString();
-                if (string.IsNullOrEmpty(pnp) || !pnp.Contains("&DEV_")) continue;
+                string rawName = gpu["Name"].ToString();
+                string rawVersion = gpu["DriverVersion"].ToString().Replace(".", string.Empty);
+                string pnp = gpu["PNPDeviceID"].ToString();
 
-                string rawName = gpu["Name"]?.ToString() ?? "";
-                string rawVersion = gpu["DriverVersion"]?.ToString().Replace(".", "") ?? "";
-                currentVersion = rawVersion.Length >= 5 ? rawVersion[^5..].Insert(3, ".") : "";
-
-                if (rawName.StartsWith("NVIDIA"))
+                if (pnp.Contains("&DEV_"))
                 {
-                    var match = Regex.Match(rawName, @"(?<=NVIDIA )(.*?)(?= \(| [0-9]+GB| with Max-Q Design| COLLECTORS EDITION)");
-                    if (match.Success) deviceName = match.Value.Trim().Replace("Super", "SUPER");
-                }
+                    string[] split = pnp.Split("&DEV_");
 
-                if (!string.IsNullOrEmpty(deviceName)) break;
+                    Regex nameRegex = new(@"(?<=NVIDIA )(.*(?= \([A-Z]+\))|.*(?= [0-9]+GB)|.*(?= with Max-Q Design)|.*(?= COLLECTORS EDITION)|.*)");
+
+                    if (Regex.IsMatch(rawName, @"^NVIDIA") && nameRegex.IsMatch(rawName))
+                    {
+                        deviceName = nameRegex.Match(rawName).Value.Trim().Replace("Super", "SUPER");
+                        currentVersion = rawVersion.Substring(rawVersion.Length - 5, 5).Insert(3, ".");
+                    }
+                }
             }
 
             if (string.IsNullOrEmpty(deviceName))
