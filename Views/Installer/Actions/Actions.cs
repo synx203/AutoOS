@@ -543,7 +543,10 @@ public static class ProcessActions
                 await process.WaitForExitAsync();
 
                 if (!string.IsNullOrWhiteSpace(output) && string.IsNullOrWhiteSpace(errorOutput))
+                {
+                    uiContext?.Post(_ => InstallPage.Info.Title = title, null);
                     break;
+                }
             }
             catch
             { }
@@ -551,13 +554,11 @@ public static class ProcessActions
             for (int i = 30; i >= 0; i--)
             {
                 int secondsLeft = i;
-                uiContext?.Post(_ =>
-                {
-                    InstallPage.Info.Title = $"{title} - Download failed, retrying in {secondsLeft}s";
-                }, null);
-
+                uiContext?.Post(_ => InstallPage.Info.Title = $"{title} - Download failed, retrying in {secondsLeft}s", null);
                 await Task.Delay(1000);
             }
+
+            uiContext?.Post(_ => InstallPage.Info.Title = $"{title} - Retrying now...", null);
         }
 
         uiContext?.Post(_ => InstallPage.Info.Title = title, null);

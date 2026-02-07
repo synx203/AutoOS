@@ -94,7 +94,7 @@ public static class GraphicsStage
             ("Installing the NVIDIA driver", async () => await ProcessActions.RefreshUI(), () => NVIDIA == true),
 
             // download the latest amd driver
-            ("Downloading the latest AMD Driver", async () => await ProcessActions.RunDownload(await ProcessActions.GetLatestAmdDriverUrl(), Path.GetTempPath(), "driver.exe"), () => AMD_RX5000_RX9000 == true),
+            ("Downloading the latest AMD Driver", async () => await ProcessActions.RunDownload("https://drivers.amd.com/drivers/whql-amd-software-adrenalin-edition-26.1.1-win11-a.exe", Path.GetTempPath(), "driver.exe"), () => AMD_RX5000_RX9000 == true),
 
             // extract the driver
             ("Extracting the AMD driver", async () => await ProcessActions.RunExtract(Path.Combine(Path.GetTempPath(), "driver.exe"), Path.Combine(Path.GetTempPath(), "driver")), () => AMD_RX5000_RX9000 == true),
@@ -238,9 +238,18 @@ public static class GraphicsStage
             ("Disabling issue detection", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\AIM"" /v ""LaunchBugTool"" /t REG_DWORD /d 0 /f"), () => AMD_RX5000_RX9000 == true),
 
             // disable hotkeys
-            ("Disabling hotkeys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN\R3DBk"" /v ""HotkeysDisabled"" /t REG_DWORD /d 1 /f"), () => AMD_RX5000_RX9000 == true),
+            ("Disabling hotkeys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN\R3DBk"" /v ChillHk /t REG_DWORD /d 4730 /f"), () => AMD_RX5000_RX9000 == true),
+			("Disabling hotkeys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v ChillHk /t REG_DWORD /d 4730 /f"), () => AMD_RX5000_RX9000 == true),
+			("Disabling hotkeys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN\R3DBk"" /v DelagHk /t REG_DWORD /d 4684 /f"), () => AMD_RX5000_RX9000 == true),
+			("Disabling hotkeys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v DelagHk /t REG_DWORD /d 4684 /f"), () => AMD_RX5000_RX9000 == true),
+			("Disabling hotkeys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN\R3DBk"" /v BoostHk /t REG_DWORD /d 4683 /f"), () => AMD_RX5000_RX9000 == true),
+			("Disabling hotkeys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v BoostHk /t REG_DWORD /d 4683 /f"), () => AMD_RX5000_RX9000 == true),
+			("Disabling hotkeys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN\R3DBk"" /v DelagBoostIndicatorHk /t REG_DWORD /d 1053260 /f"), () => AMD_RX5000_RX9000 == true),
+			("Disabling hotkeys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v DelagBoostIndicatorHk /t REG_DWORD /d 1053260 /f"), () => AMD_RX5000_RX9000 == true),
+			("Disabling hotkeys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\DVR"" /v HotkeysDisabled /t REG_DWORD /d 1 /f"), () => AMD_RX5000_RX9000 == true),
 
             // disable overlays
+            ("Disabling overlays", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\DVR"" /v ""ShowRSOverlay"" /t REG_SZ /d false /f"), () => AMD_RX5000_RX9000 == true),
             ("Disabling overlays", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN\Performance"" /v ""MetricsOverlayState"" /t REG_DWORD /d 0 /f"), () => AMD_RX5000_RX9000 == true),
 
             // disable web browser
@@ -261,9 +270,11 @@ public static class GraphicsStage
             // disable animations & effects
             ("Disabling animations & effects", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v ""AnimationEffect"" /t REG_SZ /d false /f"), () => AMD_RX5000_RX9000 == true),
 
+            // set theme to system
+            ("Setting Theme to System", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""Software\AMD\CN"" /v ""RSXColorScheme"" /t REG_DWORD /d 0 /f"), () => AMD_RX5000_RX9000 == true),
+
             // disable unnecessary services
             ("Disabling unnecessary services", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AMD Crash Defender Service"" /v Start /t REG_DWORD /d 4 /f & sc stop ""AMD Crash Defender Service"""), () => AMD_RX5000_RX9000 == true),
-            ("Disabling unnecessary services", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AMD External Events Utility"" /v Start /t REG_DWORD /d 4 /f & sc stop ""AMD External Events Utility"""), () => AMD_RX5000_RX9000 == true),
             ("Disabling unnecessary services", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\amdfendr"" /v Start /t REG_DWORD /d 4 /f & sc stop ""amdfendr"""), () => AMD_RX5000_RX9000 == true),
             ("Disabling unnecessary services", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\amdfendrmgr"" /v Start /t REG_DWORD /d 4 /f & sc stop ""amdfendrmgr"""), () => AMD_RX5000_RX9000 == true),
             ("Disabling unnecessary services", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\amdlog"" /v Start /t REG_DWORD /d 4 /f & sc stop ""amdlog"""), () => AMD_RX5000_RX9000 == true),

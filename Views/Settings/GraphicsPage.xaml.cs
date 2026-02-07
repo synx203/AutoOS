@@ -48,7 +48,7 @@ public sealed partial class GraphicsPage : Page
                 Amd_SettingsGroup.Visibility = Visibility.Visible;
                 Amd_SettingsGroup.Header = name;
                 Amd_SettingsGroup.Description = $"Current Version: {AmdHelper.GetCurrentVersion()}";
-                AmdUpdateCheck.IsChecked = true;
+                //AmdUpdateCheck.IsChecked = true;
             }
             if (name.Contains("Intel", StringComparison.OrdinalIgnoreCase))
             {
@@ -371,72 +371,72 @@ public sealed partial class GraphicsPage : Page
     }
     private async void AmdUpdateCheck_Checked(object sender, RoutedEventArgs e)
     {
-        if (AmdUpdateCheck.Content.ToString().Contains("Update to"))
-        {
-            if (new ServiceController("Beep").Status == ServiceControllerStatus.Running)
-            {
-                var dialog = new ContentDialog
-                {
-                    Title = "Not implemented yet",
-                    Content = "AMD Driver Update functionality has not been added yet.",
-                    CloseButtonText = "OK",
-                    DefaultButton = ContentDialogButton.Close,
-                    XamlRoot = App.MainWindow.Content.XamlRoot
-                };
-                await dialog.ShowAsync();
+        //if (AmdUpdateCheck.Content.ToString().Contains("Update to"))
+        //{
+        //    if (new ServiceController("Beep").Status == ServiceControllerStatus.Running)
+        //    {
+        //        var dialog = new ContentDialog
+        //        {
+        //            Title = "Not implemented yet",
+        //            Content = "AMD Driver Update functionality has not been added yet.",
+        //            CloseButtonText = "OK",
+        //            DefaultButton = ContentDialogButton.Close,
+        //            XamlRoot = App.MainWindow.Content.XamlRoot
+        //        };
+        //        await dialog.ShowAsync();
 
-                AmdUpdateCheck.IsHitTestVisible = true;
-                AmdUpdateCheck.IsChecked = false;
-                AmdUpdateCheck.Content = "Checking for updates";
-                AmdUpdateCheck.IsChecked = true;
-            }
-            else
-            {
-                AmdUpdateCheck.IsChecked = false;
+        //        AmdUpdateCheck.IsHitTestVisible = true;
+        //        AmdUpdateCheck.IsChecked = false;
+        //        AmdUpdateCheck.Content = "Checking for updates";
+        //        AmdUpdateCheck.IsChecked = true;
+        //    }
+        //    else
+        //    {
+        //        AmdUpdateCheck.IsChecked = false;
 
-                var dialog = new ContentDialog
-                {
-                    Title = "Services & Drivers are disabled",
-                    Content = "Please enable Services & Drivers before updating.",
-                    CloseButtonText = "OK",
-                    DefaultButton = ContentDialogButton.Close,
-                    XamlRoot = App.MainWindow.Content.XamlRoot
-                };
-                await dialog.ShowAsync();
-            }
-        }
-        else
-        {
-            AmdUpdateCheck.CheckedContent = "Checking for updates...";
+        //        var dialog = new ContentDialog
+        //        {
+        //            Title = "Services & Drivers are disabled",
+        //            Content = "Please enable Services & Drivers before updating.",
+        //            CloseButtonText = "OK",
+        //            DefaultButton = ContentDialogButton.Close,
+        //            XamlRoot = App.MainWindow.Content.XamlRoot
+        //        };
+        //        await dialog.ShowAsync();
+        //    }
+        //}
+        //else
+        //{
+        //    AmdUpdateCheck.CheckedContent = "Checking for updates...";
 
-            try
-            {
-                var (currentVersion, newestVersion, newestDownloadUrl) = await AmdHelper.CheckUpdate();
+        //    try
+        //    {
+        //        var (currentVersion, newestVersion, newestDownloadUrl) = await AmdHelper.CheckUpdate();
 
-                // delay
-                await Task.Delay(800);
+        //        // delay
+        //        await Task.Delay(800);
 
-                // check if update is needed
-                if (string.Compare(newestVersion, currentVersion, StringComparison.Ordinal) > 0)
-                {
-                    AmdUpdateCheck.IsChecked = false;
-                    AmdUpdateCheck.Content = "Update to " + newestVersion;
-                }
-                else if (string.Compare(newestVersion, currentVersion, StringComparison.Ordinal) == 0)
-                {
-                    AmdUpdateCheck.IsChecked = false;
-                    AmdUpdateCheck.Content = "No updates available";
-                }
-            }
-            catch
-            {
-                // delay
-                await Task.Delay(800);
+        //        // check if update is needed
+        //        if (string.Compare(newestVersion, currentVersion, StringComparison.Ordinal) > 0)
+        //        {
+        //            AmdUpdateCheck.IsChecked = false;
+        //            AmdUpdateCheck.Content = "Update to " + newestVersion;
+        //        }
+        //        else if (string.Compare(newestVersion, currentVersion, StringComparison.Ordinal) == 0)
+        //        {
+        //            AmdUpdateCheck.IsChecked = false;
+        //            AmdUpdateCheck.Content = "No updates available";
+        //        }
+        //    }
+        //    catch
+        //    {
+        //        // delay
+        //        await Task.Delay(800);
 
-                AmdUpdateCheck.IsChecked = false;
-                AmdUpdateCheck.Content = "Failed to check for updates";
-            }
-        }
+        //        AmdUpdateCheck.IsChecked = false;
+        //        AmdUpdateCheck.Content = "Failed to check for updates";
+        //    }
+        //}
     }
 
     private async void IntelUpdateCheck_Checked(object sender, RoutedEventArgs e)
