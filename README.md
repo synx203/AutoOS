@@ -49,7 +49,7 @@ AutoOS is a WinUI 3 application that automates Windows setup, optimization, and 
 - Installs selected Apps for Office, Development, Music, Messaging, Launchers and disables their startup entries
 - Imports the Epic Games Account from old Windows Install to the new one
 - Imports / Links Epic Games and Steam titles from old Windows Install to the new one
-- Imports Fortnite GameUserSettings and sets Frame Rate and Rendering Mode depending on your Monitor and GPU
+- Sets Fortnite Frame Rate and Rendering Mode depending on your Monitor and GPU
 - Automatically optimizes your GPU, XHCI and NIC Affinities depending on your CPU configuration
 - Groups Services and disables failure actions
 - Cleans up temporary files
