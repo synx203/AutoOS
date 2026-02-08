@@ -995,17 +995,15 @@ public static class ProcessActions
                 children.Remove(pathNode);
                 children.Insert(0, pathNode);
 
-                if (!pathNode.Value?.ToString().Equals(@"C:\\Program Files (x86)\\Steam", StringComparison.OrdinalIgnoreCase) ?? true)
-                {
-                    string pathValue = pathNode.Value?.ToString() ?? "";
-                    string folderSuffix = (pathValue.Length > 2 && pathValue[1] == ':') ? pathValue.Substring(2) : "";
+				string pathValue = pathNode.Value?.ToString() ?? "";
 
-                    string foundPath = drives.FirstOrDefault(drive => Directory.Exists(drive + folderSuffix)) is string fPath ? fPath + folderSuffix : null;
+                string folderSuffix = (pathValue.Length > 2 && pathValue[1] == ':') ? pathValue.Substring(2) : "";
 
-                    if (foundPath != null)
-                        children[0] = new KVObject("path", foundPath);
-                }
-            }
+	            string foundPath = drives.FirstOrDefault(drive => Directory.Exists(drive + folderSuffix)) is string fPath ? fPath + folderSuffix : null;
+
+	            if (foundPath != null)
+		            children[0] = new KVObject("path", foundPath);
+			}
 
             return new KVObject(folder.Name, children);
         })];

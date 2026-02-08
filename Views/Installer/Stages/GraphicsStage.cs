@@ -120,6 +120,7 @@ public static class GraphicsStage
             // set the highest supported refresh rate for every monitor
             ("Setting the highest supported refresh rate for every monitor", async () => await ProcessActions.Sleep(1000), null),
             ("Setting the highest supported refresh rate for every monitor", async () => await ProcessActions.SetHighestRefreshRates(), null),
+			("Setting the highest supported refresh rate for every monitor", async () => await ProcessActions.Sleep(2000), null),
 
             // configure settings
             ("Configuring settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Intel\Display\igfxcui\MediaKeys"" /v ""ProcAmpApplyAlways"" /t REG_DWORD /d 0 /f"), () => Intel_6th == true || Intel_7th_10th == true || Intel_11th_14th == true || Intel_Arc == true),

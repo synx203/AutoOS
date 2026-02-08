@@ -935,6 +935,7 @@ public static class BiosSettingRecommendationsList
         new BiosSettingRecommendation { SetupQuestion = "Uart 4 Enable", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Unused GPP Clocks Off", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "WCK Always On", Type = "Option", RecommendedOption = "Enabled" },
+        new BiosSettingRecommendation { SetupQuestion = "Win7 USB Wake Support", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "X3D Gaming Mode", Type = "Option", RecommendedOption = "Enabled", Condition = () => Ryzen9 == true },
         new BiosSettingRecommendation { SetupQuestion = "X3D Gaming Mode", Type = "Option", RecommendedOption = "Disabled", Condition = () => Ryzen9 == false },
         new BiosSettingRecommendation { SetupQuestion = "XHCI D3 Support", Type = "Option", RecommendedOption = "Disabled" },
