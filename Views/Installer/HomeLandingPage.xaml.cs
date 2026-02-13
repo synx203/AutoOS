@@ -1,7 +1,5 @@
 ﻿using AutoOS.Views.Installer.Actions;
 using Microsoft.Win32;
-using System.Diagnostics;
-using System.Management;
 using System.Runtime.InteropServices;
 using Windows.Storage;
 
@@ -25,7 +23,6 @@ namespace AutoOS.Views.Installer
         {
             #if !DEBUG
                 using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
-                if (key == null) return;
 
                 if (key.GetValue("InstallDate") is int unixSeconds)
                 {
@@ -54,7 +51,7 @@ namespace AutoOS.Views.Installer
                         var dialog = new ContentDialog
                         {
                             Title = "Unsupported Windows Version",
-                            Content = $"AutoOS is currently only supported on new versions of Windows 25H2. \nPlease download it from the Getting Started guide in the README on GitHub.",
+                            Content = $"AutoOS is currently only supported on new versions of Windows 11 25H2. \nPlease download it from the Getting Started guide in the README on GitHub.",
                             CloseButtonText = "OK",
                             DefaultButton = ContentDialogButton.Close,
                             XamlRoot = App.MainWindow.Content.XamlRoot

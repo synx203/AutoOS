@@ -1,4 +1,5 @@
-﻿using AutoOS.Views.Installer.Actions;
+﻿using AutoOS.Helpers;
+using AutoOS.Views.Installer.Actions;
 using CommunityToolkit.WinUI.Controls;
 using Downloader;
 using Microsoft.UI.Text;
@@ -9,8 +10,6 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Windows.Storage;
-using AutoOS.Views.Settings.Power;
-using AutoOS.Views.Settings.Scheduling.Services;
 
 namespace AutoOS.Views.Settings
 {
@@ -32,13 +31,34 @@ namespace AutoOS.Views.Settings
         public HomeLandingPage()
         {
             InitializeComponent();
-            #if !DEBUG
+			#if !DEBUG
                 Loaded += GetChangeLog;
             #endif
-        }
+		}
 
         private async void GetChangeLog(object sender, RoutedEventArgs e)
         {
+            using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+
+            string buildStr = key.GetValue("CurrentBuild")?.ToString() ?? "";
+            string ubrStr = key.GetValue("UBR")?.ToString() ?? "";
+            if (int.TryParse(buildStr, out int build) && int.TryParse(ubrStr, out int ubr))
+            {
+                if (build != 26200 || (build == 26200 && ubr < 7705))
+                {
+                    var dialog = new ContentDialog
+                    {
+                        Title = "AutoOS now requires 25H2",
+                        Content = $"AutoOS is now only supported on Windows 11 25H2. \nPlease follow the Getting Started guide in the README on GitHub to reinstall AutoOS.",
+                        CloseButtonText = "OK",
+                        DefaultButton = ContentDialogButton.Close,
+                        XamlRoot = App.MainWindow.Content.XamlRoot
+                    };
+                    await dialog.ShowAsync();
+                    Application.Current.Exit();
+                }
+            }
+
             string storedVersion = localSettings.Values["Version"] as string;
             string currentVersion = ProcessInfoHelper.Version;
 
@@ -132,162 +152,123 @@ namespace AutoOS.Views.Settings
 
             string previousTitle = string.Empty;
 
-            bool INTEL = false;
-            bool AMD = false;
-            InIHelper iniHelper = new InIHelper(Path.Combine(Path.GetTempPath(), "obs-studio", "basic", "profiles", "Untitled", "basic.ini"));
-
-            using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController"))
-            {
-                foreach (var obj in searcher.Get())
-                {
-                    string name = obj["Name"]?.ToString();
-                    string version = obj["DriverVersion"]?.ToString();
-
-                    if (name != null)
-                    {
-                        if (name.Contains("AMD", StringComparison.OrdinalIgnoreCase) || name.Contains("Radeon", StringComparison.OrdinalIgnoreCase))
-                        {
-                            AMD = true;
-                        }
-                        if (name.Contains("Intel", StringComparison.OrdinalIgnoreCase))
-                        {
-                            INTEL = true;
-                        }
-                    }
-                }
-            }
-
-            var cpuSetsInfo = CpuDetectionService.GetCpuSets();
-            var (pCores, eCores) = CpuDetectionService.GroupCpuSetsByEfficiencyClass(cpuSetsInfo);
-            int PCores = pCores.Count;
-            bool HyperThreading = cpuSetsInfo.HyperThreading;
+            bool Steam = File.Exists(SteamHelper.SteamPath);
 
             Guid guid = Guid.Empty;
 
             var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
             {
-                // reset disabledynamictick
-                ("Resetting disabledynamictick", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"bcdedit /deletevalue disabledynamictick"), null),
+                // process explorer
+                ("Installing Process Explorer", async () => await Task.Run(() => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Process Explorer"))), null),
+				("Installing Process Explorer", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\taskmgr.exe"" /v Debugger /f"), null),
+				("Installing Process Explorer", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), "procexp64.exe"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Process Explorer", "procexp64.exe"), true)), null),
+			    ("Installing Process Explorer", async () => await ProcessActions.RunPowerShell(@"$Shell = New-Object -ComObject WScript.Shell; $Shortcut = $Shell.CreateShortcut([System.IO.Path]::Combine($env:ProgramData, 'Microsoft\Windows\Start Menu\Programs\Process Explorer.lnk')); $Shortcut.TargetPath = [System.IO.Path]::Combine($env:ProgramFiles, 'Process Explorer\procexp64.exe'); $Shortcut.Save()"), null),
+			    ("Installing Process Explorer", async () => await ProcessActions.RunNsudo("CurrentUser", $"cmd /c reg import \"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "processexplorer.reg")}\""), null),
+			    ("Installing Process Explorer", async () => await ProcessActions.Sleep(500), null),
 
-                // update obs studio settings
-                ("Updating OBS Studio Settings", async () => await ProcessActions.RunExtract(Path.Combine(Path.GetTempPath(), "obs-studio.zip"), Path.Combine(Path.GetTempPath(), "obs-studio")), null),
-                ("Updating OBS Studio Settings", async () => iniHelper.AddValue("Encoder", "obs_qsv11_v2", "AdvOut"), () => INTEL == true),
-                ("Updating OBS Studio Settings", async () => iniHelper.AddValue("RecEncoder", "obs_qsv11_v2", "AdvOut"), () => INTEL == true),
-                ("Updating OBS Studio Settings", async () => iniHelper.AddValue("Encoder", "h264_texture_amf", "AdvOut"), () => AMD == true),
-                ("Updating OBS Studio Settings", async () => iniHelper.AddValue("RecEncoder", "h264_texture_amf", "AdvOut"), () => AMD == true),
+                // enable steam client service
+			    ("Enabling Steam Client Service", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Steam Client Service"" /v ""Start"" /t REG_DWORD /d 3 /f"), () => Steam == true),
 
-                // reset power plans
-                ("Resetting power plans", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"powercfg -restoredefaultschemes"), null),
+                // revert native nvme
+                ("Reverting Native NVME", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Policies\Microsoft\FeatureManagement\Overrides"" /v 735209102 /f"), null),
+                ("Reverting Native NVME", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Policies\Microsoft\FeatureManagement\Overrides"" /v 1853569164 /f"), null),
+                ("Reverting Native NVME", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Policies\Microsoft\FeatureManagement\Overrides"" /v 156965516 /f"), null),
+                
+                // remove unneeded registry keys
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"" /v NoCloudApplicationNotification /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsUpdate\UpdatePolicy\PolicyState"" /v ExcludeWUDrivers /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching"" /v DontPromptForWindowsUpdate /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching"" /v SearchOrderConfig /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Device Metadata"" /v PreventDeviceMetadataFromNetwork /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\PushToInstall"" /v DisablePushToInstall /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"" /v AllowCortana /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"" /v AllowCortanaAboveLock /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"" /v AllowCortanaInAAD /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"" /v AllowCortanaInAADPathOOBE /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"" /v AllowCloudSearch /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"" /v ConnectedSearchUseWebOverMeteredConnections /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"" /v DisableWebSearch /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"" /v ConnectedSearchSafeSearch /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"" /v AllowSearchToUseLocation /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech_OneCore\Preferences"" /v ModelDownloadAllowed /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech_OneCore\Preferences"" /v VoiceActivationEnableAboveLockscreen /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds"" /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CloudContent"" /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"" /v SubscribedContent-310093Enabled /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"" /v ContentDeliveryAllowed /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"" /v FeatureManagementEnabled /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"" /v OEMPreInstalledAppsEnabled /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"" /v PreInstalledAppsEnabled /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"" /v PreInstalledAppsEverEnabled /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"" /v SilentInstalledAppsEnabled /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"" /v SoftLandingEnabled /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"" /v SubscribedContentEnabled /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"" /v SubscribedContent-338387Enabled /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"" /v SubscribedContent-338388Enabled /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"" /v SubscribedContent-353698Enabled /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"" /v SystemPaneSuggestionsEnabled /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\DriverSearching"" /v DontPromptForWindowsUpdate /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search"" /v AllowCortana /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search"" /v AllowCortanaAboveLock /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search"" /v AllowCortanaInAAD /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search"" /v AllowCortanaInAADPathOOBE /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search"" /v AllowCloudSearch /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search"" /v EnableDynamicContentInWSB /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search"" /v ConnectedSearchUseWeb /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search"" /v ConnectedSearchPrivacy /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search"" /v ConnectedSearchUseWebOverMeteredConnections /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search"" /v DisableWebSearch /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search"" /v ConnectedSearchSafeSearch /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search"" /v AllowSearchToUseLocation /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\CloudContent"" /v ConfigureWindowsSpotlight /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\CloudContent"" /v IncludeEnterpriseSpotlight /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\CloudContent"" /v DisableThirdPartySuggestions /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\CloudContent"" /v DisableTailoredExperiencesWithDiagnosticData /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\CloudContent"" /v DisableWindowsSpotlightWindowsWelcomeExperience /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\CloudContent"" /v DisableWindowsSpotlightOnActionCenter /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\CloudContent"" /v DisableWindowsSpotlightOnSettings /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"" /v ShowCortanaButton /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"" /v ShowCopilotButton /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"" /v TaskbarMn /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\Explorer"" /v DisableSearchBoxSuggestions /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Speech_OneCore\Preferences"" /v ModelDownloadAllowed /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Speech_OneCore\Preferences"" /v VoiceActivationEnableAboveLockscreen /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\SearchSettings"" /v IsDeviceSearchHistoryEnabled /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\Windows Feeds"" /v EnableFeeds /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer"" /v DisableGraphRecentItems /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("LocalMachine", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"" /v EnableDynamicContentInWSB /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("LocalMachine", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"" /v ConnectedSearchUseWeb /f"), null),
+                ("Removing unneeded registry keys", async () => await ProcessActions.RunNsudo("LocalMachine", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"" /v ConnectedSearchPrivacy /f"), null),
 
-                // create "autoos" power plan
-                (@"Creating ""AutoOS"" power plan", async () => guid = PowerApi.DuplicateScheme(new Guid("8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"), "AutoOS", "AutoOS Power Plan"), null),
+                // revert notification settings
+                (@"Enabling ""Allow notifications to play sounds""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings"" /v NOC_GLOBAL_SETTING_ALLOW_NOTIFICATION_SOUND /f"), null),
+                (@"Enabling ""Show notifications on the lock screen""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings"" /v NOC_GLOBAL_SETTING_ALLOW_TOASTS_ABOVE_LOCK /f"), null),
+                (@"Enabling ""Show notifications on the lock screen""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\PushNotifications"" /v LockScreenToastEnabled /f"), null),
+                (@"Enabling ""Show reminders and incoming VoIP calls on the lock screen""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg delete ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings"" /v NOC_GLOBAL_SETTING_ALLOW_CRITICAL_TOASTS_ABOVE_LOCK /f"), null),
 
-                // hard disk
-                (@"Disabling ""NVMe NOPPME""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("0012ee47-9041-4b5d-9b77-535fba8b1442")), PowerApi.AllocGuid(new Guid("fc7372b6-ab2d-43ee-8797-15e9841f2cca")), 0), null),
-                (@"Setting ""Primary NVMe Idle Timeout"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("0012ee47-9041-4b5d-9b77-535fba8b1442")), PowerApi.AllocGuid(new Guid("d639518a-e56d-4345-8af2-b9f32fb26109")), 0), null),
-                (@"Setting ""Secondary NVMe Idle Timeout"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("0012ee47-9041-4b5d-9b77-535fba8b1442")), PowerApi.AllocGuid(new Guid("d3d55efd-c1ff-424e-9dc3-441be7833010")), 0), null),
-                (@"Setting ""Turn off hard disk after"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("0012ee47-9041-4b5d-9b77-535fba8b1442")), PowerApi.AllocGuid(new Guid("6738e2c4-e8a5-4a42-b16a-e040e769756e")), 0), null),
+                // disable "show websites from your browsing history"
+                (@"Disabling ""Show websites from your browsing history""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"" /v Start_RecoPersonalizedSites /t REG_DWORD /d 0 /f"), null),
 
-                // sleep
-                (@"Disabling ""Allow Away Mode Policy""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("238c9fa8-0aad-41ed-83f4-97be242c8f20")), PowerApi.AllocGuid(new Guid("25dfa149-5dd1-4736-b5ab-e8a37b5b8187")), 0), null),
-                (@"Disabling ""Allow hybrid sleep""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("238c9fa8-0aad-41ed-83f4-97be242c8f20")), PowerApi.AllocGuid(new Guid("94ac6d29-73ce-41a6-809f-6363ba21b47e")), 0), null),
-                (@"Disabling ""Allow Standby States""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("238c9fa8-0aad-41ed-83f4-97be242c8f20")), PowerApi.AllocGuid(new Guid("abfc2519-3608-4c2a-94ea-171b0ed546ab")), 0), null),
-                (@"Disabling ""Allow wake timers""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("238c9fa8-0aad-41ed-83f4-97be242c8f20")), PowerApi.AllocGuid(new Guid("bd3b718a-0680-4d9d-8ab2-e1d2b4ac806d")), 0), null),
-                (@"Setting ""System unattended sleep timeout"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("238c9fa8-0aad-41ed-83f4-97be242c8f20")), PowerApi.AllocGuid(new Guid("7bc4a2f9-d8fc-4469-b07b-33eb785aaca0")), 0), null),
+                // disable "show account-related notifications"
+                (@"Disabling ""Show account-related notifications""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"" /v Start_AccountNotifications /t REG_DWORD /d 0 /f"), null),
+                
+                // enable "Show recommended files in Start, recent files in File Explorer, and items in Jump Lists"
+                ("Enabling tracking of recent files", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"" /v Start_TrackDocs /t REG_DWORD /d 1 /f"), null),
 
-                // usb settings
-                (@"Setting ""Hub Selective Suspend Timeout"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("2a737441-1930-4402-8d77-b2bebba308a3")), PowerApi.AllocGuid(new Guid("0853a681-27c8-4100-a2fd-82013e970683")), 0), null),
-                (@"Disabling ""USB 3 Link Power Mangement""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("2a737441-1930-4402-8d77-b2bebba308a3")), PowerApi.AllocGuid(new Guid("d4e98f31-5ffe-4ce1-be31-1b38b384c009")), 0), null),
-                (@"Disabling ""USB selective suspend setting""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("2a737441-1930-4402-8d77-b2bebba308a3")), PowerApi.AllocGuid(new Guid("48e6b7a6-50f5-4782-a5d4-53bb8f07e226")), 0), null),
+                // reset "allow storage sense" policy
+				(@"Resetting ""Allow Storage Sense"" policy", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\StorageSense"" /v AllowStorageSenseGlobal /f"), null),
+                
+                // reset "configure automatic updates" policy
+				(@"Resetting ""Configure Automatic Updates"" policy", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"" /f"), null),
 
-                // idle resiliency
-                (@"Setting ""Deep Sleep Enabled/Disabled"" to ""Deep Sleep Disabled""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("2e601130-5351-4d9d-8e04-252966bad054")), PowerApi.AllocGuid(new Guid("d502f7ee-1dc7-4efd-a55d-f04b6f5c0545")), 0), null),
-                (@"Setting ""Execution Required power request timeout"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("2e601130-5351-4d9d-8e04-252966bad054")), PowerApi.AllocGuid(new Guid("3166bc41-7e98-4e03-b34e-ec0f5f2b218e")), 0), null),
+                // reset "allow storage sense" policy
+				(@"Resetting ""Allow Storage Sense"" policy", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\StorageSense"" /v AllowStorageSenseGlobal /f"), null),
+                
+                // fix "do not include drivers with windows updates" policy
+				(@"Fixing ""Do not include drivers with Windows Updates"" policy", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"" /v ExcludeWUDriversInQualityUpdate /t REG_DWORD /d 1 /f"), null),
 
-                // interrupt steering settings
-                (@"Setting ""Target Load"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("48672f38-7a9a-4bb2-8bf8-3d85be19de4e")), PowerApi.AllocGuid(new Guid("73cde64d-d720-4bb2-a860-c755afe77ef2")), 0), null),
-                (@"Setting ""Interrupt Steering Mode"" to ""Any processor""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("48672f38-7a9a-4bb2-8bf8-3d85be19de4e")), PowerApi.AllocGuid(new Guid("2bfc24f9-5ea2-4801-8213-3dbae01aa39d")), 1), () => PCores >= 4),
-                (@"Setting ""Interrupt Steering Mode"" to ""Any processor""", async () => PowerApi.PowerWriteDCValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("48672f38-7a9a-4bb2-8bf8-3d85be19de4e")), PowerApi.AllocGuid(new Guid("2bfc24f9-5ea2-4801-8213-3dbae01aa39d")), 1), () => PCores >= 4),
-                (@"Setting ""Unparked time trigger"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("48672f38-7a9a-4bb2-8bf8-3d85be19de4e")), PowerApi.AllocGuid(new Guid("d6ba4903-386f-4c2c-8adb-5c21b3328d25")), 0), null),
-
-                // power buttons and lid
-                (@"Setting ""Start menu power button"" to ""Shut down""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("4f971e89-eebd-4455-a8de-9e59040e7347")), PowerApi.AllocGuid(new Guid("a7066653-8d6c-40a8-910e-a1f54b84c7e5")), 2), null),
-                (@"Setting ""Start menu power button"" to ""Shut down""", async () => PowerApi.PowerWriteDCValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("4f971e89-eebd-4455-a8de-9e59040e7347")), PowerApi.AllocGuid(new Guid("a7066653-8d6c-40a8-910e-a1f54b84c7e5")), 2), null),
-
-                // processor power management
-                (@"Disabling ""Allow Throttle States""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("3b04d4fd-1cc7-4f23-ab1c-d1337819c4bb")), 0), null),
-                (@"Setting ""Complex unpark policy"" to ""Round robin""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("b669a5e9-7b1d-4132-baaa-49190abcfeb6")), 1), null),
-                (@"Setting ""Complex unpark policy"" to ""Round robin""", async () => PowerApi.PowerWriteDCValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("b669a5e9-7b1d-4132-baaa-49190abcfeb6")), 1), null),
-                (@"Setting ""Heterogeneous policy in effect"" to ""Use heterogeneous policy 0""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("7f2f5cfa-f10c-4823-b5e1-e93ae85f46b5")), 0), null),
-                (@"Setting ""Heterogeneous policy in effect"" to ""Use heterogeneous policy 0""", async () => PowerApi.PowerWriteDCValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("7f2f5cfa-f10c-4823-b5e1-e93ae85f46b5")), 0), null),
-                (@"Setting ""Heterogeneous short running thread scheduling policy"" to ""Automatic""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("bae08b81-2d5e-4688-ad6a-13243356654b")), 5), null),
-                (@"Setting ""Heterogeneous short running thread scheduling policy"" to ""Automatic""", async () => PowerApi.PowerWriteDCValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("bae08b81-2d5e-4688-ad6a-13243356654b")), 5), null),
-                (@"Setting ""Heterogeneous thread scheduling policy"" to ""Automatic""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("93b8b6dc-0698-4d1c-9ee4-0644e900c85d")), 5), null),
-                (@"Setting ""Heterogeneous thread scheduling policy"" to ""Automatic""", async () => PowerApi.PowerWriteDCValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("93b8b6dc-0698-4d1c-9ee4-0644e900c85d")), 5), null),
-                (@"Setting ""Initial performance for Processor Power Efficiency Class 1 when unparked"" to 100%", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("1facfc65-a930-4bc5-9f38-504ec097bbc0")), 100), null),
-                (@"Setting ""Latency sensitivity hint min unparked cores/packages"" to 100%", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("616cdaa5-695e-4545-97ad-97dc2d1bdd88")), 100), null),
-                (@"Setting ""Latency sensitivity hint min unparked cores/packages for Processor Power Efficiency Class 1"" to 100%", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("616cdaa5-695e-4545-97ad-97dc2d1bdd89")), 100), null),
-                (@"Setting ""Latency sensitivity hint processor performance"" to 100%", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("619b7505-003b-4e82-b7a6-4dd29c300971")), 100), null),
-                (@"Setting ""Latency sensitivity hint processor performance for Processor Power Efficiency Class 1"" to 100%", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("619b7505-003b-4e82-b7a6-4dd29c300972")), 100), null),
-                (@"Setting ""Long running threads' processor architecture upper limit"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("bf903d33-9d24-49d3-a468-e65e0325046a")), 0), null),
-                (@"Setting ""Processor autonomous activity window"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("cfeda3d0-7697-4566-a922-a9086cd49dfa")), 0), null),
-                (@"Setting ""Processor idle demote threshold"" to 1", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("4b92d758-5a24-4851-a470-815d78aee119")), 1), null),
-                (@"Setting ""Processor idle disable"" to ""Disable idle""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("5d76a2ca-e8c0-402f-a133-2158492d58ad")), 1), () => HyperThreading == false),
-                (@"Setting ""Processor idle promote threshold"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("7b224883-b3cc-4d79-819f-8374152cbe7c")), 0), null),
-                (@"Setting ""Processor idle time check"" to 200000", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("c4581c31-89ab-4597-8e2b-9c9cab440e6b")), 200000), null),
-                (@"Disabling ""Processor performance autonomous mode""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("8baa4a8a-14c6-4451-8e8b-14bdbd197537")), 0), null),
-                (@"Setting ""Processor performance core parking concurrency headroom threshold"" to 100", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("f735a673-2066-4f80-a0c5-ddee0cf1bf5d")), 100), null),
-                (@"Setting ""Processor performance core parking concurrency threshold"" to 100", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("2430ab6f-a520-44a2-9601-f7f23b5134b1")), 100), null),
-                (@"Setting ""Processor performance core parking decrease policy"" to ""Single Core""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("71021b41-c749-4d21-be74-a00f335d582b")), 1), null),
-                (@"Setting ""Processor performance core parking decrease time"" to 1", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("dfd10d17-d5eb-45dd-877a-9a34ddd15c82")), 1), null),
-                (@"Setting ""Processor performance core parking distribution threshold"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("4bdaf4e9-d103-46d7-a5f0-6280121616ef")), 0), null),
-                (@"Setting ""Processor performance core parking increase policy"" to ""All possible cores""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("c7be0679-2817-4d69-9d02-519a537ed0c6")), 2), null),
-                (@"Setting ""Processor performance core parking increase time"" to 1", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("2ddd5a84-5a71-437e-912a-db0b8c788732")), 1), null),
-                (@"Setting ""Processor performance core parking min cores for Processor Power Efficiency Class 1"" to 100%", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("0cc5b647-c1df-4637-891a-dec35c318584")), 100), null),
-                (@"Setting ""Processor performance core parking overutilization threshold"" to 5", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("943c8cb6-6f93-4227-ad87-e9a3feec08d1")), 5), null),
-                (@"Setting ""Processor performance core parking parked performance state"" to ""Lightest Performance State""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("447235c7-6a8d-4cc0-8e24-9eaf70b96e2b")), 2), null),
-                (@"Setting ""Processor performance core parking parked performance state for Processor Power Efficiency Class 1"" to ""Lightest Performance State""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("447235c7-6a8d-4cc0-8e24-9eaf70b96e2c")), 2), null),
-                (@"Setting ""Processor performance decrease policy"" to ""Rocket""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("40fbefc7-2e9d-4d25-a185-0cfd8574bac6")), 2), null),
-                (@"Setting ""Processor performance decrease policy for Processor Power Efficiency Class 1"" to ""Rocket""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("40fbefc7-2e9d-4d25-a185-0cfd8574bac7")), 2), null),
-                (@"Setting ""Processor performance decrease threshold"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("12a0ab44-fe28-4fa9-b3bd-4b64f44960a6")), 0), null),
-                (@"Setting ""Processor performance decrease threshold for Processor Power Efficiency Class 1"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("12a0ab44-fe28-4fa9-b3bd-4b64f44960a7")), 0), null),
-                (@"Setting ""Processor performance decrease time for Processor Power Efficiency Class 1"" to 1", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("7f2492b6-60b1-45e5-ae55-773f8cd5caec")), 1), null),
-                (@"Setting ""Processor performance decrease time for Processor Power Efficiency Class 1"" to 1", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("d8edeb9b-95cf-4f95-a73c-b061973693c9")), 1), null),
-                (@"Setting ""Processor performance increase policy for Processor Power Efficiency Class 1"" to ""Rocket""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("465e1f50-b610-473a-ab58-00d1077dc419")), 2), null),
-                (@"Setting ""Processor performance increase threshold"" to 1", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("06cadf0e-64ed-448a-8927-ce7bf90eb35d")), 1), null),
-                (@"Setting ""Processor performance increase threshold for Processor Power Efficiency Class 1"" to 1", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("06cadf0e-64ed-448a-8927-ce7bf90eb35e")), 1), null),
-                (@"Setting ""Processor performance time check interval"" to 5000ms", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("4d2b0152-7d5c-498b-88e2-34345392a2c5")), 5000), null),
-                (@"Setting ""Processor performance time check interval"" to 5000ms", async () => PowerApi.PowerWriteDCValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("4d2b0152-7d5c-498b-88e2-34345392a2c5")), 5000), null),
-                (@"Setting ""Short running threads' processor architecture upper limit"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("54533251-82be-4824-96c1-47b60b740d00")), PowerApi.AllocGuid(new Guid("828423eb-8662-4344-90f7-52bf15870f5a")), 0), null),
-
-                // display
-                (@"Setting ""Console lock display off timeout"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("7516b95f-f776-4464-8c53-06167f40cc99")), PowerApi.AllocGuid(new Guid("8ec4b3a5-6868-48c2-be75-4f3044be88a7")), 0), null),
-                (@"Setting ""Dim display after"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("7516b95f-f776-4464-8c53-06167f40cc99")), PowerApi.AllocGuid(new Guid("17aaa29b-8b43-4b94-aafe-35f64daaf1ee")), 0), null),
-                (@"Setting ""Turn off display after"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("7516b95f-f776-4464-8c53-06167f40cc99")), PowerApi.AllocGuid(new Guid("3c0bc021-c8a8-4e07-a973-6b14cbcb2b7e")), 0), null),
-
-                // presence aware power behavior
-                (@"Setting ""Human Presence Sensor Adaptive Away Display Timeout"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("8619b916-e004-4dd8-9b66-dae86f806698")), PowerApi.AllocGuid(new Guid("0a7d6ab6-ac83-4ad1-8282-eca5b58308f3")), 0), null),
-                (@"Setting ""Human Presence Sensor Adaptive Inattentive Dim Timeout"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("8619b916-e004-4dd8-9b66-dae86f806698")), PowerApi.AllocGuid(new Guid("cf8c6097-12b8-4279-bbdd-44601ee5209d")), 0), null),
-                (@"Setting ""Non-sensor Input Presence Timeout"" to 0", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("8619b916-e004-4dd8-9b66-dae86f806698")), PowerApi.AllocGuid(new Guid("5adbbfbc-074e-4da1-ba38-db8b36b2c8f3")), 0), null),
-
-                // battery
-                (@"Disabling ""Critical battery notification""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("e73a048d-bf27-4f12-9731-8b2076e8891f")), PowerApi.AllocGuid(new Guid("5dbb7c9f-38e9-40d2-9749-4f8a0e9f640f")), 0), null),
-                (@"Disabling ""Low battery notification""", async () => PowerApi.PowerWriteACValueIndex(IntPtr.Zero, PowerApi.AllocGuid(guid), PowerApi.AllocGuid(new Guid("e73a048d-bf27-4f12-9731-8b2076e8891f")), PowerApi.AllocGuid(new Guid("bcded951-187b-4d05-bccc-f7e51960c258")), 0), null),
-            
-                // apply changes
-                ("Applying Changes", async () => PowerApi.PowerSetActiveScheme(IntPtr.Zero, ref guid), null),
-
-                // optimize multimedia class scheduler service (mmcss)
-                ("Optimizing Multimedia Class Scheduler Service (MMCSS)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile"" /v SchedulerTimerResolution /t REG_DWORD /d 1 /f"), null),
-                ("Optimizing Multimedia Class Scheduler Service (MMCSS)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio"" /v ""Scheduling Category"" /t REG_SZ /d High /f"), null),
-                ("Optimizing Multimedia Class Scheduler Service (MMCSS)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio"" /v ""Priority When Yielded"" /t REG_DWORD /d 19 /f"), null),
-                ("Optimizing Multimedia Class Scheduler Service (MMCSS)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Pro Audio"" /v ""Scheduling Category"" /t REG_SZ /d High /f"), null),
-                ("Optimizing Multimedia Class Scheduler Service (MMCSS)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Pro Audio"" /v ""Priority When Yielded"" /t REG_DWORD /d 19 /f"), null),
-                ("Optimizing Multimedia Class Scheduler Service (MMCSS)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Playback"" /v ""Scheduling Category"" /t REG_SZ /d High /f"), null),
-                ("Optimizing Multimedia Class Scheduler Service (MMCSS)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Playback"" /v ""Priority When Yielded"" /t REG_DWORD /d 19 /f"), null),
-            
-                // optimize notepad settings
-                ("Optimizing Notepad settings", async () => await ProcessActions.RunPowerShellScript("notepad.ps1", ""), null),
+                // enable automatic recovery
+                ("Enabling automatic recovery", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"bcdedit /deletevalue recoveryenabled"), null),
             };
 
             var filteredActions = actions.Where(a => a.Condition == null || a.Condition.Invoke()).ToList();

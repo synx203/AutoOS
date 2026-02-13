@@ -21,10 +21,19 @@
 </p>
 </div>
 
-AutoOS is a WinUI 3 application that automates Windows setup, optimization, and configuration with a focus on gaming performance, privacy, and system compatibility.
+AutoOS is a WinUI 3 application that automates Windows setup and optimization with a focus on gaming performance, privacy and system compatibility.
 
 ## ✨ Features
 **AutoOS Installer**:
+- Removes and disables 8.3 file names before installing Windows
+- Creates a local user account
+- Cleans up visual clutter
+- Disables automatic driver/app installation via Windows Update
+- Remove web results from Windows start menu
+- Precompiles .NET assemblies to improve PowerShell loading time
+- Pauses Windows Updates for 100 years
+- Adds Recycle Bin to Quick Access
+- Sets the correct Timezone, Regional format, Keyboard Layout and secondary language for your country
 - Creates an optimized Power plan
 - Adjusts Registry and Group Policies for Privacy, Work and Performance
 - Disables selected Security features
@@ -93,7 +102,7 @@ AutoOS is a WinUI 3 application that automates Windows setup, optimization, and 
 
 **Step 1:** Before installing, please join my [Discord Server](https://discord.gg/bZU4dMMWpg) to receive installation support and stay informed about future updates or changes.
 
-**Step 2:** Download the latest Windows 25H2 ISO file from [here](https://drive.google.com/drive/folders/1BlAYofjlW1bU-WPG3jXygO1ezoJ4gPs7?usp=sharing). Other ISOs are not supported to guarantee consistency. 
+**Step 2:** Download the latest Windows 25H2 ISO file from [here](https://drive.google.com/drive/folders/1BlAYofjlW1bU-WPG3jXygO1ezoJ4gPs7?usp=sharing) (Log into your Google Account if you get an error). Other ISOs are not supported to guarantee consistency. 
 
 **Step 3:** Download your Ethernet, Wi-Fi and Bluetooth driver (No Audio, Chipset, etc). 
 
