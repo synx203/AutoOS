@@ -723,6 +723,7 @@ public static class BiosSettingRecommendationsList
         new BiosSettingRecommendation { SetupQuestion = "Disable DF to external downstream IP SyncFloodPropagation", Type = "Option", RecommendedOption = "Sync flood disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Disable Memory Error Injection", Type = "Option", RecommendedOption = "True" },
         new BiosSettingRecommendation { SetupQuestion = "Discrete GPU Hotplug Mode", Type = "Option", RecommendedOption = "Non-Hotplug Mode" },
+        new BiosSettingRecommendation { SetupQuestion = "Discrete GPU Hotplug Mode", Type = "Option", RecommendedOption = "Basic Mode" },
         new BiosSettingRecommendation { SetupQuestion = "Download and Install ASUS DriverHub", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Dynamic OC Switcher", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "ECC", Type = "Option", RecommendedOption = "Disabled" },

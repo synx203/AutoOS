@@ -273,6 +273,9 @@ namespace AutoOS.Views.Settings
                 // enable automatic recovery
                 ("Enabling automatic recovery", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"bcdedit /deletevalue recoveryenabled"), null),
 
+                // disable virtualization-based security (VBS)
+                ("Disabling Virtualization-based Security (VBS)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard"" /v EnableVirtualizationBasedSecurity /t REG_DWORD /d 0 /f"), null),
+
                 // enable scroll wheel for alt tab
                 (@"Enabling Scroll Wheel for Alt Tab", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Ingan121\ClassicWindowSwitcher"" /v ScrollWheelBehavior /t REG_DWORD /d 1 /f"), null),
 
