@@ -207,23 +207,15 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
                             setting.OriginalSelectedOption = setting.SelectedOption;
 
                         var matchingRules = BiosSettingRecommendationsList.Rules
-                            .Where(r =>
-                                string.Equals(r.SetupQuestion?.Trim(), setting.SetupQuestion?.Trim(), StringComparison.OrdinalIgnoreCase) &&
-                                (
-                                    (r.Type?.Equals("Option", StringComparison.OrdinalIgnoreCase) ?? false) &&
-                                    setting.Options.Any(o =>
-                                        string.Equals(o.Label?.Trim(), r.RecommendedOption?.Trim(), StringComparison.OrdinalIgnoreCase)
-                                    )
-                                    ||
-                                    (r.Type?.Equals("Value", StringComparison.OrdinalIgnoreCase) ?? false && setting.HasValueField)
-                                )
-                            )
+                            .Where(r => string.Equals(r.SetupQuestion?.Trim(), setting.SetupQuestion?.Trim(), StringComparison.OrdinalIgnoreCase))
                             .Where(r => r.Condition == null || r.Condition())
+                            .OrderByDescending(r => r.Condition != null)
                             .ToList();
 
                         foreach (var rule in matchingRules)
                         {
                             string recommendedLabel = rule.RecommendedOption?.Trim().ToLowerInvariant();
+                            bool ruleApplicable = false;
 
                             if ((rule.Type?.Equals("Option", StringComparison.OrdinalIgnoreCase) ?? false) && setting.HasOptions)
                             {
@@ -232,23 +224,32 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
                                 var recommended = setting.Options
                                     .FirstOrDefault(o => o.Label?.Trim().ToLowerInvariant() == recommendedLabel);
 
-                                if (recommended != null && selectedLabel != recommended.Label?.ToLowerInvariant())
+                                if (recommended != null)
                                 {
-                                    setting.RecommendedOption = recommended;
-                                    setting.IsRecommended = true;
-                                    break;
+                                    ruleApplicable = true;
+                                    if (selectedLabel != recommended.Label?.ToLowerInvariant())
+                                    {
+                                        setting.RecommendedOption = recommended;
+                                        setting.IsRecommended = true;
+                                    }
                                 }
                             }
 
                             if ((rule.Type?.Equals("Value", StringComparison.OrdinalIgnoreCase) ?? false) && setting.HasValueField)
                             {
                                 string currentValue = setting.Value?.Trim().ToLowerInvariant();
+                                ruleApplicable = true;
+                                
                                 if (!string.IsNullOrEmpty(currentValue) && currentValue != recommendedLabel)
                                 {
                                     setting.IsRecommended = true;
                                     setting.RecommendedValue = rule.RecommendedOption;
-                                    break;
                                 }
+                            }
+
+                            if (ruleApplicable)
+                            {
+                                break;
                             }
                         }
 
@@ -260,9 +261,10 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
 
                 var ruleOrder = BiosSettingRecommendationsList.Rules
                     .Select((r, i) => new { r.SetupQuestion, r.RecommendedOption, Index = i })
+                    .GroupBy(x => (x.SetupQuestion?.ToLowerInvariant(), x.RecommendedOption?.ToLowerInvariant()))
                     .ToDictionary(
-                        x => (x.SetupQuestion.ToLowerInvariant(), x.RecommendedOption.ToLowerInvariant()),
-                        x => x.Index
+                        g => g.Key,
+                        g => g.First().Index
                     );
 
                 var sortedRecommended = parsedList
@@ -302,7 +304,7 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
                 SwitchPresenter.Value = "Loaded";
                 Search.IsEnabled = true;
                 Backup.IsEnabled = true;
-            }
+    }
             else
             {
                 if (manufacturer.Contains("asus") || manufacturer.Contains("asustek"))
@@ -319,9 +321,9 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
                     }
                 }
                 else
-                {
-                    SwitchPresenter.Value = "HII Resources (Other)";
-                }
+{
+    SwitchPresenter.Value = "HII Resources (Other)";
+}
             }
         }
     }

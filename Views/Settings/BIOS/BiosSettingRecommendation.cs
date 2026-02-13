@@ -12,22 +12,22 @@ public class BiosSettingRecommendation
 
 public static class BiosSettingRecommendationsList
 {
-    public static bool Ryzen9 => new ManagementObjectSearcher("SELECT Name FROM Win32_Processor")
+    public static readonly bool Ryzen9 = new ManagementObjectSearcher("SELECT Name FROM Win32_Processor")
         .Get()
         .Cast<ManagementObject>()
         .Any(mo => mo["Name"].ToString().Contains("Ryzen 9"));
 
-    public static bool RyzenX3D => new ManagementObjectSearcher("SELECT Name FROM Win32_Processor")
+    public static readonly bool RyzenX3D = new ManagementObjectSearcher("SELECT Name FROM Win32_Processor")
         .Get()
         .Cast<ManagementObject>()
         .Any(mo => mo["Name"].ToString().Contains("X3D"));
 
-    public static bool DDR4 => new ManagementObjectSearcher("SELECT SMBIOSMemoryType FROM Win32_PhysicalMemory")
+    public static readonly bool DDR4 = new ManagementObjectSearcher("SELECT SMBIOSMemoryType FROM Win32_PhysicalMemory")
         .Get()
         .Cast<ManagementObject>()
         .Any(mo => Convert.ToInt32(mo["SMBIOSMemoryType"]) == 26);
 
-    public static bool DDR5 => new ManagementObjectSearcher("SELECT SMBIOSMemoryType FROM Win32_PhysicalMemory")
+    public static readonly bool DDR5 = new ManagementObjectSearcher("SELECT SMBIOSMemoryType FROM Win32_PhysicalMemory")
         .Get()
         .Cast<ManagementObject>()
         .Any(mo => Convert.ToInt32(mo["SMBIOSMemoryType"]) == 34);
@@ -476,7 +476,7 @@ public static class BiosSettingRecommendationsList
         new BiosSettingRecommendation { SetupQuestion = "Passive TC2 Value", Type = "Value", RecommendedOption = "1" },
         new BiosSettingRecommendation { SetupQuestion = "Passive Trip Point", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Passive Trip Points", Type = "Option", RecommendedOption = "Disabled" },
-        //new BiosSettingRecommendation { SetupQuestion = "Pcie Pll SSC", Type = "Option", RecommendedOption = "Disable" },
+        new BiosSettingRecommendation { SetupQuestion = "Pcie Pll SSC", Type = "Option", RecommendedOption = "Disable" },
         new BiosSettingRecommendation { SetupQuestion = "Pcie Pll SSC", Type = "Option", RecommendedOption = "0.0%" },
         new BiosSettingRecommendation { SetupQuestion = "Per Bank Refresh", Type = "Option", RecommendedOption = "Enabled"},
         new BiosSettingRecommendation { SetupQuestion = "Per Core P State OS control mode", Type = "Option", RecommendedOption = "Disabled" },
@@ -738,7 +738,8 @@ public static class BiosSettingRecommendationsList
         new BiosSettingRecommendation { SetupQuestion = "GMI encryption control", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "GPP Serial Debug Bus Enable", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Gear Down Mode", Type = "Option", RecommendedOption = "Disabled" },
-        new BiosSettingRecommendation { SetupQuestion = "Global C-state Control", Type = "Option", RecommendedOption = "Disabled" },
+        new BiosSettingRecommendation { SetupQuestion = "Global C-state Control", Type = "Option", RecommendedOption = "Disabled", Condition = () => RyzenX3D == false },
+        new BiosSettingRecommendation { SetupQuestion = "Global C-state Control", Type = "Option", RecommendedOption = "Enabled", Condition = () => RyzenX3D == true },
         new BiosSettingRecommendation { SetupQuestion = "High Precision Event Timer", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "High-Efficiency Mode", Type = "Option", RecommendedOption = "Auto" },
         new BiosSettingRecommendation { SetupQuestion = "Hot Plug Handling mode", Type = "Option", RecommendedOption = "OS First (No Error Handling)" },
