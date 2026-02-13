@@ -54,6 +54,7 @@ namespace AutoOS.Views.Settings
                         DefaultButton = ContentDialogButton.Close,
                         XamlRoot = App.MainWindow.Content.XamlRoot
                     };
+                    dialog.Resources["ContentDialogMaxWidth"] = 800;
                     await dialog.ShowAsync();
                     Application.Current.Exit();
                 }
@@ -269,6 +270,9 @@ namespace AutoOS.Views.Settings
 
                 // enable automatic recovery
                 ("Enabling automatic recovery", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"bcdedit /deletevalue recoveryenabled"), null),
+
+                // enable scroll wheel for alt tab
+                (@"Enabling Scroll Wheel for Alt Tab", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Ingan121\ClassicWindowSwitcher"" /v ScrollWheelBehavior /t REG_DWORD /d 1 /f"), null),
             };
 
             var filteredActions = actions.Where(a => a.Condition == null || a.Condition.Invoke()).ToList();

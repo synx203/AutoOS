@@ -267,7 +267,10 @@ public static class RegistryStage
             ("Disabling Search Indexing", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WSearch"" /v Start /t REG_DWORD /d 4 /f & sc stop WSearch"), null),
 
             // disable game bar presence writer
-            ("Disabling GameBar Presence Writer", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsRuntime\ActivatableClassId\Windows.Gaming.GameBar.PresenceServer.Internal.PresenceWriter"" /v ActivationType /t REG_DWORD /d 0 /f"), null)
+            ("Disabling GameBar Presence Writer", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsRuntime\ActivatableClassId\Windows.Gaming.GameBar.PresenceServer.Internal.PresenceWriter"" /v ActivationType /t REG_DWORD /d 0 /f"), null),
+
+            // enable scroll wheel for alt tab
+            (@"Enabling Scroll Wheel for Alt Tab", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Ingan121\ClassicWindowSwitcher"" /v ScrollWheelBehavior /t REG_DWORD /d 1 /f"), null)
         };
 
         var filteredActions = actions.Where(a => a.Condition == null || a.Condition.Invoke()).ToList();
