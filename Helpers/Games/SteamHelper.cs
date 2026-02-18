@@ -164,105 +164,112 @@ namespace AutoOS.Helpers.Games
                     // skip steam tools
                     if (gameId == "228980") continue;
 
-                    // read game manifest
-                    var appManifestData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text)
-                        .Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")));
-
-                    // get metadata
-                    var gameData = JsonDocument.Parse(await httpClient.GetStringAsync($"https://store.steampowered.com/api/appdetails?appids={gameId}&l=english", _)).RootElement.GetProperty(gameId);
-                    // get playtime data
-                    //var playTimeData = XDocument.Parse(await httpClient.GetStringAsync($"https://steamcommunity.com/profiles/{GetSteam64ID()}/?tab=all&xml=1", _));
-
-                    //string playTime = playTimeData.Descendants("game")
-                    //    .Where(game => (string)game.Element("appID") == gameId)
-                    //    .Select(game =>
-                    //    {
-                    //        var hoursStr = (string)game.Element("hoursOnRecord");
-                    //        return double.TryParse(hoursStr, NumberStyles.Float, CultureInfo.InvariantCulture, out var h)
-                    //            ? $"{(int)h}h {(int)((h - (int)h) * 60)}min"
-                    //            : null;
-                    //    })
-                    //    .FirstOrDefault() ?? "0m";
-
-                    // get review data
-                    var reviewData = JsonDocument.Parse(await httpClient.GetStringAsync($"https://store.steampowered.com/appreviews/{gameId}?json=1", _)).RootElement.GetProperty("query_summary");
-                    int totalPositive = reviewData.GetProperty("total_positive").GetInt32();
-                    int totalNegative = reviewData.GetProperty("total_negative").GetInt32();
-
-                    // get age rating
-                    string rating = null;
-                    string descriptors = null;
-
-                    var data = gameData.GetProperty("data");
-
-                    if (data.TryGetProperty("ratings", out var ratings) && ratings.ValueKind == JsonValueKind.Object && ratings.TryGetProperty(ratingKey.ToLowerInvariant(), out var ratingData))
+                    try
                     {
-                        if (ratingData.TryGetProperty("rating", out var ratingElement) && ratingElement.ValueKind == JsonValueKind.String)
+                        // read game manifest
+                        var appManifestData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text)
+                            .Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")));
+
+                        // get metadata
+                        var gameData = JsonDocument.Parse(await httpClient.GetStringAsync($"https://store.steampowered.com/api/appdetails?appids={gameId}&l=english", _)).RootElement.GetProperty(gameId);
+                        // get playtime data
+                        //var playTimeData = XDocument.Parse(await httpClient.GetStringAsync($"https://steamcommunity.com/profiles/{GetSteam64ID()}/?tab=all&xml=1", _));
+
+                        //string playTime = playTimeData.Descendants("game")
+                        //    .Where(game => (string)game.Element("appID") == gameId)
+                        //    .Select(game =>
+                        //    {
+                        //        var hoursStr = (string)game.Element("hoursOnRecord");
+                        //        return double.TryParse(hoursStr, NumberStyles.Float, CultureInfo.InvariantCulture, out var h)
+                        //            ? $"{(int)h}h {(int)((h - (int)h) * 60)}min"
+                        //            : null;
+                        //    })
+                        //    .FirstOrDefault() ?? "0m";
+
+                        //// get review data
+                        //var reviewData = JsonDocument.Parse(await httpClient.GetStringAsync($"https://store.steampowered.com/appreviews/{gameId}?json=1", _)).RootElement.GetProperty("query_summary");
+                        //int totalPositive = reviewData.GetProperty("total_positive").GetInt32();
+                        //int totalNegative = reviewData.GetProperty("total_negative").GetInt32();
+
+                        // get age rating
+                        string rating = null;
+                        string descriptors = null;
+
+                        var data = gameData.GetProperty("data");
+
+                        if (data.TryGetProperty("ratings", out var ratings) && ratings.ValueKind == JsonValueKind.Object && ratings.TryGetProperty(ratingKey.ToLowerInvariant(), out var ratingData))
                         {
-                            rating = ratingElement.GetString();
+                            if (ratingData.TryGetProperty("rating", out var ratingElement) && ratingElement.ValueKind == JsonValueKind.String)
+                            {
+                                rating = ratingElement.GetString();
+                            }
+
+                            if (ratingData.TryGetProperty("descriptors", out var descElement) && descElement.ValueKind == JsonValueKind.String)
+                            {
+                                descriptors = descElement.GetString()?
+                                    .Replace("\r\n", ", ")
+                                    .Replace("\n", ", ")
+                                    .Replace("\r", ", ");
+                            }
                         }
 
-                        if (ratingData.TryGetProperty("descriptors", out var descElement) && descElement.ValueKind == JsonValueKind.String)
+                        DateTimeOffset releaseDate = DateTimeOffset.Parse(
+                            gameData.GetProperty("data")
+                                    .GetProperty("release_date")
+                                    .GetProperty("date")
+                                    .GetString()!
+                        );
+
+                        long? sizeBytes = long.TryParse(appManifestData["SizeOnDisk"]?.ToString(), out var result) ? result : null;
+
+                        GamesPage.Instance.DispatcherQueue.TryEnqueue(() =>
                         {
-                            descriptors = descElement.GetString()?
-                                .Replace("\r\n", ", ")
-                                .Replace("\n", ", ")
-                                .Replace("\r", ", ");
-                        }
-                    }
-
-                    DateTimeOffset releaseDate = DateTimeOffset.Parse(
-                        gameData.GetProperty("data")
-                                .GetProperty("release_date")
-                                .GetProperty("date")
-                                .GetString()!
-                    );
-
-                    long? sizeBytes = long.TryParse(appManifestData["SizeOnDisk"]?.ToString(), out var result) ? result : null;
-
-                    GamesPage.Instance.DispatcherQueue.TryEnqueue(() =>
-                    {
-                        GamesPage.Instance.Games.Items.Add(new Views.Settings.Games.HeaderCarouselItem
-                        {
-                            Launcher = "Steam",
-                            ImageUrl = $"https://cdn.steamstatic.com/steam/apps/{gameId}/library_600x900.jpg",
-                            BackgroundImageUrl = $"https://cdn.steamstatic.com/steam/apps/{gameId}/library_hero.jpg",
-                            Title = appManifestData["name"]?.ToString(),
-                            Developers = string.Join(", ", gameData.GetProperty("data").GetProperty("developers")
-                                                       .EnumerateArray().Select(d => d.GetString()).Where(s => !string.IsNullOrWhiteSpace(s))),
-                            Genres = [.. gameData.GetProperty("data").GetProperty("genres")
+                            GamesPage.Instance.Games.Items.Add(new Views.Settings.Games.HeaderCarouselItem
+                            {
+                                Launcher = "Steam",
+                                ImageUrl = $"https://cdn.steamstatic.com/steam/apps/{gameId}/library_600x900.jpg",
+                                BackgroundImageUrl = $"https://cdn.steamstatic.com/steam/apps/{gameId}/library_hero.jpg",
+                                Title = appManifestData["name"]?.ToString(),
+                                Developers = string.Join(", ", gameData.GetProperty("data").GetProperty("developers")
+                                                           .EnumerateArray().Select(d => d.GetString()).Where(s => !string.IsNullOrWhiteSpace(s))),
+                                Genres = [.. gameData.GetProperty("data").GetProperty("genres")
                                                 .EnumerateArray()
                                                 .Select(g => g.GetProperty("description").GetString())
                                                 .Where(s => !string.IsNullOrWhiteSpace(s))],
-                            Features = [.. gameData.GetProperty("data").GetProperty("categories")
+                                Features = [.. gameData.GetProperty("data").GetProperty("categories")
                                                 .EnumerateArray()
                                                 .Select(c => c.GetProperty("description").GetString())
                                                 .Where(s => !string.IsNullOrWhiteSpace(s))],
-                            Rating = totalPositive + totalNegative > 0
-                                        ? Math.Round(5.0 * totalPositive / (totalPositive + totalNegative), 1)
-                                        : 0.0,
-                            //PlayTime = playTime,
-                            PlayTime = "0m",
-                            AgeRatingUrl = !string.IsNullOrEmpty(rating) ? $"{ratingBaseUrl}{rating.ToLowerInvariant()}.png" : null,
-                            AgeRatingTitle = !string.IsNullOrEmpty(rating) ? (ratingTitles.TryGetValue(rating.ToLowerInvariant(), out var title) ? title : rating) : null,
-                            AgeRatingDescription = !string.IsNullOrEmpty(descriptors) ? descriptors : null,
-                            Description = gameData.GetProperty("data").GetProperty("short_description").GetString(),
-                            Screenshots = gameData.GetProperty("data").TryGetProperty("screenshots", out var screenshots)
-                                ? [.. screenshots.EnumerateArray()
+                                //Rating = totalPositive + totalNegative > 0
+                                //            ? Math.Round(5.0 * totalPositive / (totalPositive + totalNegative), 1)
+                                //            : 0.0,
+                                //PlayTime = playTime,
+                                PlayTime = "0m",
+                                AgeRatingUrl = !string.IsNullOrEmpty(rating) ? $"{ratingBaseUrl}{rating.ToLowerInvariant()}.png" : null,
+                                AgeRatingTitle = !string.IsNullOrEmpty(rating) ? (ratingTitles.TryGetValue(rating.ToLowerInvariant(), out var title) ? title : rating) : null,
+                                AgeRatingDescription = !string.IsNullOrEmpty(descriptors) ? descriptors : null,
+                                Description = gameData.GetProperty("data").GetProperty("short_description").GetString(),
+                                Screenshots = gameData.GetProperty("data").TryGetProperty("screenshots", out var screenshots)
+                                    ? [.. screenshots.EnumerateArray()
                                         .Select(s => s.GetProperty("path_thumbnail").GetString())
                                         .Where(s => !string.IsNullOrWhiteSpace(s))]
-                                : [],
-                            InstallLocation = Path.Combine(steamAppsDir, "common", appManifestData["installdir"]?.ToString()),
-                            ReleaseDate = releaseDate.ToString("d"),
-                            Size = sizeBytes >= 1024 * 1024 * 1024
-                                ? $"{sizeBytes.Value / (1024d * 1024d * 1024d):F1} GB"
-                                : $"{sizeBytes.Value / (1024d * 1024d):F2} MB",
-                            Version = appManifestData["buildid"]?.ToString(),
-                            GameID = gameId,
-                            Width = 240,
-                            Height = 320,
+                                    : [],
+                                InstallLocation = Path.Combine(steamAppsDir, "common", appManifestData["installdir"]?.ToString()),
+                                ReleaseDate = releaseDate.ToString("d"),
+                                Size = sizeBytes >= 1024 * 1024 * 1024
+                                    ? $"{sizeBytes.Value / (1024d * 1024d * 1024d):F1} GB"
+                                    : $"{sizeBytes.Value / (1024d * 1024d):F2} MB",
+                                Version = appManifestData["buildid"]?.ToString(),
+                                GameID = gameId,
+                                Width = 240,
+                                Height = 320,
+                            });
                         });
-                    });
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex);
+                    }
                 }
             });
         }
