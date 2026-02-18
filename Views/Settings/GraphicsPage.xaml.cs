@@ -5,11 +5,9 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Management;
 using System.ServiceProcess;
 using Windows.Storage;
 using AutoOS.Helpers.Picker;
-using static AutoOS.Views.Settings.Scheduling.Services.SetupApi;
 using Windows.Win32;
 using Windows.Win32.Devices.DeviceAndDriverInstallation;
 
@@ -524,12 +522,8 @@ public sealed partial class GraphicsPage : Page
         });
 
         // toggle hdmi/dp audio
-        new ManagementObjectSearcher("SELECT DeviceID, ConfigManagerErrorCode FROM Win32_PnPEntity WHERE Name LIKE '%High Definition Audio Controller%'")
-            .Get().OfType<ManagementObject>()
-            .Where(obj => obj["DeviceID"]?.ToString().Contains(gpu.PnPDeviceId[(gpu.PnPDeviceId.LastIndexOf('\\') + 1)..gpu.PnPDeviceId.LastIndexOf('&')], StringComparison.OrdinalIgnoreCase) == true)
-            .ToList()
-            .ForEach(obj => obj.InvokeMethod(toggleSwitch.IsOn ? "Enable" : "Disable", null, null));
-
+        GpuHelper.ToggleHdmiDpAudio(gpu.PnPDeviceId, toggleSwitch.IsOn);
+        
         // delay
         await Task.Delay(500);
 

@@ -1,4 +1,4 @@
-﻿using System.Management;
+﻿using Microsoft.Win32;
 
 namespace AutoOS.Views.Settings.BIOS;
 
@@ -12,15 +12,11 @@ public class BiosSettingRecommendation
 
 public static class BiosSettingRecommendationsList
 {
-    public static readonly bool Ryzen9 = new ManagementObjectSearcher("SELECT Name FROM Win32_Processor")
-        .Get()
-        .Cast<ManagementObject>()
-        .Any(mo => mo["Name"].ToString().Contains("Ryzen 9"));
+    public static readonly bool Ryzen9 = (Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0")
+        ?.GetValue("ProcessorNameString")?.ToString() ?? "").Contains("Ryzen 9", StringComparison.OrdinalIgnoreCase);
 
-    public static readonly bool RyzenX3D = new ManagementObjectSearcher("SELECT Name FROM Win32_Processor")
-        .Get()
-        .Cast<ManagementObject>()
-        .Any(mo => mo["Name"].ToString().Contains("X3D"));
+    public static readonly bool RyzenX3D = (Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0")
+        ?.GetValue("ProcessorNameString")?.ToString() ?? "").Contains("X3D", StringComparison.OrdinalIgnoreCase);
 
     public static readonly List<BiosSettingRecommendation> Rules =
     [

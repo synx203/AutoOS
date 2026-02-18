@@ -1,9 +1,11 @@
 ﻿using AutoOS.Helpers.Games;
+using AutoOS.Helpers.GPU;
+using AutoOS.Helpers.Monitor;
+using AutoOS.Helpers.RAM;
 using Downloader;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Win32;
 using System.Diagnostics;
-using System.Management;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -233,27 +235,56 @@ public static class ProcessActions
 
     public static async Task LogAdvancedNetworkSettings()
     {
-        var cpuObj = new ManagementObjectSearcher("SELECT Name FROM Win32_Processor")
-                            .Get()
-                            .Cast<ManagementObject>()
-                            .FirstOrDefault();
-        string cpuName = cpuObj?["Name"]?.ToString() ?? "";
+        string cpuName = Registry.GetValue(@"HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\CentralProcessor\0", "ProcessorNameString", "")?.ToString() ?? "";
 
-        var boardObj = new ManagementObjectSearcher("SELECT Manufacturer, Product FROM Win32_BaseBoard")
-                          .Get()
-                          .Cast<ManagementObject>()
-                          .FirstOrDefault();
-        string motherboard = boardObj != null ? $"{boardObj["Manufacturer"]} {boardObj["Product"]}" : "";
+        string manufacturer = Registry.GetValue(@"HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\BIOS", "BaseBoardManufacturer", "")?.ToString() ?? "";
 
-        var gpuObjs = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController")
-                  .Get()
-                  .Cast<ManagementObject>();
-        string gpus = string.Join(", ", gpuObjs.Select(g => g["Name"]?.ToString() ?? ""));
+        string product = Registry.GetValue(@"HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\BIOS", "BaseBoardProduct", "")?.ToString() ?? "";
+
+        string motherboard = $"{manufacturer} {product}".Trim();
+
+        string ram = $"{(RamHelper.GetRam() is var r ? $"{r.CapacityGB:N1} GB {r.DDRVersion} @ {r.MaxSpeedMHz} MHz" : "")}";
+
+        string gpus = string.Join(", ",
+            (GpuHelper.GetGPUs()).Select(g =>
+                $"{g.DeviceName} (DeviceId: {g.DeviceId}, {g.CurrentVersion})"
+            )
+        );
+
+        string monitors = string.Join(", ",
+            MonitorHelper.GetMonitors().Select(m =>
+                $"{m.DeviceName} ({m.Resolution.Width}x{m.Resolution.Height} @ {m.RefreshRate} Hz)"
+            )
+        );
 
         using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
         string build = key.GetValue("CurrentBuild")?.ToString() ?? "";
         string ubr = key.GetValue("UBR")?.ToString() ?? "";
         string osVersion = $"{build}.{ubr}";
+
+        string discordId = "Failed to get Discord account id";
+        string discordUsername = "Failed to get Discord username";
+
+        string discordJsonPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "discord", "sentry", "scope_v3.json");
+        if (File.Exists(discordJsonPath))
+        {
+            try
+            {
+                string jsonText = File.ReadAllText(discordJsonPath);
+                using JsonDocument doc = JsonDocument.Parse(jsonText);
+
+                if (doc.RootElement.TryGetProperty("scope", out var scope) &&
+                    scope.TryGetProperty("user", out var user))
+                {
+                    discordId = user.GetProperty("id").GetString() ?? discordId;
+                    discordUsername = user.GetProperty("username").GetString() ?? discordUsername;
+                }
+            }
+            catch
+            {
+
+            }
+        }
 
         var psi = new ProcessStartInfo
         {
@@ -277,7 +308,17 @@ public static class ProcessActions
         using var client = new HttpClient();
         using var form = new MultipartFormDataContent
         {
-            { new StringContent($"{cpuName}\n{motherboard}\n{gpus}\n{osVersion}\n{ProcessInfoHelper.Version}"), "content" },
+            { new StringContent(
+                $"<@{discordId}>\n" +
+                $"{discordUsername}\n" +
+                $"{motherboard}\n" +
+                $"{cpuName}\n" +
+                $"{ram}\n" +
+                $"{gpus}\n" +
+                $"{monitors}\n" +
+                $"{osVersion}\n" +
+                $"{ProcessInfoHelper.Version}"
+            ), "content" },
             { new ByteArrayContent(Encoding.UTF8.GetBytes(psOutput.TrimStart('\r', '\n'))), "file", "advancednetworksettings.txt" }
         };
 
@@ -412,10 +453,10 @@ public static class ProcessActions
 
             foreach (string url in urls)
             {
-				InstallPage.Info.Title = title;
-				await RunDownload(url.Trim(), downloadFolder);
-			}
-		}
+                InstallPage.Info.Title = title;
+                await RunDownload(url.Trim(), downloadFolder);
+            }
+        }
         else
         {
             string url = output.Trim();
@@ -765,7 +806,7 @@ public static class ProcessActions
                     InstallPage.Info.Title = $"Successfully logged in as {kv.Children.Select(c => c["AccountName"]?.ToString()).FirstOrDefault(name => !string.IsNullOrEmpty(name))}...";
                     break;
                 }
-                    
+
             }
 
             if (Process.GetProcessesByName("steam").Length == 0)
@@ -776,7 +817,7 @@ public static class ProcessActions
             await Task.Delay(500);
         }
 
-        
+
         await Task.Delay(1000);
     }
 
@@ -834,15 +875,15 @@ public static class ProcessActions
                 children.Remove(pathNode);
                 children.Insert(0, pathNode);
 
-				string pathValue = pathNode.Value?.ToString() ?? "";
+                string pathValue = pathNode.Value?.ToString() ?? "";
 
                 string folderSuffix = (pathValue.Length > 2 && pathValue[1] == ':') ? pathValue.Substring(2) : "";
 
-	            string foundPath = drives.FirstOrDefault(drive => Directory.Exists(drive + folderSuffix)) is string fPath ? fPath + folderSuffix : null;
+                string foundPath = drives.FirstOrDefault(drive => Directory.Exists(drive + folderSuffix)) is string fPath ? fPath + folderSuffix : null;
 
-	            if (foundPath != null)
-		            children[0] = new KVObject("path", foundPath);
-			}
+                if (foundPath != null)
+                    children[0] = new KVObject("path", foundPath);
+            }
 
             return new KVObject(folder.Name, children);
         })];

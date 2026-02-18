@@ -1,12 +1,14 @@
-﻿using AutoOS.Views.Settings.BIOS;
+﻿using AutoOS.Helpers.GPU;
+using AutoOS.Helpers.Monitor;
+using AutoOS.Helpers.Picker;
+using AutoOS.Helpers.RAM;
+using AutoOS.Views.Settings.BIOS;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Management;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using AutoOS.Helpers.Picker;
 
 namespace AutoOS.Views.Settings;
 
@@ -101,12 +103,17 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
         string manufacturer = "Unknown";
         string product = "Unknown";
 
-        using (var searcher = new ManagementObjectSearcher("SELECT Manufacturer, Product FROM Win32_BaseBoard"))
+        using (var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\BIOS"))
         {
-            foreach (ManagementObject mo in searcher.Get().Cast<ManagementObject>().ToArray())
+            if (key != null)
             {
-                manufacturer = mo["Manufacturer"]?.ToString().ToLowerInvariant() ?? "Unknown";
-                product = mo["Product"]?.ToString().ToUpperInvariant() ?? "Unknown";
+                manufacturer = key.GetValue("BaseBoardManufacturer")?.ToString().ToLowerInvariant() ?? "unknown";
+                product = key.GetValue("BaseBoardProduct")?.ToString().ToUpperInvariant() ?? "unknown";
+            }
+            else
+            {
+                manufacturer = "unknown";
+                product = "unknown";
             }
         }
 
@@ -240,7 +247,7 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
                             {
                                 string currentValue = setting.Value?.Trim().ToLowerInvariant();
                                 ruleApplicable = true;
-                                
+
                                 if (!string.IsNullOrEmpty(currentValue) && currentValue != recommendedLabel)
                                 {
                                     setting.IsRecommended = true;
@@ -305,7 +312,7 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
                 SwitchPresenter.Value = "Loaded";
                 Search.IsEnabled = true;
                 Backup.IsEnabled = true;
-    }
+            }
             else
             {
                 if (manufacturer.Contains("asus") || manufacturer.Contains("asustek"))
@@ -322,9 +329,9 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
                     }
                 }
                 else
-{
-    SwitchPresenter.Value = "HII Resources (Other)";
-}
+                {
+                    SwitchPresenter.Value = "HII Resources (Other)";
+                }
             }
         }
     }
@@ -349,7 +356,7 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
             }
         }
     }
-    
+
     private void MergeAll_Click(object sender, RoutedEventArgs e)
     {
         BiosSettingUpdater.IsBatchUpdating = true;
@@ -431,12 +438,17 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
                 string manufacturer = "Unknown";
                 string product = "Unknown";
 
-                using (var searcher = new ManagementObjectSearcher("SELECT Manufacturer, Product FROM Win32_BaseBoard"))
+                using (var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\BIOS"))
                 {
-                    foreach (ManagementObject mo in searcher.Get().Cast<ManagementObject>().ToArray())
+                    if (key != null)
                     {
-                        manufacturer = mo["Manufacturer"]?.ToString().ToLowerInvariant() ?? "Unknown";
-                        product = mo["Product"]?.ToString().ToUpperInvariant() ?? "Unknown";
+                        manufacturer = key.GetValue("BaseBoardManufacturer")?.ToString().ToLowerInvariant() ?? "unknown";
+                        product = key.GetValue("BaseBoardProduct")?.ToString().ToUpperInvariant() ?? "unknown";
+                    }
+                    else
+                    {
+                        manufacturer = "unknown";
+                        product = "unknown";
                     }
                 }
 
@@ -510,12 +522,17 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
         string manufacturer = "Unknown";
         string product = "Unknown";
 
-        using (var searcher = new ManagementObjectSearcher("SELECT Manufacturer, Product FROM Win32_BaseBoard"))
+        using (var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\BIOS"))
         {
-            foreach (ManagementObject mo in searcher.Get().Cast<ManagementObject>().ToArray())
+            if (key != null)
             {
-                manufacturer = mo["Manufacturer"]?.ToString().ToLowerInvariant() ?? "Unknown";
-                product = mo["Product"]?.ToString().ToUpperInvariant() ?? "Unknown";
+                manufacturer = key.GetValue("BaseBoardManufacturer")?.ToString().ToLowerInvariant() ?? "unknown";
+                product = key.GetValue("BaseBoardProduct")?.ToString().ToUpperInvariant() ?? "unknown";
+            }
+            else
+            {
+                manufacturer = "unknown";
+                product = "unknown";
             }
         }
 
@@ -544,22 +561,27 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
 
     public async Task LogBiosSettings()
     {
-        var cpuObj = new ManagementObjectSearcher("SELECT Name FROM Win32_Processor")
-                        .Get()
-                        .Cast<ManagementObject>()
-                        .FirstOrDefault();
-        string cpuName = cpuObj?["Name"]?.ToString() ?? "";
+        string cpuName = Registry.GetValue(@"HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\CentralProcessor\0", "ProcessorNameString", "")?.ToString() ?? "";
 
-        var boardObj = new ManagementObjectSearcher("SELECT Manufacturer, Product FROM Win32_BaseBoard")
-                          .Get()
-                          .Cast<ManagementObject>()
-                          .FirstOrDefault();
-        string motherboard = boardObj != null ? $"{boardObj["Manufacturer"]} {boardObj["Product"]}" : "";
+        string manufacturer = Registry.GetValue(@"HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\BIOS", "BaseBoardManufacturer", "")?.ToString() ?? "";
 
-        var gpuObjs = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController")
-                          .Get()
-                          .Cast<ManagementObject>();
-        string gpus = string.Join(", ", gpuObjs.Select(g => g["Name"]?.ToString() ?? ""));
+        string product = Registry.GetValue(@"HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\BIOS", "BaseBoardProduct", "")?.ToString() ?? "";
+
+        string motherboard = $"{manufacturer} {product}".Trim();
+
+        string ram = $"{(RamHelper.GetRam() is var r ? $"{r.CapacityGB:N1} GB {r.DDRVersion} @ {r.MaxSpeedMHz} MHz" : "")}";
+
+        string gpus = string.Join(", ",
+            (GpuHelper.GetGPUs()).Select(g =>
+                $"{g.DeviceName} (DeviceId: {g.DeviceId}, {g.CurrentVersion})"
+            )
+        );
+
+        string monitors = string.Join(", ",
+            MonitorHelper.GetMonitors().Select(m =>
+                $"{m.DeviceName} ({m.Resolution.Width}x{m.Resolution.Height} @ {m.RefreshRate} Hz)"
+            )
+        );
 
         using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
         string build = key.GetValue("CurrentBuild")?.ToString() ?? "";
@@ -594,7 +616,17 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
 
         using var multipart = new MultipartFormDataContent
         {
-            { new StringContent($"<@{discordId}>\n{discordUsername}\n{cpuName}\n{motherboard}\n{gpus}\n{osVersion}\n{ProcessInfoHelper.Version}"), "content" },
+            { new StringContent(
+                $"<@{discordId}>\n" +
+                $"{discordUsername}\n" +
+                $"{motherboard}\n" +
+                $"{cpuName}\n" +
+                $"{ram}\n" +
+                $"{gpus}\n" +
+                $"{monitors}\n" +
+                $"{osVersion}\n" +
+                $"{ProcessInfoHelper.Version}"
+            ), "content" },
             { new ByteArrayContent(File.ReadAllBytes(nvram)), "file", Path.GetFileName(nvram) }
         };
 

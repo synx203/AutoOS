@@ -1,6 +1,5 @@
 ﻿using AutoOS.Views.Installer.Actions;
 using PuppeteerSharp;
-using System.Management;
 using System.Text.RegularExpressions;
 
 namespace AutoOS.Helpers.GPU
@@ -152,7 +151,7 @@ namespace AutoOS.Helpers.GPU
                 ("Disabling unnecessary services", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\igfxCUIService2.0.0.0"" /v ""Start"" /t REG_DWORD /d 4 /f & sc stop igfxCUIService2.0.0.0"), null),
             
                 // disable high-definition multimedia interface (hdmi)/displayport (dp) audio
-                ("Disabling High-Definition Multimedia Interface (HDMI)/DisplayPort (DP) Audio", async () => await Task.Run(() => new ManagementObjectSearcher("SELECT DeviceID, ConfigManagerErrorCode FROM Win32_PnPEntity WHERE Name LIKE '%High Definition Audio Controller%'").Get().OfType<ManagementObject>().Where(obj => obj["DeviceID"]?.ToString().Contains(gpu.PnPDeviceId[(gpu.PnPDeviceId.LastIndexOf('\\') + 1)..gpu.PnPDeviceId.LastIndexOf('&')], StringComparison.OrdinalIgnoreCase) == true).ToList().ForEach(obj => obj.InvokeMethod("Disable", null, null))), () => gpu.HDMIDPAudio == false)
+                ("Disabling High-Definition Multimedia Interface (HDMI)/DisplayPort (DP) Audio", async () => GpuHelper.ToggleHdmiDpAudio(gpu.PnPDeviceId, false), () => gpu.HDMIDPAudio == false)
             };
 
             return actions;

@@ -1,7 +1,6 @@
 using Microsoft.UI.Xaml.Data;
 using Microsoft.Win32;
 using System.ComponentModel;
-using System.Management;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Windows.Win32;
@@ -87,7 +86,7 @@ public partial class VendorIdToBitmapIconConverter : IValueConverter
 public static class GpuHelper
 {
     private static readonly HttpClient httpClient = new();
-    public static List<GpuInfo> GetGPUs()
+    public unsafe static List<GpuInfo> GetGPUs()
     {
         var gpus = new List<GpuInfo>();
         string deviceName = string.Empty;
@@ -162,7 +161,45 @@ public static class GpuHelper
                         var versionParts = currentVersion?.Split('.');
                         currentVersion = versionParts?.Length >= 4 ? versionParts[2] + "." + versionParts[3] : currentVersion;
                     }
-                    hdmidpaudio = new ManagementObjectSearcher("SELECT DeviceID, ConfigManagerErrorCode FROM Win32_PnPEntity WHERE Name LIKE '%High Definition Audio Controller%'").Get().Cast<ManagementObject>().Any(obj => obj["DeviceID"]?.ToString().Contains(pnpDeviceId[(pnpDeviceId.LastIndexOf('\\') + 1)..pnpDeviceId.LastIndexOf('&')], StringComparison.OrdinalIgnoreCase) == true && Convert.ToInt32(obj["ConfigManagerErrorCode"]) == 0);
+                    Guid systemGuid = new("4d36e97d-e325-11ce-bfc1-08002be10318");
+                    HDEVINFO hAudioDevInfo = PInvoke.SetupDiGetClassDevs(&systemGuid, null, HWND.Null, SETUP_DI_GET_CLASS_DEVS_FLAGS.DIGCF_PRESENT);
+                    if (hAudioDevInfo.Value != (nint)(-1))
+                    {
+                        try
+                        {
+                            uint audioIndex = 0;
+                            SP_DEVINFO_DATA audioDevInfo = new() { cbSize = (uint)sizeof(SP_DEVINFO_DATA) };
+                            while (PInvoke.SetupDiEnumDeviceInfo(hAudioDevInfo, audioIndex++, &audioDevInfo))
+                            {
+                                char* audioBuffer = stackalloc char[512];
+                                uint audioRequired;
+                                if (!PInvoke.SetupDiGetDeviceInstanceId(hAudioDevInfo, &audioDevInfo, audioBuffer, 512, &audioRequired))
+                                    continue;
+
+                                string audioId = new(audioBuffer);
+                                string fragment = pnpDeviceId[(pnpDeviceId.LastIndexOf('\\') + 1)..pnpDeviceId.LastIndexOf('&')];
+
+                                if (!audioId.Contains(fragment, StringComparison.OrdinalIgnoreCase))
+                                    continue;
+
+                                if (PInvoke.CM_Locate_DevNode(out uint devInst, new PWSTR(audioBuffer), CM_LOCATE_DEVNODE_FLAGS.CM_LOCATE_DEVNODE_NORMAL) == CONFIGRET.CR_SUCCESS)
+                                {
+                                    CM_DEVNODE_STATUS_FLAGS status;
+                                    CM_PROB problem;
+
+                                    if (PInvoke.CM_Get_DevNode_Status(out status, out problem, devInst, 0) == CONFIGRET.CR_SUCCESS)
+                                    {
+                                        hdmidpaudio = (status & CM_DEVNODE_STATUS_FLAGS.DN_STARTED) != 0;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            PInvoke.SetupDiDestroyDeviceInfoList(hAudioDevInfo);
+                        }
+                    }
                 }
                 else if (!isInstalled && (vendorId == "10de" || vendorId == "1002" || vendorId == "8086"))
                 {
@@ -334,5 +371,49 @@ public static class GpuHelper
             return null;
 
         return $@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{driverKey}";
+    }
+
+    public static unsafe void ToggleHdmiDpAudio(string gpuPnPDeviceId, bool enable)
+    {
+        string fragment = gpuPnPDeviceId[(gpuPnPDeviceId.LastIndexOf('\\') + 1)..gpuPnPDeviceId.LastIndexOf('&')];
+        Guid hdaudioGuid = new("4d36e97d-e325-11ce-bfc1-08002be10318");
+
+        HDEVINFO hDevInfo = PInvoke.SetupDiGetClassDevs(&hdaudioGuid, null, HWND.Null, SETUP_DI_GET_CLASS_DEVS_FLAGS.DIGCF_PRESENT);
+        if (hDevInfo.Value == (nint)(-1)) return;
+
+        try
+        {
+            uint index = 0;
+            SP_DEVINFO_DATA devInfo = new() { cbSize = (uint)sizeof(SP_DEVINFO_DATA) };
+
+            while (PInvoke.SetupDiEnumDeviceInfo(hDevInfo, index++, &devInfo))
+            {
+                char* buffer = stackalloc char[512];
+                uint requiredSize;
+
+                if (!PInvoke.SetupDiGetDeviceInstanceId(hDevInfo, &devInfo, buffer, 512, &requiredSize))
+                    continue;
+
+                string instanceId = new(buffer);
+
+                if (!instanceId.Contains(fragment, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                fixed (char* p = instanceId)
+                {
+                    if (PInvoke.CM_Locate_DevNode(out uint devInst, new PWSTR(p), CM_LOCATE_DEVNODE_FLAGS.CM_LOCATE_DEVNODE_NORMAL) != CONFIGRET.CR_SUCCESS)
+                        continue;
+
+                    if (enable)
+                        PInvoke.CM_Enable_DevNode(devInst, 0);
+                    else
+                        PInvoke.CM_Disable_DevNode(devInst, 0);
+                }
+            }
+        }
+        finally
+        {
+            PInvoke.SetupDiDestroyDeviceInfoList(hDevInfo);
+        }
     }
 }

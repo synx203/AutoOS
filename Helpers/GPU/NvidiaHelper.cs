@@ -1,7 +1,8 @@
-﻿using System.Management;
-using System.Text.Json;
-using AutoOS.Views.Installer.Actions;
+﻿using AutoOS.Views.Installer.Actions;
 using System.Diagnostics;
+using System.Text.Json;
+using Windows.Win32.System.Power;
+using Windows.Win32;
 
 namespace AutoOS.Helpers.GPU
 {
@@ -11,19 +12,19 @@ namespace AutoOS.Helpers.GPU
         public static async Task<(string newestVersion, string newestDownloadUrl)> CheckUpdate(GpuInfo gpu)
         {
             string deviceName = gpu.DeviceName;
-            bool isNotebook = false;
             string gpuId = string.Empty;
             string newestVersion = string.Empty;
             string newestDownloadUrl = string.Empty;
+            bool isNotebook = GetIsNotebook();
 
-            foreach (ManagementObject obj in new ManagementObjectSearcher("SELECT * FROM Win32_SystemEnclosure").Get().Cast<ManagementObject>())
+            unsafe static bool GetIsNotebook()
             {
-                ushort[] chassisTypes = (ushort[])obj["ChassisTypes"];
-                if (chassisTypes != null && chassisTypes.Any(type => new ushort[] { 1, 8, 9, 10, 11, 12, 14, 18, 21, 31, 32 }.Contains(type)))
+                SYSTEM_POWER_CAPABILITIES caps = default;
+                if (PInvoke.GetPwrCapabilities(&caps))
                 {
-                    isNotebook = true;
-                    break;
+                    return caps.LidPresent;
                 }
+                return false;
             }
 
             string json = await httpClient.GetStringAsync("https://raw.githubusercontent.com/ZenitH-AT/nvidia-data/main/gpu-data.json");
@@ -621,7 +622,7 @@ namespace AutoOS.Helpers.GPU
                 ("Disabling High-Bandwidth Digital Content Protection (HDCP)", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v ""RmSkipHdcp22Init"" /t REG_DWORD /d 1 /f"), null),
 
                 // disable high-definition multimedia interface (hdmi)/displayport (dp) audio
-                ("Disabling High-Definition Multimedia Interface (HDMI)/DisplayPort (DP) Audio", async () => await Task.Run(() => new ManagementObjectSearcher("SELECT DeviceID, ConfigManagerErrorCode FROM Win32_PnPEntity WHERE Name LIKE '%High Definition Audio Controller%'").Get().OfType<ManagementObject>().Where(obj => obj["DeviceID"]?.ToString().Contains(gpu.PnPDeviceId[(gpu.PnPDeviceId.LastIndexOf('\\') + 1)..gpu.PnPDeviceId.LastIndexOf('&')], StringComparison.OrdinalIgnoreCase) == true).ToList().ForEach(obj => obj.InvokeMethod("Disable", null, null))), () => gpu.HDMIDPAudio == false)
+                ("Disabling High-Definition Multimedia Interface (HDMI)/DisplayPort (DP) Audio", async () => GpuHelper.ToggleHdmiDpAudio(gpu.PnPDeviceId, false), () => gpu.HDMIDPAudio == false)
             };
 
             return actions;

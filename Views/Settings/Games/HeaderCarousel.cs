@@ -1,12 +1,12 @@
 ﻿using AutoOS.Helpers.Games;
+using AutoOS.Helpers.Processes;
+using AutoOS.Helpers.Service;
 using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
-using System.Management;
-using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text.RegularExpressions;
 using ValveKeyValue;
@@ -1582,30 +1582,15 @@ public partial class HeaderCarousel : ItemsControl
         await Task.Run(() =>
         {
             // close dllhost processes
-            foreach (var process in Process.GetProcessesByName("dllhost"))
+            foreach (var proc in Process.GetProcessesByName("dllhost"))
             {
-                try
+                string cmdLine = ProcessHelper.GetCommandLine(proc);
+
+                if (cmdLine.Contains("/PROCESSID", StringComparison.OrdinalIgnoreCase))
                 {
-                    using var searcher = new ManagementObjectSearcher($"SELECT ProcessId, CommandLine FROM Win32_Process WHERE Name = 'dllhost.exe'");
-
-                    foreach (ManagementObject obj in searcher.Get().Cast<ManagementObject>().ToArray())
-                    {
-                        string cmdLine = obj["CommandLine"]?.ToString() ?? "";
-                        int pid = Convert.ToInt32(obj["ProcessId"]);
-
-                        if (cmdLine.Contains("/PROCESSID", StringComparison.OrdinalIgnoreCase))
-                        {
-                            try
-                            {
-                                var proc = Process.GetProcessById(pid);
-                                proc.Kill();
-                                proc.WaitForExit();
-                            }
-                            catch { }
-                        }
-                    }
+                    proc.Kill();
+                    proc.WaitForExit();
                 }
-                catch { }
             }
 
             // close executables
@@ -1707,22 +1692,7 @@ public partial class HeaderCarousel : ItemsControl
 
             foreach (var serviceName in serviceNames)
             {
-                try
-                {
-                    var searcher = new ManagementObjectSearcher($"SELECT ProcessId FROM Win32_Service WHERE Name LIKE '{serviceName}%'");
-                    foreach (ManagementObject service in searcher.Get().Cast<ManagementObject>().ToArray())
-                    {
-                        try
-                        {
-                            int pid = Convert.ToInt32(service["ProcessId"]);
-                            var process = Process.GetProcessById(pid);
-                            process.Kill();
-                            process.WaitForExit();
-                        }
-                        catch { }
-                    }
-                }
-                catch { }
+                ServiceHelper.KillServiceProcess(serviceName);
             }
 
             try { new ServiceController("KeyIso").Stop(); } catch { }
@@ -1935,13 +1905,11 @@ public partial class HeaderCarousel : ItemsControl
         {
             StartGameWatcher(() =>
             {
-                using var searcher = new ManagementObjectSearcher(
-                    $"SELECT CommandLine FROM Win32_Process WHERE Name = '{Path.GetFileName(LauncherLocation)}'");
-
-                foreach (var obj in searcher.Get().OfType<ManagementObject>())
+                foreach (var proc in Process.GetProcessesByName(Path.GetFileName(LauncherLocation).Replace(".exe", "")))
                 {
-                    string cmdLine = obj["CommandLine"]?.ToString() ?? "";
-                    if (cmdLine.Contains($@"-f -g ""{GameLocation}"""))
+                    string cmdLine = ProcessHelper.GetCommandLine(proc);
+
+                    if (cmdLine.Contains($@"-f -g ""{GameLocation}""", StringComparison.OrdinalIgnoreCase))
                         return true;
                 }
                 return false;
@@ -1951,13 +1919,11 @@ public partial class HeaderCarousel : ItemsControl
         {
             StartGameWatcher(() =>
             {
-                using var searcher = new ManagementObjectSearcher(
-                    $"SELECT CommandLine FROM Win32_Process WHERE Name = '{Path.GetFileName(LauncherLocation)}'");
-
-                foreach (var obj in searcher.Get().OfType<ManagementObject>())
+                foreach (var proc in Process.GetProcessesByName(Path.GetFileName(LauncherLocation).Replace(".exe", "")))
                 {
-                    string cmdLine = obj["CommandLine"]?.ToString() ?? "";
-                    if (cmdLine.Contains($@"-f -g ""{GameLocation}"""))
+                    string cmdLine = ProcessHelper.GetCommandLine(proc);
+
+                    if (cmdLine.Contains($@"-f -g ""{GameLocation}""", StringComparison.OrdinalIgnoreCase))
                         return true;
                 }
                 return false;
@@ -1967,13 +1933,11 @@ public partial class HeaderCarousel : ItemsControl
         {
             StartGameWatcher(() =>
             {
-                using var searcher = new ManagementObjectSearcher(
-                    $"SELECT CommandLine FROM Win32_Process WHERE Name = '{Path.GetFileName(LauncherLocation)}'");
-
-                foreach (var obj in searcher.Get().OfType<ManagementObject>())
+                foreach (var proc in Process.GetProcessesByName(Path.GetFileName(LauncherLocation).Replace(".exe", "")))
                 {
-                    string cmdLine = obj["CommandLine"]?.ToString() ?? "";
-                    if (cmdLine.Contains($@"-r ""{DataLocation}"" -fullscreen ""{GameLocation}"""))
+                    string cmdLine = ProcessHelper.GetCommandLine(proc);
+
+                    if (cmdLine.Contains($@"-r ""{DataLocation}"" -fullscreen ""{GameLocation}""", StringComparison.OrdinalIgnoreCase))
                         return true;
                 }
                 return false;
