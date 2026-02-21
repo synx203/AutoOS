@@ -239,7 +239,9 @@ public sealed partial class GraphicsPage : Page
             {
                 await Task.Delay(500);
 
-                if (string.Compare(newestVersion, gpu.CurrentVersion, StringComparison.Ordinal) > 0)
+                var currentVersion = gpu.CurrentVersion.Replace("Current Version:", "", StringComparison.OrdinalIgnoreCase);
+
+                if (string.Compare(newestVersion, currentVersion, StringComparison.Ordinal) > 0)
                 {
                     progressButton.Content = $"Update to {newestVersion}";
                 }

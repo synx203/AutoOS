@@ -582,12 +582,6 @@ namespace AutoOS.Helpers.GPU
                 // disable non-contiguous allocation
                 ("Configuring Miscellaneous NVIDIA Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v RMDisableNoncontigAlloc /t REG_DWORD /d 1 /f"), null),
 
-                // disable dynamic P-State/adaptive clocking
-                ("Disabling dynamic P-State", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v ""DisableDynamicPstate"" /t REG_DWORD /d 1 /f"), null),
-                
-                // disable asynchronous p-state changes
-                ("Disabling dynamic P-State", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v ""DisableAsyncPstates"" /t REG_DWORD /d 1 /f"), null),
-
                 // disable display power savings
                 ("Disabling Display Power Savings", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak"" /v ""DisplayPowerSaving"" /t REG_DWORD /d 0 /f"), null),
                 ("Disabling Display Power Savings", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\Software\NVIDIA Corporation\Global\NVTweak"" /v ""DisplayPowerSaving"" /t REG_DWORD /d 0 /f"), null),
@@ -615,6 +609,12 @@ namespace AutoOS.Helpers.GPU
                 ("Disabling logging", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters"" /v LogPagingEntries /t REG_DWORD /d 0 /f"), null),
                 ("Disabling logging", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters"" /v LogEventEntries /t REG_DWORD /d 0 /f"), null),
                 ("Disabling logging", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters"" /v LogErrorEntries /t REG_DWORD /d 0 /f"), null),
+
+                // disable dynamic P-State/adaptive clocking
+                ("Disabling Dynamic P-State", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v ""DisableDynamicPstate"" /t REG_DWORD /d 1 /f"), null),
+                
+                // disable asynchronous p-state changes
+                ("Disabling Dynamic P-State", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v ""DisableAsyncPstates"" /t REG_DWORD /d 1 /f"), null),
 
                 // disable high-bandwidth digital content protection (hdcp)
                 ("Disabling High-Bandwidth Digital Content Protection (HDCP)", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v ""RMHdcpKeyglobZero"" /t REG_DWORD /d 1 /f"), null),
