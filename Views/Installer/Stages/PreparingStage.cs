@@ -126,13 +126,12 @@ public static class PreparingStage
         {
             string cpuVendor = (string)Registry.GetValue(@"HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\CentralProcessor\0", "VendorIdentifier", null);
 
-            if (cpuVendor.Contains("GenuineIntel"))
+            if (!string.IsNullOrEmpty(cpuVendor))
             {
-                INTELCPU = true;
-            }
-            else if (cpuVendor.Contains("AuthenticAMD"))
-            {
-                AMDCPU = true;
+                if (cpuVendor.Contains("GenuineIntel"))
+                    INTELCPU = true;
+                else if (cpuVendor.Contains("AuthenticAMD"))
+                    AMDCPU = true;
             }
 
             var output = Process.Start(new ProcessStartInfo
