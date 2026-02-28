@@ -33,7 +33,6 @@ public static class OptionalFeatureStage
             (@"Removing ""Media.WindowsMediaPlayer"" capability", async () => await ProcessActions.RunPowerShell(@"Remove-WindowsCapability -Online -Name (Get-WindowsCapability -Online | Where Name -like ""Media.WindowsMediaPlayer*"").Name"), null),
             (@"Removing ""Microsoft.Windows.PowerShell.ISE"" capability", async () => await ProcessActions.RunPowerShell(@"Remove-WindowsCapability -Online -Name (Get-WindowsCapability -Online | Where Name -like ""Microsoft.Windows.PowerShell.ISE*"").Name"), null),
             (@"Removing ""Microsoft.Windows.WordPad"" capability", async () => await ProcessActions.RunPowerShell(@"Remove-WindowsCapability -Online -Name (Get-WindowsCapability -Online | Where Name -like ""Microsoft.Windows.WordPad**"").Name"), null),
-            (@"Removing ""VBSCRIPT"" capability", async () => await ProcessActions.RunPowerShell(@"Remove-WindowsCapability -Online -Name (Get-WindowsCapability -Online | Where Name -like ""VBSCRIPT*"").Name"), null),
         };
 
         var filteredActions = actions.Where(a => a.Condition == null || a.Condition.Invoke()).ToList();
