@@ -16,48 +16,66 @@ namespace AutoOS.Views.Settings.Power
 
         internal static string ReadFriendlyName(Guid scheme, Guid? subgroup, Guid? setting)
         {
-            uint size = 0;
-            PInvoke.PowerReadFriendlyName(default, scheme, subgroup, setting, null, ref size);
-            if (size == 0) return string.Empty;
+            uint size = 512;
+            byte* pBuffer = stackalloc byte[512];
+            uint res = (uint)PInvoke.PowerReadFriendlyName(default, scheme, subgroup, setting, new Span<byte>(pBuffer, 512), ref size);
 
-            byte[] buffer = new byte[size];
-            uint res = (uint)PInvoke.PowerReadFriendlyName(default, scheme, subgroup, setting, buffer, ref size);
-            return res == 0 ? Encoding.Unicode.GetString(buffer).TrimEnd('\0') : string.Empty;
+            if (res == (uint)WIN32_ERROR.ERROR_MORE_DATA && size > 512 && size <= 4096)
+            {
+                byte* pLargeBuffer = stackalloc byte[(int)size];
+                res = (uint)PInvoke.PowerReadFriendlyName(default, scheme, subgroup, setting, new Span<byte>(pLargeBuffer, (int)size), ref size);
+                return res == 0 ? new string((sbyte*)pLargeBuffer, 0, (int)size, Encoding.Unicode).TrimEnd('\0') : string.Empty;
+            }
+
+            return res == 0 ? new string((sbyte*)pBuffer, 0, (int)size, Encoding.Unicode).TrimEnd('\0') : string.Empty;
         }
 
         internal static string ReadDescription(Guid scheme, Guid? subgroup = null, Guid? setting = null)
         {
-            uint size = 0;
-            PInvoke.PowerReadDescription(default, scheme, subgroup, setting, null, ref size);
-            if (size == 0) return string.Empty;
+            uint size = 512;
+            byte* pBuffer = stackalloc byte[512];
+            uint res = (uint)PInvoke.PowerReadDescription(default, scheme, subgroup, setting, new Span<byte>(pBuffer, 512), ref size);
 
-            byte[] buffer = new byte[size];
-            uint res = (uint)PInvoke.PowerReadDescription(default, scheme, subgroup, setting, buffer, ref size);
-            return res == 0 ? Encoding.Unicode.GetString(buffer).TrimEnd('\0') : string.Empty;
+            if (res == (uint)WIN32_ERROR.ERROR_MORE_DATA && size > 512 && size <= 4096)
+            {
+                byte* pLargeBuffer = stackalloc byte[(int)size];
+                res = (uint)PInvoke.PowerReadDescription(default, scheme, subgroup, setting, new Span<byte>(pLargeBuffer, (int)size), ref size);
+                return res == 0 ? new string((sbyte*)pLargeBuffer, 0, (int)size, Encoding.Unicode).TrimEnd('\0') : string.Empty;
+            }
+
+            return res == 0 ? new string((sbyte*)pBuffer, 0, (int)size, Encoding.Unicode).TrimEnd('\0') : string.Empty;
         }
 
         internal static string ReadPossibleFriendlyName(Guid subgroup, Guid setting, uint index)
         {
-            uint size = 0;
-            WIN32_ERROR res = PInvoke.PowerReadPossibleFriendlyName(default, subgroup, setting, index, null, ref size);
-            if (res != WIN32_ERROR.ERROR_SUCCESS && res != WIN32_ERROR.ERROR_MORE_DATA) return string.Empty;
-            if (size == 0) return string.Empty;
+            uint size = 512;
+            byte* pBuffer = stackalloc byte[512];
+            WIN32_ERROR res = PInvoke.PowerReadPossibleFriendlyName(default, subgroup, setting, index, new Span<byte>(pBuffer, 512), ref size);
 
-            byte[] buffer = new byte[size];
-            res = PInvoke.PowerReadPossibleFriendlyName(default, subgroup, setting, index, buffer, ref size);
-            return res == WIN32_ERROR.ERROR_SUCCESS ? Encoding.Unicode.GetString(buffer).TrimEnd('\0') : string.Empty;
+            if (res == WIN32_ERROR.ERROR_MORE_DATA && size > 512 && size <= 4096)
+            {
+                byte* pLargeBuffer = stackalloc byte[(int)size];
+                res = PInvoke.PowerReadPossibleFriendlyName(default, subgroup, setting, index, new Span<byte>(pLargeBuffer, (int)size), ref size);
+                return res == WIN32_ERROR.ERROR_SUCCESS ? new string((sbyte*)pLargeBuffer, 0, (int)size, Encoding.Unicode).TrimEnd('\0') : string.Empty;
+            }
+
+            return res == WIN32_ERROR.ERROR_SUCCESS ? new string((sbyte*)pBuffer, 0, (int)size, Encoding.Unicode).TrimEnd('\0') : string.Empty;
         }
 
         internal static string ReadPossibleDescription(Guid subgroup, Guid setting, uint index)
         {
-            uint size = 0;
-            WIN32_ERROR res = PInvoke.PowerReadPossibleDescription(default, subgroup, setting, index, null, ref size);
-            if (res != WIN32_ERROR.ERROR_SUCCESS && res != WIN32_ERROR.ERROR_MORE_DATA) return string.Empty;
-            if (size == 0) return string.Empty;
+            uint size = 512;
+            byte* pBuffer = stackalloc byte[512];
+            WIN32_ERROR res = PInvoke.PowerReadPossibleDescription(default, subgroup, setting, index, new Span<byte>(pBuffer, 512), ref size);
 
-            byte[] buffer = new byte[size];
-            res = PInvoke.PowerReadPossibleDescription(default, subgroup, setting, index, buffer, ref size);
-            return res == WIN32_ERROR.ERROR_SUCCESS ? Encoding.Unicode.GetString(buffer).TrimEnd('\0') : string.Empty;
+            if (res == WIN32_ERROR.ERROR_MORE_DATA && size > 512 && size <= 4096)
+            {
+                byte* pLargeBuffer = stackalloc byte[(int)size];
+                res = PInvoke.PowerReadPossibleDescription(default, subgroup, setting, index, new Span<byte>(pLargeBuffer, (int)size), ref size);
+                return res == WIN32_ERROR.ERROR_SUCCESS ? new string((sbyte*)pLargeBuffer, 0, (int)size, Encoding.Unicode).TrimEnd('\0') : string.Empty;
+            }
+
+            return res == WIN32_ERROR.ERROR_SUCCESS ? new string((sbyte*)pBuffer, 0, (int)size, Encoding.Unicode).TrimEnd('\0') : string.Empty;
         }
 
         internal static uint ReadAcValueIndex(Guid scheme, Guid subgroup, Guid setting)
@@ -107,14 +125,18 @@ namespace AutoOS.Views.Settings.Power
 
         internal static string ReadValueUnitsSpecifier(Guid subgroup, Guid setting)
         {
-            uint size = 0;
-            WIN32_ERROR res = PInvoke.PowerReadValueUnitsSpecifier(default, subgroup, setting, null, ref size);
-            if (res != WIN32_ERROR.ERROR_SUCCESS && res != WIN32_ERROR.ERROR_MORE_DATA) return string.Empty;
-            if (size < 2) return string.Empty;
+            uint size = 512;
+            byte* pBuffer = stackalloc byte[512];
+            WIN32_ERROR res = PInvoke.PowerReadValueUnitsSpecifier(default, subgroup, setting, new Span<byte>(pBuffer, 512), ref size);
 
-            byte[] buffer = new byte[size];
-            res = PInvoke.PowerReadValueUnitsSpecifier(default, subgroup, setting, buffer, ref size);
-            return res == WIN32_ERROR.ERROR_SUCCESS ? Encoding.Unicode.GetString(buffer, 0, (int)size - 2) : string.Empty;
+            if (res == WIN32_ERROR.ERROR_MORE_DATA && size > 512 && size <= 4096)
+            {
+                byte* pLargeBuffer = stackalloc byte[(int)size];
+                res = PInvoke.PowerReadValueUnitsSpecifier(default, subgroup, setting, new Span<byte>(pLargeBuffer, (int)size), ref size);
+                return res == WIN32_ERROR.ERROR_SUCCESS ? new string((sbyte*)pLargeBuffer, 0, (int)size - 2, Encoding.Unicode) : string.Empty;
+            }
+
+            return (res == WIN32_ERROR.ERROR_SUCCESS && size >= 2) ? new string((sbyte*)pBuffer, 0, (int)size - 2, Encoding.Unicode) : string.Empty;
         }
 
         internal static bool WriteSchemeFriendlyName(Guid scheme, string name)

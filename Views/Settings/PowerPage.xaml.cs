@@ -1,8 +1,7 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using AutoOS.Views.Settings.Power;
-using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI.Text;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -25,23 +24,14 @@ namespace AutoOS.Views.Settings
         public PowerPage()
         {
             InitializeComponent();
+            LoadPowerPlans();
+            LoadPowerPlanSettings(((PowerPlan)PowerPlanComboBox.SelectedItem).Guid);
+            ActiveTreeView.UpdateLayout();
             Loaded += PowerPage_Loaded;
         }
 
-        private async void PowerPage_Loaded(object sender, RoutedEventArgs e)
+        private void PowerPage_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadPowerPlans();
-            await LoadPowerPlanSettings(((PowerPlan)PowerPlanComboBox.SelectedItem).Guid);
-            Search.IsEnabled = true;
-            PowerPlanComboBox.IsEnabled = true;
-            ComparePowerPlanComboBox.IsEnabled = true;
-            Edit.IsEnabled = true;
-            Delete.IsEnabled = true;
-            Export.IsEnabled = true;
-            Import.IsEnabled = true;
-            SwitchPresenter.Value = "Loaded";
-            ActiveTreeView.UpdateLayout();
-            CompareTreeView.UpdateLayout();
             CompareTreeView.Opacity = 0;
             CompareTreeView.IsHitTestVisible = false;
         }
@@ -51,18 +41,17 @@ namespace AutoOS.Views.Settings
             var plansList = new List<PowerPlan>();
             uint index = 0;
 
+            uint size = (uint)sizeof(Guid);
+            byte* pBuffer = stackalloc byte[(int)size];
             while (true)
             {
-                uint size = (uint)sizeof(Guid);
-                byte[] buffer = new byte[size];
-
                 uint res;
                 {
-                    res = (uint)PInvoke.PowerEnumerate(default, null, null, POWER_DATA_ACCESSOR.ACCESS_SCHEME, index++, (Span<byte>)buffer, ref size);
+                    res = (uint)PInvoke.PowerEnumerate(default, null, null, POWER_DATA_ACCESSOR.ACCESS_SCHEME, index++, new Span<byte>(pBuffer, (int)size), ref size);
                 }
                 if (res != 0) break;
 
-                Guid schemeGuid = new(buffer);
+                Guid schemeGuid = new(new ReadOnlySpan<byte>(pBuffer, (int)size));
                 plansList.Add(new PowerPlan
                 {
                     Guid = schemeGuid,
@@ -97,210 +86,201 @@ namespace AutoOS.Views.Settings
             isInitializingPowerPlans = false;
         }
 
-        private async Task LoadPowerPlanSettings(Guid scheme)
+        private unsafe void LoadPowerPlanSettings(Guid scheme)
         {
-            var result = await Task.Run(() =>
-            {
-                    var allSubgroupsList = new List<PowerSubgroup>();
-                    var compareSubgroupsList = new List<PowerCompareSubgroup>();
+            var allSubgroupsList = new List<PowerSubgroup>();
+            var compareSubgroupsList = new List<PowerCompareSubgroup>();
 
-                    try
+            Guid noneSubgroupGuid = new("fea3413e-7e05-4911-9a71-700331f1c294");
+            uint guidSize = (uint)Marshal.SizeOf<Guid>();
+            var noneSubgroup = new PowerSubgroup
+            {
+                Guid = noneSubgroupGuid,
+                Name = "None"
+            };
+
+            var noneCompareSubgroup = new PowerCompareSubgroup
+            {
+                Guid = noneSubgroupGuid,
+                Name = "None",
+                IsExpanded = true,
+                IsVisible = true
+            };
+
+            uint settingIndex = 0;
+            uint res;
+            byte* pSetBuffer = stackalloc byte[(int)guidSize];
+
+            while (true)
+            {
+                uint size = guidSize;
+
+                {
+                    res = (uint)PInvoke.PowerEnumerate(default, (Guid?)scheme, null, POWER_DATA_ACCESSOR.ACCESS_INDIVIDUAL_SETTING, settingIndex++, new Span<byte>(pSetBuffer, (int)guidSize), ref size);
+                }
+                if (res != 0) break;
+
+                Guid settingGuid = new(new ReadOnlySpan<byte>(pSetBuffer, (int)guidSize));
+                var setting = new PowerSetting
+                {
+                    SubgroupGuid = noneSubgroupGuid,
+                    Guid = settingGuid,
+                    Name = PowerApi.ReadFriendlyName(scheme, noneSubgroupGuid, settingGuid),
+                    Description = PowerApi.ReadDescription(scheme, noneSubgroupGuid, settingGuid),
+                    AcValueIndex = PowerApi.ReadAcValueIndex(scheme, noneSubgroupGuid, settingGuid),
+                    DcValueIndex = PowerApi.ReadDcValueIndex(scheme, noneSubgroupGuid, settingGuid),
+                    Min = PowerApi.ReadValueMin(noneSubgroupGuid, settingGuid),
+                    Max = PowerApi.ReadValueMax(noneSubgroupGuid, settingGuid),
+                    Increment = PowerApi.ReadValueIncrement(noneSubgroupGuid, settingGuid),
+                    Unit = PowerApi.ReadValueUnitsSpecifier(noneSubgroupGuid, settingGuid)
+                };
+
+
+                var friendlyAc = setting.AcValueIndex.ToString();
+                var friendlyDc = setting.DcValueIndex.ToString();
+
+                if (setting.IsOption)
+                {
+                    friendlyAc = PowerApi.ReadPossibleFriendlyName(noneSubgroupGuid, settingGuid, setting.AcValueIndex);
+                    friendlyDc = PowerApi.ReadPossibleFriendlyName(noneSubgroupGuid, settingGuid, setting.DcValueIndex);
+                }
+
+                setting.FriendlyAcValue = friendlyAc;
+                setting.FriendlyDcValue = friendlyDc;
+
+                noneSubgroup.Settings.Add(setting);
+
+                var compareSetting = new PowerCompareSetting
+                {
+                    SubgroupGuid = noneSubgroupGuid,
+                    Guid = settingGuid,
+                    Name = setting.Name,
+                    Description = setting.Description,
+                    Min = setting.Min,
+                    Max = setting.Max,
+                    Increment = setting.Increment,
+                    Unit = setting.Unit,
+                    Plan1AcValue = setting.AcValueIndex,
+                    Plan1DcValue = setting.DcValueIndex,
+                    Plan1AcFriendlyValue = friendlyAc,
+                    Plan1DcFriendlyValue = friendlyDc,
+                    Plan2AcValue = 0,
+                    Plan2DcValue = 0,
+                    Plan2AcFriendlyValue = "",
+                    Plan2DcFriendlyValue = "",
+                    IsAcDifferent = false,
+                    IsDcDifferent = false,
+                    IsVisible = true
+                };
+            }
+
+            allSubgroupsList.Add(noneSubgroup);
+            compareSubgroupsList.Add(noneCompareSubgroup);
+
+            uint subgroupIndex = 0;
+            byte* pSgBuffer = stackalloc byte[(int)guidSize];
+            byte* pInnerSetBuffer = stackalloc byte[(int)guidSize];
+
+            while (true)
+            {
+                uint size = guidSize;
+
+                {
+                    res = (uint)PInvoke.PowerEnumerate(default, (Guid?)scheme, null, POWER_DATA_ACCESSOR.ACCESS_SUBGROUP, subgroupIndex++, new Span<byte>(pSgBuffer, (int)guidSize), ref size);
+                }
+                if (res != 0) break;
+
+                Guid subgroupGuid = new(new ReadOnlySpan<byte>(pSgBuffer, (int)guidSize));
+                PowerSubgroup subgroup = new()
+                {
+                    Guid = subgroupGuid,
+                    Name = subgroupGuid == new Guid("9596fb26-9850-41fd-ac3e-f7c3c00afd4b") ? "Multimedia settings" : PowerApi.ReadFriendlyName(scheme, subgroupGuid, null)
+                };
+
+                if (string.IsNullOrWhiteSpace(subgroup.Name))
+                {
+                    continue;
+                }
+
+                PowerCompareSubgroup compareSubgroup = new()
+                {
+                    Guid = subgroupGuid,
+                    Name = subgroup.Name,
+                    IsExpanded = true,
+                    IsVisible = true
+                };
+
+
+                uint settingIdx = 0;
+                while (true)
+                {
+                    size = guidSize;
                     {
-                    Guid noneSubgroupGuid = new("fea3413e-7e05-4911-9a71-700331f1c294");
-                    uint guidSize = (uint)Marshal.SizeOf<Guid>();
-                    var noneSubgroup = new PowerSubgroup
+                        res = (uint)PInvoke.PowerEnumerate(default, (Guid?)scheme, (Guid?)subgroupGuid, POWER_DATA_ACCESSOR.ACCESS_INDIVIDUAL_SETTING, settingIdx++, new Span<byte>(pInnerSetBuffer, (int)guidSize), ref size);
+                    }
+                    if (res != 0) break;
+
+                    Guid settingGuid = new(new ReadOnlySpan<byte>(pInnerSetBuffer, (int)guidSize));
+                    var setting = new PowerSetting
                     {
-                        Guid = noneSubgroupGuid,
-                        Name = "None"
+                        SubgroupGuid = subgroupGuid,
+                        Guid = settingGuid,
+                        Name = PowerApi.ReadFriendlyName(scheme, subgroupGuid, settingGuid),
+                        Description = PowerApi.ReadDescription(scheme, subgroupGuid, settingGuid),
+                        AcValueIndex = PowerApi.ReadAcValueIndex(scheme, subgroupGuid, settingGuid),
+                        DcValueIndex = PowerApi.ReadDcValueIndex(scheme, subgroupGuid, settingGuid),
+                        Min = PowerApi.ReadValueMin(subgroupGuid, settingGuid),
+                        Max = PowerApi.ReadValueMax(subgroupGuid, settingGuid),
+                        Increment = PowerApi.ReadValueIncrement(subgroupGuid, settingGuid),
+                        Unit = PowerApi.ReadValueUnitsSpecifier(subgroupGuid, settingGuid)
                     };
 
-                    var noneCompareSubgroup = new PowerCompareSubgroup
+
+                    var friendlyAc = setting.AcValueIndex.ToString();
+                    var friendlyDc = setting.DcValueIndex.ToString();
+
+                    if (setting.IsOption)
                     {
-                        Guid = noneSubgroupGuid,
-                        Name = "None",
-                        IsExpanded = true,
+                        friendlyAc = PowerApi.ReadPossibleFriendlyName(subgroupGuid, settingGuid, setting.AcValueIndex);
+                        friendlyDc = PowerApi.ReadPossibleFriendlyName(subgroupGuid, settingGuid, setting.DcValueIndex);
+                    }
+
+                    setting.FriendlyAcValue = friendlyAc;
+                    setting.FriendlyDcValue = friendlyDc;
+
+                    subgroup.Settings.Add(setting);
+
+                    var compareSetting = new PowerCompareSetting
+                    {
+                        SubgroupGuid = subgroupGuid,
+                        Guid = settingGuid,
+                        Name = setting.Name,
+                        Description = setting.Description,
+                        Min = setting.Min,
+                        Max = setting.Max,
+                        Increment = setting.Increment,
+                        Unit = setting.Unit,
+                        Plan1AcValue = setting.AcValueIndex,
+                        Plan1DcValue = setting.DcValueIndex,
+                        Plan1AcFriendlyValue = friendlyAc,
+                        Plan1DcFriendlyValue = friendlyDc,
+                        Plan2AcValue = 0,
+                        Plan2DcValue = 0,
+                        Plan2AcFriendlyValue = "",
+                        Plan2DcFriendlyValue = "",
+                        IsAcDifferent = false,
+                        IsDcDifferent = false,
                         IsVisible = true
                     };
-
-                    uint settingIndex = 0;
-
-                    uint res;
-                    while (true)
-                    {
-                        byte[] setBuffer = new byte[guidSize];
-                        uint size = guidSize;
-
-                        {
-                            res = (uint)PInvoke.PowerEnumerate(default, (Guid?)scheme, null, POWER_DATA_ACCESSOR.ACCESS_INDIVIDUAL_SETTING, settingIndex++, (Span<byte>)setBuffer, ref size);
-                        }
-                        if (res != 0) break;
-
-                        Guid settingGuid = new(setBuffer);
-                        var setting = new PowerSetting
-                        {
-                            SubgroupGuid = noneSubgroupGuid,
-                            Guid = settingGuid,
-                            Name = PowerApi.ReadFriendlyName(scheme, noneSubgroupGuid, settingGuid),
-                            Description = PowerApi.ReadDescription(scheme, noneSubgroupGuid, settingGuid),
-                            AcValueIndex = PowerApi.ReadAcValueIndex(scheme, noneSubgroupGuid, settingGuid),
-                            DcValueIndex = PowerApi.ReadDcValueIndex(scheme, noneSubgroupGuid, settingGuid),
-                            Min = PowerApi.ReadValueMin(noneSubgroupGuid, settingGuid),
-                            Max = PowerApi.ReadValueMax(noneSubgroupGuid, settingGuid),
-                            Increment = PowerApi.ReadValueIncrement(noneSubgroupGuid, settingGuid),
-                            Unit = PowerApi.ReadValueUnitsSpecifier(noneSubgroupGuid, settingGuid)
-                        };
-
-                        var friendlyAc = setting.AcValueIndex.ToString();
-                        var friendlyDc = setting.DcValueIndex.ToString();
-
-                        if (setting.IsOption)
-                        {
-                            friendlyAc = PowerApi.ReadPossibleFriendlyName(noneSubgroupGuid, settingGuid, setting.AcValueIndex);
-                            friendlyDc = PowerApi.ReadPossibleFriendlyName(noneSubgroupGuid, settingGuid, setting.DcValueIndex);
-                        }
-
-                        setting.FriendlyAcValue = friendlyAc;
-                        setting.FriendlyDcValue = friendlyDc;
-
-                        noneSubgroup.Settings.Add(setting);
-
-                        var compareSetting = new PowerCompareSetting
-                        {
-                            SubgroupGuid = noneSubgroupGuid,
-                            Guid = settingGuid,
-                            Name = setting.Name,
-                            Description = setting.Description,
-                            Min = setting.Min,
-                            Max = setting.Max,
-                            Increment = setting.Increment,
-                            Unit = setting.Unit,
-                            Plan1AcValue = setting.AcValueIndex,
-                            Plan1DcValue = setting.DcValueIndex,
-                            Plan1AcFriendlyValue = friendlyAc,
-                            Plan1DcFriendlyValue = friendlyDc,
-                            Plan2AcValue = 0,
-                            Plan2DcValue = 0,
-                            Plan2AcFriendlyValue = "",
-                            Plan2DcFriendlyValue = "",
-                            IsAcDifferent = false,
-                            IsDcDifferent = false,
-                            IsVisible = true
-                        };
-                    }
-
-                    allSubgroupsList.Add(noneSubgroup);
-                    compareSubgroupsList.Add(noneCompareSubgroup);
-
-                    uint subgroupIndex = 0;
-                    while (true)
-                    {
-                        byte[] sgBuffer = new byte[guidSize];
-                        uint size = guidSize;
-
-                        {
-                            res = (uint)PInvoke.PowerEnumerate(default, (Guid?)scheme, null, POWER_DATA_ACCESSOR.ACCESS_SUBGROUP, subgroupIndex++, (Span<byte>)sgBuffer, ref size);
-                        }
-                        if (res != 0) break;
-
-                        Guid subgroupGuid = new(sgBuffer);
-                        PowerSubgroup subgroup = new()
-                        {
-                            Guid = subgroupGuid,
-                            Name = subgroupGuid == new Guid("9596fb26-9850-41fd-ac3e-f7c3c00afd4b") ? "Multimedia settings" : PowerApi.ReadFriendlyName(scheme, subgroupGuid, null)
-                        };
-
-                        PowerCompareSubgroup compareSubgroup = new()
-                        {
-                            Guid = subgroupGuid,
-                            Name = subgroup.Name,
-                            IsExpanded = true,
-                            IsVisible = true
-                        };
-
-                            try
-                            {
-                            uint settingIdx = 0;
-                            while (true)
-                            {
-                                byte[] setBuffer = new byte[guidSize];
-                                size = guidSize;
-
-                                 {
-                                     res = (uint)PInvoke.PowerEnumerate(default, (Guid?)scheme, (Guid?)subgroupGuid, POWER_DATA_ACCESSOR.ACCESS_INDIVIDUAL_SETTING, settingIdx++, (Span<byte>)setBuffer, ref size);
-                                 }
-                                 if (res != 0) break;
-
-                                Guid settingGuid = new(setBuffer);
-                                var setting = new PowerSetting
-                                {
-                                    SubgroupGuid = subgroupGuid,
-                                    Guid = settingGuid,
-                                    Name = PowerApi.ReadFriendlyName(scheme, subgroupGuid, settingGuid),
-                                    Description = PowerApi.ReadDescription(scheme, subgroupGuid, settingGuid),
-                                    AcValueIndex = PowerApi.ReadAcValueIndex(scheme, subgroupGuid, settingGuid),
-                                    DcValueIndex = PowerApi.ReadDcValueIndex(scheme, subgroupGuid, settingGuid),
-                                    Min = PowerApi.ReadValueMin(subgroupGuid, settingGuid),
-                                    Max = PowerApi.ReadValueMax(subgroupGuid, settingGuid),
-                                    Increment = PowerApi.ReadValueIncrement(subgroupGuid, settingGuid),
-                                    Unit = PowerApi.ReadValueUnitsSpecifier(subgroupGuid, settingGuid)
-                                };
-
-                                var friendlyAc = setting.AcValueIndex.ToString();
-                                var friendlyDc = setting.DcValueIndex.ToString();
-
-                                if (setting.IsOption)
-                                {
-                                    friendlyAc = PowerApi.ReadPossibleFriendlyName(subgroupGuid, settingGuid, setting.AcValueIndex);
-                                    friendlyDc = PowerApi.ReadPossibleFriendlyName(subgroupGuid, settingGuid, setting.DcValueIndex);
-                                }
-
-                                setting.FriendlyAcValue = friendlyAc;
-                                setting.FriendlyDcValue = friendlyDc;
-
-                                subgroup.Settings.Add(setting);
-
-                                var compareSetting = new PowerCompareSetting
-                                {
-                                    SubgroupGuid = subgroupGuid,
-                                    Guid = settingGuid,
-                                    Name = setting.Name,
-                                    Description = setting.Description,
-                                    Min = setting.Min,
-                                    Max = setting.Max,
-                                    Increment = setting.Increment,
-                                    Unit = setting.Unit,
-                                    Plan1AcValue = setting.AcValueIndex,
-                                    Plan1DcValue = setting.DcValueIndex,
-                                    Plan1AcFriendlyValue = friendlyAc,
-                                    Plan1DcFriendlyValue = friendlyDc,
-                                    Plan2AcValue = 0,
-                                    Plan2DcValue = 0,
-                                    Plan2AcFriendlyValue = "",
-                                    Plan2DcFriendlyValue = "",
-                                    IsAcDifferent = false,
-                                    IsDcDifferent = false,
-                                    IsVisible = true
-                                };
-                                compareSubgroup.Settings.Add(compareSetting);
-                            }
-                        }
-                        finally
-                        {
-                        }
-
-                        allSubgroupsList.Add(subgroup);
-                        compareSubgroupsList.Add(compareSubgroup);
-                    }
-
-                }
-                finally
-                {
+                    compareSubgroup.Settings.Add(compareSetting);
                 }
 
-                return (allSubgroupsList, compareSubgroupsList);
-            });
-            var allSubgroupsList = result.allSubgroupsList;
-            var compareSubgroupsList = result.compareSubgroupsList;
+
+                allSubgroupsList.Add(subgroup);
+                compareSubgroupsList.Add(compareSubgroup);
+            }
+
+
 
             _allSubgroups.Clear();
             Subgroups.Clear();
@@ -519,8 +499,7 @@ namespace AutoOS.Views.Settings
             }
             else
             {
-                if (CompareSubgroups.Contains(_identicalPlansPlaceholder))
-                    CompareSubgroups.Remove(_identicalPlansPlaceholder);
+                CompareSubgroups.Remove(_identicalPlansPlaceholder);
             }
         }
 
@@ -687,7 +666,7 @@ namespace AutoOS.Views.Settings
             };
 
             _powerPlans.Add(plan);
-            
+
             var sortedPlans = _powerPlans.OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
             _powerPlans.Clear();
             foreach (var p in sortedPlans) _powerPlans.Add(p);
@@ -702,7 +681,7 @@ namespace AutoOS.Views.Settings
             PowerPlanComboBox.ItemsSource = null;
             PowerPlanComboBox.ItemsSource = _powerPlans;
             PowerPlanComboBox.SelectedItem = _powerPlans.First(p => p.Guid == importedGuid);
-            
+
             ComparePowerPlanComboBox.ItemsSource = null;
             ComparePowerPlanComboBox.ItemsSource = _comparePlans;
             ComparePowerPlanComboBox.SelectedItem = _comparePlans.First(p => p.Guid == Guid.Empty);

@@ -34,7 +34,6 @@ namespace AutoOS.Views.Settings.Power
         public string Name { get; set; }
 
         public Windows.UI.Text.FontWeight FontWeight { get; set; } = FontWeights.SemiBold;
-
         public ObservableCollection<PowerSetting> Settings { get; set; } = new ObservableCollection<PowerSetting>();
         public List<object> SubItems => Settings.Cast<object>().ToList();
 
@@ -57,7 +56,7 @@ namespace AutoOS.Views.Settings.Power
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    public sealed class PowerSetting : INotifyPropertyChanged
+    public sealed partial class PowerSetting : INotifyPropertyChanged
     {
         private uint _acValueIndex;
         private uint _dcValueIndex;
@@ -67,8 +66,34 @@ namespace AutoOS.Views.Settings.Power
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public string FriendlyAcValue { get; set; }
-        public string FriendlyDcValue { get; set; }
+        private string _friendlyAcValue;
+        private string _friendlyDcValue;
+
+        public string FriendlyAcValue
+        {
+            get => _friendlyAcValue;
+            set
+            {
+                if (_friendlyAcValue != value)
+                {
+                    _friendlyAcValue = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public string FriendlyDcValue
+        {
+            get => _friendlyDcValue;
+            set
+            {
+                if (_friendlyDcValue != value)
+                {
+                    _friendlyDcValue = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         public uint AcValueIndex
         {
