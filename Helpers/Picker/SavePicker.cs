@@ -147,7 +147,7 @@ public partial class SavePicker
             }
             catch (Exception ex) when ((uint)(ex.HResult) == 0x800704C7) // ERROR_CANCELLED
             {
-                // User canceled the dialog, return string.Empty
+                // User canceled the dialog, return null
                 return null;
             }
 
