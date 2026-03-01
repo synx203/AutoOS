@@ -39,7 +39,7 @@ public static partial class TaskbarHelper
         [PreserveSig] void SetProgressState(IntPtr hwnd, TaskbarStates state);
     }
 
-    private static readonly ITaskbarList3? taskbarInstance;
+    private static readonly ITaskbarList3 taskbarInstance;
     private static readonly bool taskbarSupported = Environment.OSVersion.Version >= new Version(6, 1);
 
     static TaskbarHelper()

@@ -56,7 +56,13 @@ jobs:
 
     - uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: 10.x.x
+        dotnet-version: |
+            10.x.x
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
+      with:
+        vs-prerelease: true    
 
     # Add CommunityToolkit Labs and Main nuget sources
     - run: |
@@ -81,16 +87,10 @@ jobs:
       with:
         proj-path: ${{ env.PROJECT_PATH }}
 
-    # Add MS Build
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
-      with:
-        vs-prerelease: true
-
     # Restore the app
     - name: Restore the application
       run: |
-        msbuild $env:PROJECT_PATH /t:Restore /p:Configuration=Release
+        dotnet restore $env:PROJECT_PATH /p:Configuration=Release
       env:
         Configuration: Release
 
@@ -103,7 +103,7 @@ jobs:
 
     # Building with configured commands
     - name: Create the MSIX package
-      run: msbuild $env:PROJECT_PATH /p:Configuration=Release /p:Platform=${{ matrix.platform }} /p:SelfContained=${{ env.PUBLISH_SELF_CONTAINED }} /p:PublishAot=${{ env.PUBLISH_AOT }} /p:PublishTrimmed=${{ env.PUBLISH_TRIMMED }} /p:TrimmerDefaultAction=${{ env.PUBLISH_TRIM_MODE }} /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir=Packages\ /p:GenerateAppxPackageOnBuild=true
+      run: dotnet publish $env:PROJECT_PATH /p:Configuration=Release /p:Platform=${{ matrix.platform }} /p:RuntimeIdentifier=win-${{ matrix.platform }} /p:SelfContained=${{ env.PUBLISH_SELF_CONTAINED }} /p:PublishAot=${{ env.PUBLISH_AOT }} /p:PublishTrimmed=${{ env.PUBLISH_TRIMMED }} /p:TrimmerDefaultAction=${{ env.PUBLISH_TRIM_MODE }} /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Never /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir=Packages\ /p:GenerateAppxPackageOnBuild=true
       env:
         Platform: ${{ matrix.platform }}
     
@@ -158,7 +158,7 @@ jobs:
       APP_VERSION: ${{ needs.build.outputs.app-version }}
       IS_PRE_RELEASE: ${{ needs.build.outputs.IS_PRE_RELEASE }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
