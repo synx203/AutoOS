@@ -319,9 +319,17 @@ namespace AutoOS.Views.Settings
             FontWeight = FontWeights.Normal
         };
 
+        private readonly PowerCompareSubgroup noResultCompareItem = new()
+        {
+            Name = "No result found",
+            Settings = [],
+            IsVisible = true,
+            FontWeight = FontWeights.Normal
+        };
+
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (ComparePowerPlanComboBox.SelectedItem is PowerPlan comparePlan && comparePlan.Guid == Guid.Empty && CompareTreeView.Visibility == Visibility.Visible)
+            if (ComparePowerPlanComboBox.SelectedItem is PowerPlan comparePlanEmpty && comparePlanEmpty.Guid == Guid.Empty && CompareTreeView.Visibility == Visibility.Visible)
                 CompareTreeView.Visibility = Visibility.Collapsed;
 
             string query = Search.Text.Trim();
@@ -350,6 +358,40 @@ namespace AutoOS.Views.Settings
             else
             {
                 Subgroups.Remove(noResultItem);
+            }
+
+            if (ComparePowerPlanComboBox.SelectedItem is PowerPlan comparePlan && comparePlan.Guid != Guid.Empty)
+            {
+                bool anyCompareVisible = false;
+                foreach (var subgroup in CompareSubgroups)
+                {
+                    if (subgroup == _identicalPlansPlaceholder || subgroup == noResultCompareItem) continue;
+
+                    foreach (var setting in subgroup.Settings)
+                    {
+                        bool isDifferent = setting.IsAcDifferent || setting.IsDcDifferent;
+                        
+                        bool matchesSearch = string.IsNullOrEmpty(query) || 
+                                            setting.Name.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
+                                            setting.Guid.ToString().Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
+                                            setting.SubgroupGuid.ToString().Contains(query, StringComparison.CurrentCultureIgnoreCase);
+
+                        setting.IsVisible = isDifferent && matchesSearch;
+                    }
+
+                    subgroup.IsVisible = subgroup.Settings.Any(s => s.IsVisible);
+                    if (subgroup.IsVisible) anyCompareVisible = true;
+                }
+
+                if (!anyCompareVisible && !CompareSubgroups.Contains(_identicalPlansPlaceholder))
+                {
+                    if (!CompareSubgroups.Contains(noResultCompareItem))
+                        CompareSubgroups.Add(noResultCompareItem);
+                }
+                else
+                {
+                    CompareSubgroups.Remove(noResultCompareItem);
+                }
             }
         }
 
@@ -399,6 +441,8 @@ namespace AutoOS.Views.Settings
                     CompareTreeView.Opacity = 0;
                     CompareTreeView.IsHitTestVisible = false;
                 }
+
+                SearchBox_TextChanged(null, null);
             }
         }
 
@@ -425,6 +469,8 @@ namespace AutoOS.Views.Settings
                 CompareTreeView.IsHitTestVisible = false;
                 CompareTreeView.Visibility = Visibility.Collapsed;
             }
+
+            SearchBox_TextChanged(null, null);
         }
 
         private async Task UpdateCompareData(PowerPlan comparePlan)
