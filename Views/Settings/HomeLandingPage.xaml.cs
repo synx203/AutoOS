@@ -34,11 +34,12 @@ namespace AutoOS.Views.Settings
         {
             Version currentVersion = new(ProcessInfoHelper.Version);
 
-            if (localSettings.Values.TryGetValue("Version", out var storedVersionObj) && storedVersionObj is string storedVersionStr)
-            {
-                Version storedVersion = new(storedVersionStr);
+            localSettings.Values.TryGetValue("Version", out var storedVersionObj);
+            Version storedVersion = storedVersionObj is string storedVersionStr ? new(storedVersionStr) : null;
 
-                if (currentVersion.CompareTo(storedVersion) > 0)
+            if (storedVersion == null || currentVersion.CompareTo(storedVersion) > 0)
+            {
+                try
                 {
                     using var doc = JsonDocument.Parse(await httpClient.GetStringAsync($"https://api.github.com/repos/tinodin/AutoOS/releases/tags/v{currentVersion}"));
 
@@ -83,13 +84,17 @@ namespace AutoOS.Views.Settings
                     };
 
                     _ = updater.ShowAsync();
-					await updateDialog.RunActions(UpdateStage.UpdateActions(updateDialog));
+                    await updateDialog.RunActions(UpdateStage.UpdateActions(updateDialog));
                     updateDialog.SetStatus("Update complete.");
                     updateDialog.SetSuccess();
-					localSettings.Values["Version"] = currentVersion.ToString();
+                    localSettings.Values["Version"] = currentVersion.ToString();
                     await ProcessActions.Log();
                     await Task.Delay(1000);
                     updater.Hide();
+                }
+                catch
+                {
+                    return;
                 }
             }
 
@@ -133,7 +138,7 @@ namespace AutoOS.Views.Settings
                 PrimaryButtonText = "Yes",
                 CloseButtonText = "No",
                 DefaultButton = ContentDialogButton.Close,
-				XamlRoot = XamlRoot
+                XamlRoot = XamlRoot
             };
 
             if (await confirmDialog.ShowAsync() != ContentDialogResult.Primary)
@@ -147,8 +152,8 @@ namespace AutoOS.Views.Settings
                 Content = msixDialog,
                 Resources = new ResourceDictionary
                 {
-					["ContentDialogMinHeight"] = 0.0,
-					["ContentDialogMinWidth"] = 500,
+                    ["ContentDialogMinHeight"] = 0.0,
+                    ["ContentDialogMinWidth"] = 500,
                     ["ContentDialogMaxWidth"] = 1000
                 },
                 XamlRoot = XamlRoot
