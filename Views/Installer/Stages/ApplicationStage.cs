@@ -1,4 +1,5 @@
 ﻿using AutoOS.Views.Installer.Actions;
+using AutoOS.Helpers.Store;
 using Microsoft.UI.Xaml.Media;
 using System.Diagnostics;
 using System.Text.Json.Nodes;
@@ -90,52 +91,46 @@ public static class ApplicationStage
         var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
         {
             // download heif image extension
-            ("Downloading HEIF Image Extension", async () => await ProcessActions.RunMicrosoftStoreDownload("Microsoft.HEIFImageExtension", "f4ccc4c1-6e9a-49a0-8f19-46f1717c7ba3", "appxbundle", 0, false), null),
+            ("Downloading HEIF Image Extension", async () => await StoreHelper.Download("Microsoft.HEIFImageExtension_8wekyb3d8bbwe"), null),
 
             // install heif image extension
-            ("Installing HEIF Image Extension", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\Microsoft.HEIFImageExtension (Package)\"" | Select-Object -First 1).FullName"), null),
+            ("Installing HEIF Image Extension", async () => await StoreHelper.Install("Microsoft.HEIFImageExtension_8wekyb3d8bbwe"), null),
 
             // download mpeg-2 video extension
-            ("Downloading MPEG-2 Video Extension", async () => await ProcessActions.RunMicrosoftStoreDownload("Microsoft.MPEG2VideoExtension", "886ca98c-991c-40d0-b374-1417d6d437a1", "appxbundle", 0, false), null),
+            ("Downloading MPEG-2 Video Extension", async () => await StoreHelper.Download("Microsoft.MPEG2VideoExtension_8wekyb3d8bbwe"), null),
 
             // install mpeg-2 video extension
-            ("Installing MPEG-2 Video Extension", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\Microsoft.MPEG2VideoExtension (Package)\"" | Select-Object -First 1).FullName"), null),
+            ("Installing MPEG-2 Video Extension", async () => await StoreHelper.Install("Microsoft.MPEG2VideoExtension_8wekyb3d8bbwe"), null),
 
             // download av1 video extension
-            ("Downloading AV1 Video Extension", async () => await ProcessActions.RunMicrosoftStoreDownload("Microsoft.AV1VideoExtension", "6ff5769f-7177-4ca5-b6f4-939194121c82", "appxbundle", 0, false), null),
+            ("Downloading AV1 Video Extension", async () => await StoreHelper.Download("Microsoft.AV1VideoExtension_8wekyb3d8bbwe"), null),
 
             // install av1 video extension
-            ("Installing AV1 Video Extension", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\Microsoft.AV1VideoExtension (Package)\"" | Select-Object -First 1).FullName"), null),
+            ("Installing AV1 Video Extension", async () => await StoreHelper.Install("Microsoft.AV1VideoExtension_8wekyb3d8bbwe"), null),
 
             // download avc encoder video extension
-            ("Downloading AVC Encoder Video Extension", async () => await ProcessActions.RunMicrosoftStoreDownload("Microsoft.AVCEncoderVideoExtension", "4be34c88-8464-488e-97bb-70acee4a55a0" ,"appxbundle", 0, false), null),
+            ("Downloading AVC Encoder Video Extension", async () => await StoreHelper.Download("Microsoft.AVCEncoderVideoExtension_8wekyb3d8bbwe"), null),
 
             // install avc encoder video extension
-            ("Installing AVC Encoder Video Extension", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\Microsoft.AVCEncoderVideoExtension (Package)\"" | Select-Object -First 1).FullName"), null),
+            ("Installing AVC Encoder Video Extension", async () => await StoreHelper.Install("Microsoft.AVCEncoderVideoExtension_8wekyb3d8bbwe"), null),
 
             // download dolby vision extension
-            ("Downloading Dolby Vision Extension", async () => await ProcessActions.RunMicrosoftStoreDownload("DolbyLaboratories.DolbyVisionAccess", "c143786a-e5c5-4dc3-a480-601c65c31538", "msixbundle", 0, false), null),
+            ("Downloading Dolby Vision Extension", async () => await StoreHelper.Download("DolbyLaboratories.DolbyVisionAccess_rz1tebttyb220"), null),
 
             // install dolby vision extension
-            ("Installing Dolby Vision Extension", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\DolbyLaboratories.DolbyVisionAccess (Package)\"" | Select-Object -First 1).FullName"), null),
+            ("Installing Dolby Vision Extension", async () => await StoreHelper.Install("DolbyLaboratories.DolbyVisionAccess_rz1tebttyb220"), null),
 
             // download movies & tv
-            ("Downloading Movies & TV", async () => await ProcessActions.RunMicrosoftStoreDownload("Microsoft.ZuneVideo", "64b22df1-5a9c-4c88-aa1f-42cefaf8b281", "appxbundle", 2, false), null),
+            ("Downloading Movies & TV", async () => await StoreHelper.Download("Microsoft.ZuneVideo_8wekyb3d8bbwe"), null),
 
             // install movies & tv
-            ("Installing Movies & TV", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\Microsoft.ZuneVideo (Package)\"" | Select-Object -First 1).FullName"), null),
-
-            // download icloud dependencies
-            ("Downloading iCloud Dependencies", async () => await ProcessActions.RunMicrosoftStoreDownload("AppleInc.iCloud", "1e4f5d0e-4b36-4f9b-bfbc-9fec63fd0f1e", "", 0, true), () => iCloud == true),
-
-            // install icloud
-            ("Installing iCloud Dependencies", async () => await ProcessActions.RunPowerShell(@"Get-ChildItem -Path \""$env:TEMP\AppleInc.iCloud (Dependencies)\"" | ForEach-Object { Add-AppxPackage -Path $_.FullName -ErrorAction SilentlyContinue }"), () => iCloud == true),
+            ("Installing Movies & TV", async () => await StoreHelper.Install("Microsoft.ZuneVideo_8wekyb3d8bbwe"), null),
 
             // download icloud
-            ("Downloading iCloud", async () => await ProcessActions.RunMicrosoftStoreDownload("AppleInc.iCloud", "1e4f5d0e-4b36-4f9b-bfbc-9fec63fd0f1e", "appx", 0, false), () => iCloud == true),
+            ("Downloading iCloud", async () => await StoreHelper.Download("AppleInc.iCloud_nzyj5cx40ttqa"), () => iCloud == true),
 
             // install icloud
-            ("Installing iCloud", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\AppleInc.iCloud (Package)\"" | Select-Object -First 1).FullName"), () => iCloud == true),
+            ("Installing iCloud", async () => await StoreHelper.Install("AppleInc.iCloud_nzyj5cx40ttqa"), () => iCloud == true),
             ("Installing iCloud", async () => icloudVersion = await Task.Run(() => { var process = new Process { StartInfo = new ProcessStartInfo("powershell.exe", "Get-AppxPackage -Name \"AppleInc.iCloud\" | Select-Object -ExpandProperty Version") { RedirectStandardOutput = true, CreateNoWindow = true } }; process.Start(); return process.StandardOutput.ReadToEnd().Trim();}), () => iCloud == true),
 
             // log in to icloud
@@ -150,10 +145,10 @@ public static class ApplicationStage
             ("Disabling iCloud startup entries", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\AppleInc.iCloud_nzyj5cx40ttqa\iCloudPhotoStreamsStartupTask"" /v State /t REG_DWORD /d 1 /f"), () => iCloud == true),
 
             // download bitwarden
-            ("Downloading Bitwarden", async () => await ProcessActions.RunMicrosoftStoreDownload("8bitSolutionsLLC.bitwardendesktop", "98b94e11-5303-4222-8c4b-8e039b5f9d31", "appx", 0, false), () => Bitwarden == true),
+            ("Downloading Bitwarden", async () => await StoreHelper.Download("8bitSolutionsLLC.bitwardendesktop_h4e712dmw3xyy"), () => Bitwarden == true),
 
             // install bitwarden
-            ("Installing Bitwarden", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\8bitSolutionsLLC.bitwardendesktop (Package)\"" | Select-Object -First 1).FullName"), () => Bitwarden == true),
+            ("Installing Bitwarden", async () => await StoreHelper.Install("8bitSolutionsLLC.bitwardendesktop_h4e712dmw3xyy"), () => Bitwarden == true),
             ("Installing Bitwarden", async () => bitwardenVersion = await Task.Run(() => { var process = new Process { StartInfo = new ProcessStartInfo("powershell.exe", "Get-AppxPackage -Name \"8bitSolutionsLLC.bitwardendesktop\" | Select-Object -ExpandProperty Version") { RedirectStandardOutput = true, CreateNoWindow = true } }; process.Start(); return process.StandardOutput.ReadToEnd().Trim(); }), () => Bitwarden == true),
 
             // log in to bitwarden
@@ -173,10 +168,10 @@ public static class ApplicationStage
             ("Please log in to your 1Password account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "1Password", "app", onePasswordVersion, "1Password.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => OnePassword == true),
 
             // download nanazip
-            ("Downloading NanaZip", async () => await ProcessActions.RunMicrosoftStoreDownload("40174MouriNaruto.NanaZip", "6045570b-8398-4779-90e1-d9aef6f18823", "msixbundle", 0, false), null),
+            ("Downloading NanaZip", async () => await StoreHelper.Download("40174MouriNaruto.NanaZip_8672y6p4v2rg0"), null),
 
             // install nanazip
-            ("Installing NanaZip", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\40174MouriNaruto.NanaZip (Package)\"" | Select-Object -First 1).FullName"), null),
+            ("Installing NanaZip", async () => await StoreHelper.Install("40174MouriNaruto.NanaZip_8672y6p4v2rg0"), null),
 
             //// download files
             //("Downloading Files", async () => await ProcessActions.RunDownload("https://files.community/appinstallers/Files.stable.appinstaller", Path.GetTempPath(), "Files.stable.appinstaller"), null),
@@ -354,10 +349,10 @@ public static class ApplicationStage
             ("Installing Node.js", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c ""%TEMP%\node-v24.12.0-x64.msi"" /qn"), () => Nodejs ==  true),
 
             // download trello
-            ("Downloading Trello", async () => await ProcessActions.RunMicrosoftStoreDownload("45273LiamForsyth.PawsforTrello", "ccb2a6eb-4608-4202-a709-929b87799a92", "appx", 1, false), () => Trello == true),
+            ("Downloading Trello", async () => await StoreHelper.Download("45273LiamForsyth.PawsforTrello_7pb5ddty8z1pa"), () => Trello == true),
 
             // install trello
-            ("Installing Trello", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\45273LiamForsyth.PawsforTrello (Package)\"" | Select-Object -First 1).FullName"), () => Trello == true),
+            ("Installing Trello", async () => await StoreHelper.Install("45273LiamForsyth.PawsforTrello_7pb5ddty8z1pa"), () => Trello == true),
             ("Installing Trello", async () => trelloVersion = await Task.Run(() => { var process = new Process { StartInfo = new ProcessStartInfo("powershell.exe", "Get-AppxPackage -Name \"45273LiamForsyth.PawsforTrello\" | Select-Object -ExpandProperty Version") { RedirectStandardOutput = true, CreateNoWindow = true } }; process.Start(); return process.StandardOutput.ReadToEnd().Trim(); }), () => Trello == true),
 
             // pin trello to the taskbar
@@ -368,10 +363,10 @@ public static class ApplicationStage
             ("Please log in to your Trello account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\45273LiamForsyth.PawsforTrello_" + trelloVersion + @"_x64__7pb5ddty8z1pa\app", "Trello.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => Trello == true),
 
             // download dolby access
-            ("Downloading Dolby Access", async () => await ProcessActions.RunMicrosoftStoreDownload("DolbyLaboratories.DolbyAccess", "61e179bf-d7a6-4201-aa9b-88cf1bcbc472", "msixbundle", 1, false), () => AppleMusic == true),
+            ("Downloading Dolby Access", async () => await StoreHelper.Download("DolbyLaboratories.DolbyAccess_rz1tebttyb220", 1), () => AppleMusic == true),
 
             // install dolby access
-            ("Installing Dolby Access", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\DolbyLaboratories.DolbyAccess (Package)\"" | Select-Object -First 1).FullName"), () => AppleMusic == true),
+            ("Installing Dolby Access", async () => await StoreHelper.Install("DolbyLaboratories.DolbyAccess_rz1tebttyb220"), () => AppleMusic == true),
             ("Installing Dolby Access", async () => dolbyAccessVersion = await Task.Run(() => { var process = new Process { StartInfo = new ProcessStartInfo("powershell.exe", "Get-AppxPackage -Name \"DolbyLaboratories.DolbyAccess\" | Select-Object -ExpandProperty Version") { RedirectStandardOutput = true, CreateNoWindow = true } }; process.Start(); return process.StandardOutput.ReadToEnd().Trim(); }), () => AppleMusic == true),
 
             // log in to dolby access
@@ -379,10 +374,10 @@ public static class ApplicationStage
             ("Please log in to your Dolby Access account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\DolbyLaboratories.DolbyAccess_" + dolbyAccessVersion + "_x64__rz1tebttyb220", "DolbyAccess.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => AppleMusic == true),
 
             // download apple music
-            ("Downloading Apple Music", async () => await ProcessActions.RunMicrosoftStoreDownload("AppleInc.AppleMusicWin", "cf497837-70f4-4c2a-9b9d-3d5767379bb1", "msixbundle", 0, false), () => AppleMusic == true),
+            ("Downloading Apple Music", async () => await StoreHelper.Download("AppleInc.AppleMusicWin_nzyj5cx40ttqa"), () => AppleMusic == true),
 
             // install apple music
-            ("Installing Apple Music", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\AppleInc.AppleMusicWin (Package)\"" | Select-Object -First 1).FullName"), () => AppleMusic == true),
+            ("Installing Apple Music", async () => await StoreHelper.Install("AppleInc.AppleMusicWin_nzyj5cx40ttqa"), () => AppleMusic == true),
             ("Installing Apple Music", async () => appleMusicVersion = await Task.Run(() => { var process = new Process { StartInfo = new ProcessStartInfo("powershell.exe", "Get-AppxPackage -Name \"AppleInc.AppleMusicWin\" | Select-Object -ExpandProperty Version") { RedirectStandardOutput = true, CreateNoWindow = true } }; process.Start(); return process.StandardOutput.ReadToEnd().Trim(); }), () => AppleMusic == true),
             
             // enable "keep miniplayer on top of all other windows"
@@ -396,10 +391,10 @@ public static class ApplicationStage
             ("Please log in to your Apple Music account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\AppleInc.AppleMusicWin_" + appleMusicVersion + "_x64__nzyj5cx40ttqa", "AppleMusic.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => AppleMusic == true),
 
             // download tidal
-            ("Downloading TIDAL", async () => await ProcessActions.RunMicrosoftStoreDownload("WiMPMusic.27241E05630EA", "b938b446-5909-4b21-8034-c0eee2fa0bb5", "appx", 0, false), () => Tidal == true),
+            ("Downloading TIDAL", async () => await StoreHelper.Download("WiMPMusic.27241E05630EA_kn85bz84x7te4"), () => Tidal == true),
 
             // install tidal
-            ("Installing TIDAL", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\WiMPMusic.27241E05630EA (Package)\"" | Select-Object -First 1).FullName"), () => Tidal == true),
+            ("Installing TIDAL", async () => await StoreHelper.Install("WiMPMusic.27241E05630EA_kn85bz84x7te4"), () => Tidal == true),
             ("Installing TIDAL", async () => tidalVersion = await Task.Run(() => { var process = new Process { StartInfo = new ProcessStartInfo("powershell.exe", "Get-AppxPackage -Name \"WiMPMusic.27241E05630EA\" | Select-Object -ExpandProperty Version") { RedirectStandardOutput = true, CreateNoWindow = true } }; process.Start(); return process.StandardOutput.ReadToEnd().Trim(); }), () => Tidal == true),
 
             // pin tidal to the taskbar
@@ -422,10 +417,10 @@ public static class ApplicationStage
             ("Please log in to your Qobuz account", async () => { await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Qobuz", "Qobuz.exe"), WindowStyle = ProcessWindowStyle.Maximized })!.WaitForExitAsync()); while (Process.GetProcessesByName("Qobuz").Length > 2) await Task.Delay(500); }, () => Qobuz == true),
 
             // download amazon music
-            ("Downloading Amazon Music", async () => await ProcessActions.RunMicrosoftStoreDownload("AmazonMobileLLC.AmazonMusic", "7fb9f901-50c2-4974-a65c-01b4cd17ca77", "appx", 0, false), () => AmazonMusic == true),
+            ("Downloading Amazon Music", async () => await StoreHelper.Download("AmazonMobileLLC.AmazonMusic_kc6t79cpj4tp0"), () => AmazonMusic == true),
 
             // install amazon music
-            ("Installing Amazon Music", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\AmazonMobileLLC.AmazonMusic (Package)\"" | Select-Object -First 1).FullName"), () => AmazonMusic == true),
+            ("Installing Amazon Music", async () => await StoreHelper.Install("AmazonMobileLLC.AmazonMusic_kc6t79cpj4tp0"), () => AmazonMusic == true),
             ("Installing Amazon Music", async () => amazonMusicVersion = await Task.Run(() => { var process = new Process { StartInfo = new ProcessStartInfo("powershell.exe", "Get-AppxPackage -Name \"AmazonMobileLLC.AmazonMusic\" | Select-Object -ExpandProperty Version") { RedirectStandardOutput = true, CreateNoWindow = true } }; process.Start(); return process.StandardOutput.ReadToEnd().Trim(); }), () => AmazonMusic == true),
 
             // pin amazon music to the taskbar
@@ -435,10 +430,10 @@ public static class ApplicationStage
             ("Please log in to your Amazon Music account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\AmazonMobileLLC.AmazonMusic_" + amazonMusicVersion + "_x86__kc6t79cpj4tp0", "Amazon Music.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => AmazonMusic == true),
 
             // download deezer music
-            ("Downloading Deezer Music", async () => await ProcessActions.RunMicrosoftStoreDownload("Deezer.62021768415AF", "9ba24187-b508-4235-ad59-e78e833322a4", "appxbundle", 0, false), () => DeezerMusic == true),
+            ("Downloading Deezer Music", async () => await StoreHelper.Download("Deezer.62021768415AF_q7m17pa7q8kj0"), () => DeezerMusic == true),
 
             // install deezer music
-            ("Installing Deezer Music", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\Deezer.62021768415AF (Package)\"" | Select-Object -First 1).FullName"), () => DeezerMusic == true),
+            ("Installing Deezer Music", async () => await StoreHelper.Install("Deezer.62021768415AF_q7m17pa7q8kj0"), () => DeezerMusic == true),
             ("Installing Deezer Music", async () => deezerMusicVersion = await Task.Run(() => { var process = new Process { StartInfo = new ProcessStartInfo("powershell.exe", "Get-AppxPackage -Name \"Deezer.62021768415AF\" | Select-Object -ExpandProperty Version") { RedirectStandardOutput = true, CreateNoWindow = true } }; process.Start(); return process.StandardOutput.ReadToEnd().Trim(); }), () => DeezerMusic == true),
 
             // pin deezer music to the taskbar
@@ -536,10 +531,10 @@ public static class ApplicationStage
             ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_zstd-1"), true); } catch { } }), () => Discord == true),
 
             // download whatsapp
-            ("Downloading WhatsApp", async () => await ProcessActions.RunMicrosoftStoreDownload("5319275A.WhatsAppDesktop", "3dadc9b1-3603-496c-a6d1-bf2fda81df89", "msixbundle", 0, false), () => WhatsApp == true),
+            ("Downloading WhatsApp", async () => await StoreHelper.Download("5319275A.WhatsAppDesktop_cv1g1gvanyjgm"), () => WhatsApp == true),
 
             // install whatsapp
-            ("Installing WhatsApp", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -Path (Get-ChildItem -Path \""$env:TEMP\5319275A.WhatsAppDesktop (Package)\"" | Select-Object -First 1).FullName"), () => WhatsApp == true),
+            ("Installing WhatsApp", async () => await StoreHelper.Install("5319275A.WhatsAppDesktop_cv1g1gvanyjgm"), () => WhatsApp == true),
             ("Installing WhatsApp", async () => whatsAppVersion = await Task.Run(() => { var process = new Process { StartInfo = new ProcessStartInfo("powershell.exe", "Get-AppxPackage -Name \"5319275A.WhatsAppDesktop\" | Select-Object -ExpandProperty Version") { RedirectStandardOutput = true, CreateNoWindow = true } }; process.Start(); return process.StandardOutput.ReadToEnd().Trim(); }), () => WhatsApp == true),
 
             // disable "minimize to system tray"

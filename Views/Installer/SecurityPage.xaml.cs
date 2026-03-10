@@ -124,7 +124,7 @@ public sealed partial class SecurityPage : Page
         {
             while (true)
             {
-                await Task.Delay(1000);
+                await Task.Delay(500);
 
                 if (!IsTamperOn() && !IsRealtimeOn())
                 {
