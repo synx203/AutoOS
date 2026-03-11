@@ -1,4 +1,5 @@
 ﻿using AutoOS.Views.Installer.Actions;
+using AutoOS.Helpers.Device;
 using Microsoft.UI.Xaml.Media;
 using WinRT.Interop;
 
@@ -43,11 +44,8 @@ public static class DeviceStage
             // disable asmedia usb controllers
             ("Disabling ASMedia USB controllers", async () => await ProcessActions.RunPowerShell(@"Get-PnpDevice -FriendlyName ""*ASMedia USB*"" | Disable-PnpDevice -Confirm:$false"), null),
 
-            // save xhci interrupt moderation (imod) data
-            ("Saving XHCI Interrupt Moderation (IMOD) data", async () => await ProcessActions.RunPowerShellScript("imod.ps1", $"-save \"{Path.Combine(PathHelper.GetAppDataFolderPath(), "Chiptool", "chiptool.exe")}\""), null),
-
             // disable xhci interrupt moderation (imod)
-            ("Disabling XHCI Interrupt Moderation (IMOD)", async () => await ProcessActions.RunPowerShellScript("imod.ps1", $"-disable \"{Path.Combine(PathHelper.GetAppDataFolderPath(), "Chiptool", "chiptool.exe")}\""), null),
+            ("Disabling XHCI Interrupt Moderation (IMOD)", async () => await Task.Run(() => { foreach (var device in DeviceHelper.GetDevices(DeviceType.XHCI)) DeviceHelper.ToggleImod(device, false); }), null),
             
             // disable reserved storage
             ("Disabling reserved storage", async () => await ProcessActions.RunPowerShell(@"DISM /Online /Set-ReservedStorageState /State:Disabled"), null),

@@ -1,5 +1,11 @@
 using Microsoft.Win32;
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Text.Json.Nodes;
+using WinRT;
+using Windows.Storage;
 using Windows.Win32;
 using Windows.Win32.Devices.DeviceAndDriverInstallation;
 using Windows.Win32.Foundation;
@@ -45,7 +51,8 @@ public enum XhciDeviceType
     Hub
 }
 
-public class DeviceInfo
+[GeneratedBindableCustomProperty]
+public partial class DeviceInfo : INotifyPropertyChanged
 {
     public string FriendlyName { get; set; } = string.Empty;
     public string DeviceDescription { get; set; } = string.Empty;
@@ -64,10 +71,25 @@ public class DeviceInfo
     public ulong AssignmentSetOverride { get; set; }
     public NicDriverType? DriverType { get; set; }
     public NicDeviceType? NicType { get; set; }
-    public bool IsActive { get; set; }
+    private bool isActive;
+    public bool IsActive
+    {
+        get => isActive;
+        set { if (isActive != value) { isActive = value; OnPropertyChanged(); } }
+    }
+    private bool isLoading = true;
+    public bool IsLoading
+    {
+        get => isLoading;
+        set { if (isLoading != value) { isLoading = value; OnPropertyChanged(); } }
+    }
     public XhciDeviceType? XhciType { get; set; }
     public ulong? BaseAddress { get; set; }
     public string CurrentVersion { get; set; } = string.Empty;
+
+    public event PropertyChangedEventHandler PropertyChanged;
+    private void OnPropertyChanged([CallerMemberName] string name = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
 
 internal static class DeviceHelper
@@ -92,10 +114,10 @@ internal static class DeviceHelper
         public List<string> FailedDevices { get; set; } = [];
     }
 
-    public unsafe static List<DeviceInfo> GetDevices(DeviceType deviceType)
+    public unsafe static List<DeviceInfo> GetDevices(DeviceType type)
     {
         var devices = new List<DeviceInfo>();
-        Guid classGuid = deviceType switch
+        Guid classGuid = type switch
         {
             DeviceType.GPU => GUID_DEVCLASS_DISPLAY,
             DeviceType.XHCI => GUID_DEVCLASS_USB,
@@ -106,10 +128,10 @@ internal static class DeviceHelper
         };
 
         var flags = DIGCF_PRESENT;
-        if (deviceType == DeviceType.Other) flags |= DIGCF_ALLCLASSES;
+        if (type == DeviceType.Other) flags |= DIGCF_ALLCLASSES;
 
-        HDEVINFO deviceInfoSetHandle = PInvoke.SetupDiGetClassDevs(deviceType == DeviceType.Other ? null : &classGuid, null, HWND.Null, flags);
-        if ((nint)deviceInfoSetHandle.Value == -1) return devices;
+        HDEVINFO deviceInfoSetHandle = PInvoke.SetupDiGetClassDevs(type == DeviceType.Other ? null : &classGuid, null, HWND.Null, flags);
+        if (deviceInfoSetHandle.Value == -1) return devices;
 
         const int MAX_DEVICE_ID_LEN = 256;
         char* pIdBuffer = stackalloc char[MAX_DEVICE_ID_LEN];
@@ -125,21 +147,21 @@ internal static class DeviceHelper
             string enumerator = GetDeviceRegistryPropertyString(deviceInfoSetHandle, &deviceInfoData, SPDRP_ENUMERATOR_NAME);
             string service = GetDeviceRegistryPropertyString(deviceInfoSetHandle, &deviceInfoData, SPDRP_SERVICE);
 
-            if (deviceType == DeviceType.GPU)
+            if (type == DeviceType.GPU)
             {
                 if (!string.Equals(enumerator, "PCI", StringComparison.OrdinalIgnoreCase)) continue;
                 if (string.Equals(service, "BasicDisplay", StringComparison.OrdinalIgnoreCase)) continue;
             }
-            else if (deviceType == DeviceType.XHCI)
+            else if (type == DeviceType.XHCI)
             {
                 if (!string.Equals(service, "USBXHCI", StringComparison.OrdinalIgnoreCase)) continue;
             }
-            else if (deviceType == DeviceType.NIC || deviceType == DeviceType.Other)
+            else if (type == DeviceType.NIC || type == DeviceType.Other)
             {
                 if (!string.Equals(enumerator, "PCI", StringComparison.OrdinalIgnoreCase) &&
                     !string.Equals(enumerator, "USB", StringComparison.OrdinalIgnoreCase)) continue;
 
-                if (deviceType == DeviceType.Other)
+                if (type == DeviceType.Other)
                 {
                     string classGuidStr = GetDeviceRegistryPropertyString(deviceInfoSetHandle, &deviceInfoData, SPDRP_CLASSGUID);
                     if (Guid.TryParse(classGuidStr, out Guid devGuid))
@@ -193,11 +215,11 @@ internal static class DeviceHelper
                 if (deviceRegKey != null)
                 {
                     using (var msiKeySub = deviceRegKey.OpenSubKey(@"Interrupt Management\MessageSignaledInterruptProperties"))
-                    if (msiKeySub != null)
-                    {
-                        msiSupported = Convert.ToUInt32(msiKeySub.GetValue("MSISupported") ?? 2);
-                        msiLimit = Convert.ToUInt32(msiKeySub.GetValue("MessageNumberLimit") ?? 0);
-                    }
+                        if (msiKeySub != null)
+                        {
+                            msiSupported = Convert.ToUInt32(msiKeySub.GetValue("MSISupported") ?? 2);
+                            msiLimit = Convert.ToUInt32(msiKeySub.GetValue("MessageNumberLimit") ?? 0);
+                        }
 
                     using var affinityKey = deviceRegKey.OpenSubKey(@"Interrupt Management\Affinity Policy");
                     if (affinityKey != null)
@@ -232,7 +254,7 @@ internal static class DeviceHelper
             XhciDeviceType? xhciType = null;
             ulong? baseAddress = null;
 
-            if (deviceType == DeviceType.NIC)
+            if (type == DeviceType.NIC)
             {
                 using var classKey = Registry.LocalMachine.OpenSubKey(registryPath);
                 nicDeviceType = classKey?.GetValue("*PhysicalMediaType")?.ToString() switch
@@ -245,7 +267,7 @@ internal static class DeviceHelper
 
                 isActive = GetActive(pnpDeviceId);
             }
-            else if (deviceType == DeviceType.XHCI)
+            else if (type == DeviceType.XHCI)
             {
                 xhciType = XhciDeviceType.Controller;
                 baseAddress = GetDeviceBaseAddress(pnpDeviceId);
@@ -374,7 +396,7 @@ internal static class DeviceHelper
 
         if (devicePriority == 0)
             affinityKey.DeleteValue("DevicePriority", false);
-        else 
+        else
             affinityKey.SetValue("DevicePriority", devicePriority, RegistryValueKind.DWord);
     }
 
@@ -483,44 +505,6 @@ internal static class DeviceHelper
         return false;
     }
 
-    private unsafe static ulong? GetDeviceBaseAddress(string pnpDeviceId)
-    {
-        fixed (char* pId = pnpDeviceId)
-        {
-            if (PInvoke.CM_Locate_DevNode(out uint devInst, pId, CM_LOCATE_DEVNODE_FLAGS.CM_LOCATE_DEVNODE_NORMAL) != CONFIGRET.CR_SUCCESS)
-                return null;
-
-            nuint logConf;
-            if (PInvoke.CM_Get_First_Log_Conf(out logConf, devInst, CM_LOG_CONF.ALLOC_LOG_CONF) != CONFIGRET.CR_SUCCESS &&
-                PInvoke.CM_Get_First_Log_Conf(out logConf, devInst, CM_LOG_CONF.BOOT_LOG_CONF) != CONFIGRET.CR_SUCCESS)
-                return null;
-
-            try
-            {
-                nuint resDes = 0;
-                if (PInvoke.CM_Get_Next_Res_Des(&resDes, logConf, (CM_RESTYPE)3, null, 0) == CONFIGRET.CR_SUCCESS)
-                {
-                    try
-                    {
-                        uint dataSize;
-                        if (PInvoke.CM_Get_Res_Des_Data_Size(&dataSize, resDes, 0) == CONFIGRET.CR_SUCCESS && dataSize >= 24)
-                        {
-                            byte[] data = new byte[dataSize];
-                            fixed (byte* pData = data)
-                            {
-                                if (PInvoke.CM_Get_Res_Des_Data(resDes, pData, dataSize, 0) == CONFIGRET.CR_SUCCESS)
-                                    return BitConverter.ToUInt64(data, 8);
-                            }
-                        }
-                    }
-                    finally { PInvoke.CM_Free_Res_Des_Handle(resDes); }
-                }
-            }
-            finally { PInvoke.CM_Free_Log_Conf_Handle(logConf); }
-        }
-        return null;
-    }
-
     public unsafe static bool RestartDevice(DeviceInfo device)
     {
         using var hDevInfo = PInvoke.SetupDiCreateDeviceInfoList(null, default);
@@ -607,5 +591,187 @@ internal static class DeviceHelper
         }
 
         return false;
+    }
+
+    private unsafe static ulong? GetDeviceBaseAddress(string pnpDeviceId)
+    {
+        fixed (char* pId = pnpDeviceId)
+        {
+            if (PInvoke.CM_Locate_DevNode(out uint devInst, pId, CM_LOCATE_DEVNODE_FLAGS.CM_LOCATE_DEVNODE_NORMAL) != CONFIGRET.CR_SUCCESS)
+                return null;
+
+            nuint logConf;
+            if (PInvoke.CM_Get_First_Log_Conf(out logConf, devInst, CM_LOG_CONF.ALLOC_LOG_CONF) != CONFIGRET.CR_SUCCESS && PInvoke.CM_Get_First_Log_Conf(out logConf, devInst, CM_LOG_CONF.BOOT_LOG_CONF) != CONFIGRET.CR_SUCCESS)
+                return null;
+
+            try
+            {
+                nuint resDes = 0;
+                nuint currentHandle = logConf;
+                bool isFirst = true;
+                uint resType = 0;
+
+                while (true)
+                {
+                    nuint nextResDes;
+                    CM_RESTYPE outResType;
+                    var result = PInvoke.CM_Get_Next_Res_Des(out nextResDes, currentHandle, 0, out outResType, 0);
+                    resType = (uint)outResType;
+
+                    if (!isFirst && resDes != 0)
+                        PInvoke.CM_Free_Res_Des_Handle(resDes);
+
+                    if (result != CONFIGRET.CR_SUCCESS)
+                        break;
+
+                    resDes = nextResDes;
+                    isFirst = false;
+                    currentHandle = resDes;
+
+                    if (resType == 1 || resType == 7)
+                    {
+                        uint dataSize;
+                        if (PInvoke.CM_Get_Res_Des_Data_Size(&dataSize, resDes, 0) == CONFIGRET.CR_SUCCESS && dataSize >= 24)
+                        {
+                            byte[] data = new byte[dataSize];
+                            fixed (byte* pData = data)
+                            {
+                                if (PInvoke.CM_Get_Res_Des_Data(resDes, pData, dataSize, 0) == CONFIGRET.CR_SUCCESS)
+                                {
+                                    ulong addr = BitConverter.ToUInt64(data, 8);
+                                    PInvoke.CM_Free_Res_Des_Handle(resDes);
+                                    return addr;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (resDes != 0)
+                    PInvoke.CM_Free_Res_Des_Handle(resDes);
+            }
+            finally
+            {
+                PInvoke.CM_Free_Log_Conf_Handle(logConf);
+            }
+        }
+        return null;
+    }
+
+    private static ulong GetValueFromAddress(ulong address)
+    {
+        using var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = Path.Combine(PathHelper.GetAppDataFolderPath(), "Chiptool", "chiptool.exe"),
+                Arguments = $"--rdmem 32 {$"0x{address:X}"}",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                CreateNoWindow = true
+            }
+        };
+
+        process.Start();
+        string output = process.StandardOutput.ReadToEnd();
+        process.WaitForExit();
+
+        return ulong.Parse(output.AsSpan(output.LastIndexOf('x') + 1), System.Globalization.NumberStyles.HexNumber);
+    }
+
+    private static void WriteValueToAddress(ulong address, ulong value)
+    {
+        using var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = Path.Combine(PathHelper.GetAppDataFolderPath(), "Chiptool", "chiptool.exe"),
+                Arguments = $"--wrmem 32 {$"0x{address:X}"} {$"0x{value:X8}"}",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            }
+        };
+        process.Start();
+        process.WaitForExit();
+    }
+
+    private static (ulong RuntimeAddress, int MaxIntrs) GetRuntimeAndMaxIntrs(DeviceInfo device)
+    {
+        string sourcePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "Chiptool");
+        string destinationPath = Path.Combine(PathHelper.GetAppDataFolderPath(), "Chiptool");
+
+        if (!Directory.Exists(destinationPath))
+        {
+            Directory.CreateDirectory(destinationPath);
+
+            foreach (var directory in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
+                Directory.CreateDirectory(directory.Replace(sourcePath, destinationPath));
+
+            foreach (var file in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
+                File.Copy(file, file.Replace(sourcePath, destinationPath), overwrite: true);
+        }
+
+        if (device.BaseAddress == null) return (0, 0);
+        ulong cap = device.BaseAddress.Value;
+        uint hcs1 = (uint)GetValueFromAddress(cap + 0x04);
+        int maxIntrs = (int)((hcs1 >> 8) & 0x7FF);
+        uint rtsoff = (uint)GetValueFromAddress(cap + 0x18);
+        return (cap + (rtsoff & ~0x1Fu), maxIntrs);
+    }
+
+    public static bool GetIMODState(DeviceInfo device)
+    {
+        var (runtime, max) = GetRuntimeAndMaxIntrs(device);
+        if (max == 0) return false;
+
+        for (int i = 0; i < max; i++)
+            if (GetValueFromAddress(runtime + 0x24 + (0x20 * (ulong)i)) != 0) return true;
+
+        return false;
+    }
+
+    public static void ToggleImod(DeviceInfo device, bool enable)
+    {
+        if (enable)
+        {
+            var json = ApplicationData.Current.LocalSettings.Values["XHCIs"]?.ToString();
+            if (string.IsNullOrEmpty(json)) return;
+
+            var array = JsonNode.Parse(json)?.AsArray();
+            var intervals = array?.FirstOrDefault(x => x?["PnpDeviceId"]?.ToString() == device.PnpDeviceId)?["Intervals"]?.AsObject();
+            if (intervals != null)
+                foreach (var kvp in intervals)
+                    if (ulong.TryParse(kvp.Key, out ulong addr)) WriteValueToAddress(addr, kvp.Value?.GetValue<ulong>() ?? 0);
+        }
+        else
+        {
+            SaveImod(device);
+            var (runtime, max) = GetRuntimeAndMaxIntrs(device);
+            for (int i = 0; i < max; i++)
+                WriteValueToAddress(runtime + 0x24 + (0x20 * (ulong)i), 0);
+        }
+    }
+
+    public static void SaveImod(DeviceInfo device)
+    {
+        var (runtime, max) = GetRuntimeAndMaxIntrs(device);
+        if (max == 0 || !GetIMODState(device)) return;
+
+        var intervals = new JsonObject();
+        for (int i = 0; i < max; i++)
+        {
+            ulong addr = runtime + 0x24 + (0x20 * (ulong)i);
+            intervals[addr.ToString()] = JsonValue.Create(GetValueFromAddress(addr));
+        }
+
+        var settings = ApplicationData.Current.LocalSettings;
+        var json = settings.Values["XHCIs"]?.ToString();
+        var array = (!string.IsNullOrEmpty(json) ? JsonNode.Parse(json)?.AsArray() : null) ?? [];
+        
+        for (int i = array.Count - 1; i >= 0; i--)
+            if (array[i]?["PnpDeviceId"]?.ToString() == device.PnpDeviceId) array.RemoveAt(i);
+
+        array.Add((JsonNode)new JsonObject { ["PnpDeviceId"] = JsonValue.Create(device.PnpDeviceId), ["Intervals"] = intervals });
+        settings.Values["XHCIs"] = array.ToJsonString();
     }
 }

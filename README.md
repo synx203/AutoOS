@@ -21,7 +21,7 @@
 </p>
 </div>
 
-AutoOS is a WinUI 3 application that automates Windows setup and optimization with a focus on gaming performance, privacy and system compatibility.
+AutoOS is a Native AOT WinUI 3 application that automates Windows setup and optimization with a focus on gaming performance, privacy, system compatibility and quality of live improvements.
 
 ## ✨ Features
 **AutoOS Installer**:

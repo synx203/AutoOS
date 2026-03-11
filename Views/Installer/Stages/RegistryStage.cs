@@ -208,6 +208,7 @@ public static class RegistryStage
 
             // disable "fault tolerant heap" (fth)
             (@"Disabling ""Fault Tolerant Heap"" (FTH)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\FTH"" /v Enabled /t REG_DWORD /d 0 /f"), null),
+            (@"Disabling ""Fault Tolerant Heap"" (FTH)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"rundll32 fthsvc.dll,FthSysprepSpecialize"), null),
 
             // disable settings sync
             (@"Enabling ""Do not sync"" policy", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\SettingSync"" /v DisableSettingSync /t REG_DWORD /d 2 /f"), null),
