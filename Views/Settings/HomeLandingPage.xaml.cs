@@ -38,7 +38,7 @@ namespace AutoOS.Views.Settings
             localSettings.Values.TryGetValue("Version", out var storedVersionObj);
             Version storedVersion = storedVersionObj is string storedVersionStr ? new(storedVersionStr) : null;
 
-            if (storedVersion == null || currentVersion.CompareTo(storedVersion) > 0)
+            if (currentVersion.CompareTo(storedVersion) > 0)
             {
                 try
                 {
