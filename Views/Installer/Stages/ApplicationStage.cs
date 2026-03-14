@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 using System.Xml.Linq;
 using WinRT.Interop;
 using AutoOS.Helpers.Processes;
+using AutoOS.Helpers.Games;
 
 namespace AutoOS.Views.Installer.Stages;
 
@@ -567,15 +568,15 @@ public static class ApplicationStage
             ("Updating Epic Games Launcher", async () => { while (true) { foreach (var proc in Process.GetProcessesByName("EpicGamesLauncher")) { if (ProcessesHelper.GetCommandLine(proc).Contains("-AllowSoftwareRendering -SaveToUserDir -Messaging", StringComparison.OrdinalIgnoreCase)) { proc.Kill(); return; } } await Task.Delay(100); } }, () => EpicGames == true),
             
             // import epic games launcher account
-            ("Importing Epic Games Launcher Account", async () => await ProcessActions.RunImportEpicGamesLauncherAccount(), () => EpicGames == true && EpicGamesAccount == true),
+            ("Importing Epic Games Launcher Account", async () => await EpicGamesHelper.RunImportEpicGamesLauncherAccount(), () => EpicGames == true && EpicGamesAccount == true),
 
             // import epic games launcher games
-            ("Importing Epic Games Launcher Games", async () => await ProcessActions.RunImportEpicGamesLauncherGames(), () => EpicGames == true && EpicGamesGames == true),
+            ("Importing Epic Games Launcher Games", async () => await EpicGamesHelper.RunImportEpicGamesLauncherGames(), () => EpicGames == true && EpicGamesGames == true),
             ("Importing Epic Games Launcher Games", async () => Fortnite = File.Exists(@"C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat") && (JsonNode.Parse(await File.ReadAllTextAsync(@"C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat"))?["InstallationList"] is JsonArray installations) && installations.Any(entry => entry?["AppName"]?.ToString() == "Fortnite") , () => EpicGames == true && EpicGamesGames == true),
             ("Importing Epic Games Launcher Games", async () => await Task.Delay(1000), () => EpicGames == true && EpicGamesGames == true),
 
             // log in to epic games launcher account
-            ("Please log in to your Epic Games Launcher account", async () => await ProcessActions.EpicGamesLogin(), () => EpicGames == true && EpicGamesAccount == false),
+            ("Please log in to your Epic Games Launcher account", async () => await EpicGamesHelper.EpicGamesLogin(), () => EpicGames == true && EpicGamesAccount == false),
 
             // disable epic games startup entries
             ("Disabling Epic Games startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\EpicOnlineServices"" /v ""Start"" /t REG_DWORD /d 4 /f & sc stop EpicOnlineServices"), () => EpicGames == true),
@@ -593,10 +594,10 @@ public static class ApplicationStage
             ("Updating Steam", async () => await Task.Run(async () => { while (Process.GetProcessesByName("steamwebhelper").Length == 0) await Task.Delay(500); }), () => Steam == true),
 
             // log in to steam
-            ("Please log in to your Steam account", async () => await ProcessActions.SteamLogin(), () => Steam == true),
+            ("Please log in to your Steam account", async () => await SteamHelper.SteamLogin(), () => Steam == true),
 
             // import steam games
-            ("Importing Steam Games", async () => await ProcessActions.RunImportSteamGames(), () => Steam == true && SteamGames == true),
+            ("Importing Steam Games", async () => await SteamHelper.RunImportSteamGames(), () => Steam == true && SteamGames == true),
 
             // remove steam desktop shortcut
             ("Removing Steam desktop shortcut", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c del /f /q ""C:\Users\Public\Desktop\Steam.lnk"""), () => Steam == true),

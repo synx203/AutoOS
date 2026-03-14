@@ -1,6 +1,8 @@
 ﻿using AutoOS.Views.Installer.Actions;
 using Microsoft.UI.Xaml.Media;
 using WinRT.Interop;
+using AutoOS.Helpers.Device;
+using Microsoft.Win32;
 
 namespace AutoOS.Views.Installer.Stages;
 
@@ -30,13 +32,8 @@ public static class AudioStage
             ("Disabling audio enhancements", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"powershell -Command ""$Keys = @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\Capture'); foreach ($Key in $Keys) { Get-ChildItem $Key -Recurse | Where-Object { $_.PSPath -match '\\FxProperties$' } | ForEach-Object { Set-ItemProperty -Path $_.PSPath -Name '{1da5d803-d492-4edd-8c23-e0c0ffee7f0e},5' -Value 1 } }"""), null),
 
             // disable audio idle states
-            ("Disabling audio idle states", async () => await ProcessActions.RunPowerShellScript("audioidlestates.ps1", ""), null),
+            ("Disabling audio idle states", async () => DeviceHelper.GetDevices(DeviceType.HDAUD).Select(device => Registry.LocalMachine.OpenSubKey($@"{device.RegistryPath}\PowerSettings", true)).Where(key => key != null).ToList().ForEach(key => { key.SetValue("PerformanceIdleTime", new byte[] { 0xFF, 0xFF, 0xFF, 0xFF }, RegistryValueKind.Binary); key.Dispose(); }), null),
 
-            // split audio services
-            ("Splitting audio services", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c copy /y %windir%\System32\svchost.exe %windir%\System32\audiosvchost.exe"), null),
-            ("Splitting audio services", async () => await ProcessActions.RunPowerShell(@"Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Audiosrv' -Name 'ImagePath' -Value '%systemroot%\system32\audiosvchost.exe -k LocalServiceNetworkRestricted -p' -Type ExpandString"), null),
-            ("Splitting audio services", async () => await ProcessActions.RunPowerShell(@"Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\AudioEndpointBuilder' -Name 'ImagePath' -Value '%systemroot%\system32\audiosvchost.exe -k LocalSystemNetworkRestricted -p' -Type ExpandString"), null),
-        
             // optimize multimedia class scheduler service (mmcss)
             ("Optimizing Multimedia Class Scheduler Service (MMCSS)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile"" /v NoLazyMode /t REG_DWORD /d 0 /f"), null),
             ("Optimizing Multimedia Class Scheduler Service (MMCSS)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile"" /v NetworkThrottlingIndex /t REG_DWORD /d 10 /f"), null),

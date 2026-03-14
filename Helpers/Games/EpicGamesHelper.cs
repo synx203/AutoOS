@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Windows.Media.Core;
 
 namespace AutoOS.Helpers.Games;
@@ -404,6 +405,327 @@ public static class EpicGamesHelper
         {
             var error = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
         }
+    }
+
+    public static async Task RunImportEpicGamesLauncherAccount()
+    {
+        // get all configs from other drives
+        var foundFiles = DriveInfo.GetDrives()
+            .Where(d => d.DriveType == DriveType.Fixed && d.Name != @"C:\")
+            .SelectMany(d =>
+            {
+                string usersPath = Path.Combine(d.Name, "Users");
+                if (!Directory.Exists(usersPath)) return Array.Empty<string>();
+
+                return Directory.GetDirectories(usersPath)
+                    .Select(userDir =>
+                        File.Exists(Path.Combine(userDir, "AppData", "Local", "EpicGamesLauncher", "Saved", "Config", "WindowsEditor", "GameUserSettings.ini"))
+                        ? Path.Combine(userDir, "AppData", "Local", "EpicGamesLauncher", "Saved", "Config", "WindowsEditor", "GameUserSettings.ini")
+                        : Path.Combine(userDir, "AppData", "Local", "EpicGamesLauncher", "Saved", "Config", "Windows", "GameUserSettings.ini")
+                    )
+                    .Where(File.Exists);
+            })
+            .Select(path => new FileInfo(path))
+            .ToList();
+
+        string newestFilePath = null;
+
+        // check if files are valid
+        foreach (var file in foundFiles)
+        {
+            string configContent = await File.ReadAllTextAsync(file.FullName);
+            Match dataMatch = Regex.Match(configContent, @"Data=([^\r\n]+)");
+
+            if (ValidateData(file.FullName))
+            {
+                // use the latest one
+                if (newestFilePath == null || file.LastWriteTime > new FileInfo(newestFilePath).LastWriteTime)
+                {
+                    newestFilePath = file.FullName;
+
+                    // copy the file
+                    Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"EpicGamesLauncher\Saved\Config\WindowsEditor"));
+                    //Directory.CreateDirectory(EpicGamesAccountDir);
+                    File.Copy(newestFilePath, ActiveEpicGamesAccountPath, true);
+
+                    // disable tray and notifications
+                    DisableMinimizeToTray(ActiveEpicGamesAccountPath);
+                    DisableNotifications(ActiveEpicGamesAccountPath);
+
+                    // get accountId
+                    string accountId = GetAccountData(file.FullName).AccountId;
+
+                    // create backup folder
+                    Directory.CreateDirectory(Path.Combine(EpicGamesAccountDir, accountId));
+
+                    // copy config
+                    File.Copy(ActiveEpicGamesAccountPath, Path.Combine(EpicGamesAccountDir, accountId, "GameUserSettings.ini"), true);
+
+                    // create reg file
+                    File.WriteAllText(Path.Combine(Path.Combine(EpicGamesAccountDir, accountId), "accountId.reg"), $"Windows Registry Editor Version 5.00\r\n\r\n[HKEY_CURRENT_USER\\Software\\Epic Games\\Unreal Engine\\Identifiers]\r\n\"AccountId\"=\"{accountId}\"");
+
+                    // update refresh token
+                    await UpdateEpicGamesToken(ActiveEpicGamesAccountPath);
+
+                    // update the backed up config
+                    File.Copy(file.FullName, Path.Combine(EpicGamesAccountDir, accountId, "GameUserSettings.ini"), true);
+
+                    InstallPage.Info.Title = $"Succesfully logged in as {GetAccountData(ActiveEpicGamesAccountPath).DisplayName}...";
+
+                    await Task.Delay(1000);
+
+                    return;
+                }
+            }
+        }
+    }
+
+    public static async Task EpicGamesLogin()
+    {
+        // launch epic games launcher
+        Process.Start(EpicGamesPath);
+
+        // check when logged in
+        while (true)
+        {
+            if (File.Exists(ActiveEpicGamesAccountPath))
+            {
+                if (ValidateData(ActiveEpicGamesAccountPath))
+                {
+                    await Task.Delay(1000);
+
+                    // close epic games launcher
+                    CloseEpicGames();
+
+                    // disable tray and notifications
+                    DisableMinimizeToTray(ActiveEpicGamesAccountPath);
+                    DisableNotifications(ActiveEpicGamesAccountPath);
+
+                    InstallPage.Info.Title = $"Succesfully logged in as {GetAccountData(ActiveEpicGamesAccountPath).DisplayName}...";
+                    break;
+                }
+            }
+
+            if (Process.GetProcessesByName("EpicGamesLauncher").Length == 0)
+            {
+                // disable tray and notifications
+                DisableMinimizeToTray(ActiveEpicGamesAccountPath);
+                DisableNotifications(ActiveEpicGamesAccountPath);
+                break;
+            }
+
+            await Task.Delay(500);
+        }
+
+        await Task.Delay(1000);
+    }
+
+    public static async Task UpdateInvalidEpicGamesToken()
+    {
+        InstallPage.Info.Title = "The refresh token is no longer valid. Please enter your password again...";
+
+        // close epic games launcher
+        CloseEpicGames();
+
+        // delay
+        await Task.Delay(500);
+
+        // launch epic games launcher
+        Process.Start(EpicGamesPath);
+
+        // check when logged in
+        while (true)
+        {
+            if (File.Exists(ActiveEpicGamesAccountPath))
+            {
+                if (ValidateData(ActiveEpicGamesAccountPath))
+                {
+                    break;
+                }
+            }
+
+            await Task.Delay(500);
+        }
+
+        // close epic games launcher
+        CloseEpicGames();
+
+        // disable tray and notifications
+        DisableMinimizeToTray(ActiveEpicGamesAccountPath);
+        DisableNotifications(ActiveEpicGamesAccountPath);
+
+        InstallPage.Info.Title = $"Succesfully logged in as {GetAccountData(ActiveEpicGamesAccountPath).DisplayName}...";
+
+        await Task.Delay(1000);
+    }
+
+    public static async Task RunImportEpicGamesLauncherGames()
+    {
+        // get all install lists from other drives
+        var foundFiles = DriveInfo.GetDrives()
+            .Where(d => d.DriveType == DriveType.Fixed && d.Name != @"C:\")
+            .Select(d => Path.Combine(d.Name, "ProgramData", "Epic", "UnrealEngineLauncher", "LauncherInstalled.dat"))
+            .Where(File.Exists)
+            .Select(path => new FileInfo(path))
+            .OrderByDescending(f => f.LastWriteTime)
+            .ToList();
+
+        if (foundFiles.Count == 0)
+            return;
+
+        FileInfo newestFile = foundFiles.First();
+
+        var jsonContent = await File.ReadAllTextAsync(newestFile.FullName);
+
+        if (string.IsNullOrWhiteSpace(jsonContent))
+            return;
+
+        var jsonObject = JsonNode.Parse(jsonContent);
+
+        // return if install list is empty
+        if (jsonObject?["InstallationList"] is not JsonArray installationList || installationList.Count == 0)
+            return;
+
+        Directory.CreateDirectory(Path.GetDirectoryName(EpicGamesInstalledGamesPath)!);
+
+        var jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+
+        // set new game paths
+        foreach (var game in installationList)
+        {
+            if (game is JsonObject gameObj && gameObj.ContainsKey("InstallLocation"))
+            {
+                string originalPath = gameObj["InstallLocation"]!.ToString();
+                string originalDrive = Path.GetPathRoot(originalPath) ?? "";
+                string relativePath = originalPath[originalDrive.Length..];
+
+                foreach (var drive in DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Fixed && d.Name != @"C:\"))
+                {
+                    string testPath = Path.Combine(drive.Name, relativePath);
+                    if (Directory.Exists(testPath))
+                    {
+                        gameObj["InstallLocation"] = testPath.Replace('\\', '/');
+                        break;
+                    }
+                }
+            }
+        }
+
+        await File.WriteAllTextAsync(EpicGamesInstalledGamesPath, jsonObject.ToJsonString(jsonOptions));
+
+        // copy over the manifest folder
+        string sourceManifestsFolder = Path.Combine(Path.GetPathRoot(newestFile.FullName)!, "ProgramData", "Epic", "EpicGamesLauncher", "Data", "Manifests");
+
+        if (!Directory.Exists(sourceManifestsFolder))
+            return;
+
+        Directory.CreateDirectory(EpicGamesManifestDir);
+
+        foreach (var directory in Directory.GetDirectories(sourceManifestsFolder, "*", SearchOption.AllDirectories))
+        {
+            string subDirPath = directory.Replace(sourceManifestsFolder, EpicGamesManifestDir);
+            Directory.CreateDirectory(subDirPath);
+        }
+
+        foreach (var file in Directory.GetFiles(sourceManifestsFolder, "*.*", SearchOption.AllDirectories))
+        {
+            string destFilePath = file.Replace(sourceManifestsFolder, EpicGamesManifestDir);
+            File.Copy(file, destFilePath, true);
+        }
+
+        // set new game paths
+        foreach (var file in Directory.GetFiles(EpicGamesManifestDir, "*.item", SearchOption.AllDirectories))
+        {
+            var itemJson = JsonNode.Parse(await File.ReadAllTextAsync(file));
+
+            if (itemJson is JsonObject itemObj && itemObj.ContainsKey("InstallLocation"))
+            {
+                string originalInstallLocation = itemObj["InstallLocation"]!.ToString().Replace('\\', '/');
+                string originalDrive = Path.GetPathRoot(originalInstallLocation)?.Replace('\\', '/') ?? "";
+                string relativePath = originalInstallLocation.Substring(originalDrive.Length);
+
+                string newInstallLocation = null;
+
+                foreach (var drive in DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Fixed && d.Name != @"C:\"))
+                {
+                    string testPath = Path.Combine(drive.Name, relativePath);
+                    if (Directory.Exists(testPath))
+                    {
+                        newInstallLocation = testPath.Replace('\\', '/');
+                        break;
+                    }
+                }
+
+                if (newInstallLocation != null)
+                {
+                    itemObj["InstallLocation"] = newInstallLocation;
+
+                    string oldRoot = originalDrive;
+                    string newRoot = Path.GetPathRoot(newInstallLocation)!.Replace('\\', '/');
+
+                    if (itemObj.ContainsKey("ManifestLocation"))
+                    {
+                        string manifest = itemObj["ManifestLocation"]!.ToString().Replace('\\', '/');
+                        itemObj["ManifestLocation"] = manifest.Replace(oldRoot, newRoot);
+                    }
+
+                    if (itemObj.ContainsKey("StagingLocation"))
+                    {
+                        string staging = itemObj["StagingLocation"]!.ToString().Replace('\\', '/');
+                        itemObj["StagingLocation"] = staging.Replace(oldRoot, newRoot);
+                    }
+
+                    await File.WriteAllTextAsync(file, itemObj.ToJsonString(new JsonSerializerOptions
+                    {
+                        WriteIndented = true,
+                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                    }));
+                }
+            }
+        }
+
+        // launch epic games to get new token
+        await Task.Run(() => Process.Start(new ProcessStartInfo(EpicGamesPath) { WindowStyle = ProcessWindowStyle.Hidden }));
+
+        // wait for token to get used
+        while (true)
+        {
+            await Task.Delay(100);
+
+            if (!ValidateData(ActiveEpicGamesAccountPath))
+            {
+                await UpdateInvalidEpicGamesToken();
+                return;
+            }
+
+            if (GetAccountData(ActiveEpicGamesAccountPath).TokenUseCount == 1)
+                break;
+        }
+
+        // wait for new token
+        while (true)
+        {
+            await Task.Delay(100);
+
+            if (!ValidateData(ActiveEpicGamesAccountPath))
+            {
+                await UpdateInvalidEpicGamesToken();
+                return;
+            }
+
+            if (GetAccountData(ActiveEpicGamesAccountPath).TokenUseCount == 0)
+                break;
+        }
+
+        // close epic games launcher
+        CloseEpicGames();
+
+        // update the backed up config
+        File.Copy(ActiveEpicGamesAccountPath, Path.Combine(EpicGamesAccountDir, GetAccountData(ActiveEpicGamesAccountPath).AccountId, "GameUserSettings.ini"), true);
     }
 
     public static async Task LoadGames()

@@ -186,6 +186,21 @@ public static class CleanupStage
         Registry.SetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\AutoOS", "IsInstalled", 1, RegistryValueKind.DWord);
         Registry.SetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer", "LockedStartLayout", 0, RegistryValueKind.DWord);
         await ProcessActions.Log();
-        await ProcessActions.RunRestart();
+        InstallPage.Info.Title = "Restarting in 3...";
+        await Task.Delay(1000);
+        InstallPage.Info.Title = "Restarting in 2...";
+        await Task.Delay(1000);
+        InstallPage.Info.Title = "Restarting in 1...";
+        await Task.Delay(1000);
+        InstallPage.Info.Title = "Restarting...";
+        await Task.Delay(750);
+        ProcessStartInfo processStartInfo = new()
+        {
+            FileName = "cmd.exe",
+            Arguments = $"/c shutdown /r /t 0",
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+        Process.Start(processStartInfo);
     }
 }

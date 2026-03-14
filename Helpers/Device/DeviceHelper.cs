@@ -21,7 +21,7 @@ public enum DeviceType
     GPU,
     XHCI,
     NIC,
-    HID,
+    HDAUD,
     Other
 }
 
@@ -91,7 +91,7 @@ internal static class DeviceHelper
     private static readonly Guid GUID_DEVCLASS_DISPLAY = new("4d36e968-e325-11ce-bfc1-08002be10318");
     private static readonly Guid GUID_DEVCLASS_USB = new("36fc9e60-c465-11cf-8056-444553540000");
     private static readonly Guid GUID_DEVCLASS_NET = new("4d36e972-e325-11ce-bfc1-08002be10318");
-    private static readonly Guid GUID_DEVCLASS_HID = new("745a17a0-74d3-11d0-b6fe-00a0c90f57da");
+    private static readonly Guid GUID_DEVCLASS_HDAUD = new("4d36e96c-e325-11ce-bfc1-08002be10318");
 
     public class ApplyResult
     {
@@ -116,7 +116,7 @@ internal static class DeviceHelper
             DeviceType.GPU => GUID_DEVCLASS_DISPLAY,
             DeviceType.XHCI => GUID_DEVCLASS_USB,
             DeviceType.NIC => GUID_DEVCLASS_NET,
-            DeviceType.HID => GUID_DEVCLASS_HID,
+            DeviceType.HDAUD => GUID_DEVCLASS_HDAUD,
             DeviceType.Other => default,
             _ => throw new ArgumentException("Unknown device type")
         };
