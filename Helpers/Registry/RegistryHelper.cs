@@ -1,0 +1,295 @@
+using System.Security.Principal;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using Microsoft.Win32.SafeHandles;
+using Microsoft.Win32;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.Security;
+using Windows.Win32.System.Threading;
+
+namespace AutoOS.Helpers.Registry;
+
+public static partial class RegistryHelper
+{
+    public enum Identity { CurrentUser, TrustedInstaller, System }
+
+    private static SafeAccessTokenHandle _currentUserToken;
+    private static SafeAccessTokenHandle _trustedInstallerToken;
+    private static SafeAccessTokenHandle _systemToken;
+
+    private static readonly Lock _lock = new();
+
+    public static void RunAs(Identity identity, Action action)
+    {
+        var impersonation = GetToken(identity);
+        WindowsIdentity.RunImpersonated(impersonation, action);
+    }
+
+    public static async Task RunAs(Identity identity, Func<Task> action)
+    {
+        var impersonation = GetToken(identity);
+        await WindowsIdentity.RunImpersonatedAsync(impersonation, action);
+    }
+
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern bool CreateProcessWithTokenW(
+        IntPtr hToken,
+        uint dwLogonFlags,
+        string lpApplicationName,
+        IntPtr lpCommandLine,
+        uint dwCreationFlags,
+        IntPtr lpEnvironment,
+        string lpCurrentDirectory,
+        ref STARTUPINFOW lpStartupInfo,
+        out PROCESS_INFORMATION lpProcessInformation);
+
+    public static async Task RunAs(Identity identity, ProcessStartInfo psi)
+    {
+        var hToken = GetToken(identity);
+
+        await Task.Run(() =>
+        {
+            EnablePrivilege("SeImpersonatePrivilege");
+
+            var si = new STARTUPINFOW();
+            si.cb = (uint)Marshal.SizeOf<STARTUPINFOW>();
+            si.dwFlags = STARTUPINFOW_FLAGS.STARTF_USESHOWWINDOW;
+            si.wShowWindow = (psi.WindowStyle switch
+            {
+                ProcessWindowStyle.Hidden => 0,
+                ProcessWindowStyle.Minimized => 2,
+                ProcessWindowStyle.Maximized => 3,
+                _ => psi.CreateNoWindow ? (ushort)0 : (ushort)1
+            });
+
+            var pi = new PROCESS_INFORMATION();
+            string commandLine = string.IsNullOrEmpty(psi.Arguments) ? $"\"{psi.FileName}\"" : $"\"{psi.FileName}\" {psi.Arguments}";
+            uint creationFlags = 0;
+            if (psi.CreateNoWindow) creationFlags |= (uint)PROCESS_CREATION_FLAGS.CREATE_NO_WINDOW;
+
+            IntPtr pCommandLine = Marshal.StringToHGlobalUni(commandLine);
+            try
+            {
+                if (!CreateProcessWithTokenW(hToken.DangerousGetHandle(), 1 , null, pCommandLine, creationFlags, IntPtr.Zero, string.IsNullOrEmpty(psi.WorkingDirectory) ? null : psi.WorkingDirectory, ref si, out pi))
+                    throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+
+                try
+                {
+                    PInvoke.WaitForSingleObject(pi.hProcess, 0xFFFFFFFF);
+                }
+                finally
+                {
+                    PInvoke.CloseHandle(pi.hProcess);
+                    PInvoke.CloseHandle(pi.hThread);
+                }
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(pCommandLine);
+            }
+        });
+    }
+    
+    public static void SetValue(Identity identity, string keyPath, string valueName, object value, RegistryValueKind valueKind = RegistryValueKind.Unknown)
+    {
+        RunAs(identity, () =>
+        {
+            var (root, subKeyPath) = ParseKeyPath(keyPath);
+            using var key = root.CreateSubKey(subKeyPath, true);
+            if (key != null)
+            {
+                if (valueKind == RegistryValueKind.DWord)
+                {
+                    if (value is uint u) value = unchecked((int)u);
+                    else if (value is long l) value = unchecked((int)l);
+                }
+                else if (valueKind == RegistryValueKind.QWord)
+                {
+                    if (value is ulong ul) value = unchecked((long)ul);
+                }
+
+                if (valueKind == RegistryValueKind.Unknown)
+                    key.SetValue(valueName, value);
+                else
+                    key.SetValue(valueName, value, valueKind);
+            }
+        });
+    }
+
+    public static void DeleteValue(Identity identity, string keyPath, string valueName)
+    {
+        RunAs(identity, () =>
+        {
+            var (root, subKeyPath) = ParseKeyPath(keyPath);
+            using var key = root.OpenSubKey(subKeyPath, true);
+            key?.DeleteValue(valueName, false);
+        });
+    }
+
+    public static void DeleteKey(Identity identity, string keyPath)
+    {
+        RunAs(identity, () =>
+        {
+            var (root, subKeyPath) = ParseKeyPath(keyPath);
+            root.DeleteSubKeyTree(subKeyPath, false);
+        });
+    }
+
+    private static (RegistryKey root, string subKey) ParseKeyPath(string fullPath)
+    {
+        int firstBackslash = fullPath.IndexOf('\\');
+        if (firstBackslash == -1) return (null!, fullPath);
+
+        string rootName = fullPath.Substring(0, firstBackslash).ToUpperInvariant();
+        string subKey = fullPath.Substring(firstBackslash + 1);
+
+        RegistryKey root = rootName switch
+        {
+            "HKEY_CURRENT_USER" or "HKCU" => Microsoft.Win32.Registry.CurrentUser,
+            "HKEY_LOCAL_MACHINE" or "HKLM" => Microsoft.Win32.Registry.LocalMachine,
+            "HKEY_CLASSES_ROOT" or "HKCR" => Microsoft.Win32.Registry.ClassesRoot,
+            "HKEY_USERS" or "HKU" => Microsoft.Win32.Registry.Users,
+            "HKEY_CURRENT_CONFIG" or "HKCC" => Microsoft.Win32.Registry.CurrentConfig,
+            _ => throw new ArgumentException($"Unsupported registry root: {rootName}")
+        };
+
+        return (root, subKey);
+    }
+
+    private static SafeAccessTokenHandle GetToken(Identity identity)
+    {
+        lock (_lock)
+        {
+            switch (identity)
+            {
+                case Identity.System:
+                    if (_systemToken == null || _systemToken.IsInvalid)
+                    {
+                        _systemToken = CreateSystemToken();
+                        EnableAllPrivileges(_systemToken);
+                    }
+                    return _systemToken;
+                case Identity.TrustedInstaller:
+                    if (_trustedInstallerToken == null || _trustedInstallerToken.IsInvalid)
+                    {
+                        _trustedInstallerToken = CreateTrustedInstallerToken();
+                        EnableAllPrivileges(_trustedInstallerToken);
+                    }
+                    return _trustedInstallerToken;
+                case Identity.CurrentUser:
+                    if (_currentUserToken == null || _currentUserToken.IsInvalid)
+                    {
+                        _currentUserToken = CreateCurrentUserToken();
+                        EnableAllPrivileges(_currentUserToken);
+                    }
+                    return _currentUserToken;
+                default:
+                    throw new ArgumentException("Invalid identity.");
+            }
+        }
+    }
+
+    private static unsafe SafeAccessTokenHandle CreateSystemToken()
+    {
+        var winlogon = Process.GetProcessesByName("winlogon").FirstOrDefault() ?? throw new Exception("winlogon.exe not found.");
+        if (!PInvoke.OpenProcessToken(winlogon.SafeHandle, TOKEN_ACCESS_MASK.TOKEN_DUPLICATE, out SafeFileHandle hToken))
+            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+
+        using (hToken)
+        {
+            if (!PInvoke.DuplicateTokenEx(hToken, (TOKEN_ACCESS_MASK)0x01FF, null, SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, TOKEN_TYPE.TokenPrimary, out SafeFileHandle hNewToken))
+                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+            
+            IntPtr handle = hNewToken.DangerousGetHandle();
+            hNewToken.SetHandleAsInvalid();
+            return new SafeAccessTokenHandle(handle);
+        }
+    }
+
+    private static unsafe SafeAccessTokenHandle CreateTrustedInstallerToken()
+    {
+        using var sysToken = CreateSystemToken();
+        return WindowsIdentity.RunImpersonated(sysToken, () =>
+        {
+            EnablePrivilege("SeDebugPrivilege");
+            using (var sc = new System.ServiceProcess.ServiceController("TrustedInstaller"))
+            {
+                if (sc.Status != System.ServiceProcess.ServiceControllerStatus.Running) sc.Start();
+                sc.WaitForStatus(System.ServiceProcess.ServiceControllerStatus.Running, TimeSpan.FromSeconds(10));
+            }
+
+            var tiProcess = Process.GetProcessesByName("TrustedInstaller").FirstOrDefault() ?? throw new Exception("TrustedInstaller not found.");
+            if (!PInvoke.OpenProcessToken(tiProcess.SafeHandle, (TOKEN_ACCESS_MASK)0x01FF, out SafeFileHandle tiToken))
+                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+
+            using (tiToken)
+            {
+                if (!PInvoke.DuplicateTokenEx(tiToken, (TOKEN_ACCESS_MASK)0x01FF, null, SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, TOKEN_TYPE.TokenPrimary, out SafeFileHandle hNewToken))
+                    throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+                
+                IntPtr handle = hNewToken.DangerousGetHandle();
+                hNewToken.SetHandleAsInvalid();
+                return new SafeAccessTokenHandle(handle);
+            }
+        });
+    }
+
+    private static unsafe SafeAccessTokenHandle CreateCurrentUserToken()
+    {
+        if (!PInvoke.OpenProcessToken(Process.GetCurrentProcess().SafeHandle, TOKEN_ACCESS_MASK.TOKEN_DUPLICATE | TOKEN_ACCESS_MASK.TOKEN_QUERY, out SafeFileHandle hToken))
+            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+
+        using (hToken)
+        {
+            if (!PInvoke.DuplicateTokenEx(hToken, (TOKEN_ACCESS_MASK)0x01FF, null, SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, TOKEN_TYPE.TokenPrimary, out SafeFileHandle hNewToken))
+                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+
+            IntPtr handle = hNewToken.DangerousGetHandle();
+            hNewToken.SetHandleAsInvalid();
+            return new SafeAccessTokenHandle(handle);
+        }
+    }
+
+    private static unsafe void EnableAllPrivileges(SafeAccessTokenHandle hToken)
+    {
+        uint tokenPrivilegesSize = 0;
+        PInvoke.GetTokenInformation(new HANDLE(hToken.DangerousGetHandle()), TOKEN_INFORMATION_CLASS.TokenPrivileges, null, 0, &tokenPrivilegesSize);
+        if (tokenPrivilegesSize == 0) return;
+
+        byte[] buffer = new byte[tokenPrivilegesSize];
+        fixed (byte* pBuffer = buffer)
+        {
+            if (PInvoke.GetTokenInformation(new HANDLE(hToken.DangerousGetHandle()), TOKEN_INFORMATION_CLASS.TokenPrivileges, pBuffer, tokenPrivilegesSize, &tokenPrivilegesSize))
+            {
+                TOKEN_PRIVILEGES* tp = (TOKEN_PRIVILEGES*)pBuffer;
+                for (uint i = 0; i < tp->PrivilegeCount; i++)
+                {
+                    LUID_AND_ATTRIBUTES* pAttr = (LUID_AND_ATTRIBUTES*)((byte*)tp + sizeof(uint) + (i * sizeof(LUID_AND_ATTRIBUTES)));
+                    pAttr->Attributes = TOKEN_PRIVILEGES_ATTRIBUTES.SE_PRIVILEGE_ENABLED;
+                }
+                PInvoke.AdjustTokenPrivileges(new HANDLE(hToken.DangerousGetHandle()), false, tp, tokenPrivilegesSize, null, null);
+            }
+        }
+    }
+
+    private static unsafe void EnablePrivilege(string privilege)
+    {
+        if (!PInvoke.LookupPrivilegeValue(null, privilege, out var luid)) return;
+
+        TOKEN_PRIVILEGES tp = new()
+        {
+            PrivilegeCount = 1,
+        };
+        tp.Privileges[0].Luid = luid;
+        tp.Privileges[0].Attributes = TOKEN_PRIVILEGES_ATTRIBUTES.SE_PRIVILEGE_ENABLED;
+
+        if (PInvoke.OpenProcessToken(Process.GetCurrentProcess().SafeHandle, TOKEN_ACCESS_MASK.TOKEN_ADJUST_PRIVILEGES, out SafeFileHandle hToken))
+        {
+            using (hToken)
+            {
+                PInvoke.AdjustTokenPrivileges(new HANDLE(hToken.DangerousGetHandle()), false, &tp, (uint)sizeof(TOKEN_PRIVILEGES), null, null);
+            }
+        }
+    }
+}

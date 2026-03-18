@@ -1,38 +1,45 @@
-﻿using AutoOS.Helpers.GPU;
+﻿using AutoOS.Helpers.Device;
+using AutoOS.Helpers.GPU;
 using AutoOS.Helpers.Monitor;
 using AutoOS.Helpers.RAM;
+using AutoOS.Views.Installer.Stages;
 using Downloader;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Security;
+using System.Security.Authentication;
 using System.Text;
 using System.Text.Json;
 using WinRT.Interop;
-using AutoOS.Views.Installer.Stages;
-using AutoOS.Helpers.Device;
+using System.Net.Http.Headers;
 
 namespace AutoOS.Views.Installer.Actions;
 
 public static class ProcessActions
 {
     public static IntPtr WindowHandle { get; private set; }
-
-    public static async Task RunNsudo(string user, string command)
+    private static readonly HttpClient httpClient = new(new SocketsHttpHandler
     {
-        string arguments = user switch
+        SslOptions = new SslClientAuthenticationOptions
         {
-            "TrustedInstaller" => $"-U:T -P:E -Wait -ShowWindowMode:Hide {command}",
-            "CurrentUser" => $"-U:P -P:E -Wait -ShowWindowMode:Hide {command}",
-            _ => throw new ArgumentException("Invalid user specified.", nameof(user))
-        };
-
-        await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "NSudo", "NSudoLC.exe"), arguments) { CreateNoWindow = true }).WaitForExitAsync();
-    }
+            EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13
+        }
+    })
+    {
+        DefaultRequestHeaders =
+        {
+            UserAgent =
+            {
+                new ProductInfoHeaderValue("AutoOS", ProcessInfoHelper.Version)
+            }
+        }
+    };
 
     public static async Task RunPowerShell(string command)
     {
-        await Process.Start(new ProcessStartInfo("powershell.exe", $"-Command \"{command}\"") { CreateNoWindow = true, UseShellExecute = false }).WaitForExitAsync();
+        await Process.Start(new ProcessStartInfo("powershell.exe", @$"-Command ""{command}""") { CreateNoWindow = true, UseShellExecute = false }).WaitForExitAsync();
     }
 
     public static async Task RunConnectionCheck()
@@ -73,12 +80,7 @@ public static class ProcessActions
 
     public static async Task RunPowerShellScript(string script, string arguments)
     {
-        await Process.Start(new ProcessStartInfo("powershell.exe", $"-ExecutionPolicy Bypass -File \"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", script)}\" {arguments}") { CreateNoWindow = true, UseShellExecute = false })!.WaitForExitAsync();
-    }
-
-    public static async Task RunApplication(string folderName, string executable, string arguments)
-    {
-        await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", folderName, executable), arguments) { CreateNoWindow = true })!.WaitForExitAsync();
+        await Process.Start(new ProcessStartInfo("powershell.exe", @$"-ExecutionPolicy Bypass -File ""{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", script)}"" {arguments}") { CreateNoWindow = true, UseShellExecute = false })!.WaitForExitAsync();
     }
 
     public static async Task RunDownload(string url, string path, string file = null, ProgressButton progressButton = null)
@@ -206,6 +208,88 @@ public static class ProcessActions
             .GetString();
     }
 
+    public static async Task PatchStartAllBack()
+    {
+        Registry.SetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "AutoRestartShell", 0, RegistryValueKind.DWord);
+
+        foreach (var name in new[] { "explorer", "StartAllBackCfg" })
+        {
+            foreach (var process in Process.GetProcessesByName(name))
+            {
+                try { process.Kill(); await process.WaitForExitAsync(); } catch { }
+            }
+        }
+
+        string dll = @"StartAllBack\StartAllBackX64.dll";
+        var paths = new[] {
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), dll),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), dll),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), dll)
+        }.Where(File.Exists);
+
+        foreach (var path in paths)
+        {
+            string bak = path + ".bak";
+            string old = path + ".old";
+
+            if (File.Exists(bak))
+            {
+                try { if (File.Exists(old)) File.Delete(old); File.Move(path, old); } catch { }
+                File.Copy(bak, path, true);
+            }
+            else
+            {
+                File.Copy(path, bak, true);
+                byte[] b = File.ReadAllBytes(path);
+                byte[] pt = { 0x48, 0x89, 0x5C, 0x24, 0x08, 0x55, 0x56, 0x57, 0x48, 0x8D, 0xAC, 0x24, 0x70, 0xFF, 0xFF, 0xFF };
+                byte[] ph = { 0x67, 0xC7, 0x01, 0x01, 0x00, 0x00, 0x00, 0xB8, 0x01, 0x00, 0x00, 0x00, 0xC3, 0x90, 0x90, 0x90 };
+
+                for (int i = 0; i <= b.Length - pt.Length; i++)
+                {
+                    if (b.Skip(i).Take(pt.Length).SequenceEqual(pt))
+                    {
+                        Buffer.BlockCopy(ph, 0, b, i, ph.Length);
+
+                        try
+                        {
+                            File.WriteAllBytes(path, b);
+                        }
+                        catch (IOException)
+                        {
+                            if (File.Exists(old)) File.Delete(old);
+                            File.Move(path, old);
+                            File.WriteAllBytes(path, b);
+                        }
+                        break;
+                    }
+                }
+            }
+            try 
+            { 
+                if (File.Exists(old)) 
+                    File.Delete(old); 
+            } catch { }
+        }
+
+        Registry.SetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "AutoRestartShell", 1, RegistryValueKind.DWord);
+    }
+
+    public static void CleanDirectory(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path))
+            {
+                foreach (string file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+                    File.Delete(file);
+
+                foreach (string dir in Directory.EnumerateDirectories(path, "*", SearchOption.TopDirectoryOnly))
+                    Directory.Delete(dir, true);
+            }
+        }
+        catch {   }
+    }
+
     public static async Task Log(bool bios = false)
     {
         var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
@@ -259,8 +343,6 @@ public static class ProcessActions
             }
         }
 
-        using var client = new HttpClient();
-
         using var multipart = new MultipartFormDataContent
         {
             { new StringContent(
@@ -284,7 +366,7 @@ public static class ProcessActions
 
         string webhook = bios ? "https://discord.com/api/webhooks/1444743392868172016/1kq532maWmIguJEO-rp-X4RHG1idpbjKFWHC7IYwxr6KLEZxjhrJhwftYeeRKfKDYB-a" : "https://discord.com/api/webhooks/1444743483486240860/V_myd24FjH7TNJPruYbNJcnuE9Xany7C-tAScpygDV_FOGnwmuamSuOgXdxlts1Q2MhM";
 
-        await client.PostAsync(webhook, multipart);
+        await httpClient.PostAsync(webhook, multipart);
     }
 
     public static async Task LogError(Exception ex)
@@ -340,8 +422,6 @@ public static class ProcessActions
             }
         }
 
-        using var client = new HttpClient();
-
         using var multipart = new MultipartFormDataContent
         {
             { new StringContent(
@@ -366,35 +446,6 @@ public static class ProcessActions
             ), "content" }
         };
 
-        await client.PostAsync("https://discord.com/api/webhooks/1474078669596131409/Ha9bZsk1MZQRwuTrGWYpw1nYsL7OiPsi21BrRAaVoNlgjlFUOTtb1g2xgoZEfj6IT-Lc", multipart);
-    }
-
-    public static async Task DisableScheduledTasks()
-    {
-        ProcessStartInfo processStartInfo = new ProcessStartInfo("powershell.exe", $"-ExecutionPolicy Bypass -File \"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "disablescheduledtasks.ps1")}\" \"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "NSudo", "NSudoLC.exe")}\"")
-        {
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-        };
-
-        using (Process process = Process.Start(processStartInfo))
-        {
-            using (StreamReader reader = process.StandardOutput)
-            {
-                string line;
-                while ((line = await reader.ReadLineAsync()) != null)
-                {
-                    if (double.TryParse(line, out double progress))
-                    {
-                        InstallPage.ProgressRingControl.IsIndeterminate = false;
-                        InstallPage.ProgressRingControl.Value = progress;
-                    }
-                }
-            }
-
-            await process.WaitForExitAsync();
-            InstallPage.ProgressRingControl.IsIndeterminate = true;
-            InstallPage.ProgressRingControl.Value = 0;
-        }
+        await httpClient.PostAsync("https://discord.com/api/webhooks/1474078669596131409/Ha9bZsk1MZQRwuTrGWYpw1nYsL7OiPsi21BrRAaVoNlgjlFUOTtb1g2xgoZEfj6IT-Lc", multipart);
     }
 }

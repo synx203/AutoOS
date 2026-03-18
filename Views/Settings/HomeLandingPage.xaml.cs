@@ -66,6 +66,8 @@ namespace AutoOS.Views.Settings
                         };
 
                         contentDialog.Resources["ContentDialogMaxWidth"] = 1000;
+                        contentDialog.Resources["ContentDialogMaxHeight"] = 1000;
+
                         await contentDialog.ShowAsync();
                     }
 

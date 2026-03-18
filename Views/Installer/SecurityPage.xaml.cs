@@ -139,10 +139,8 @@ public sealed partial class SecurityPage : Page
                         Text = "Windows Security is disabled. Click done to continue."
                     });
 
-                    foreach (var p in Process.GetProcessesByName("SecHealthUI"))
-                    {
-                        try { p.Kill(); } catch { }
-                    }
+                    foreach (var process in Process.GetProcessesByName("SecHealthUI"))
+                        process.Kill();
 
                     break;
                 }

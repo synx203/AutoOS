@@ -1,4 +1,3 @@
-using Microsoft.Win32;
 using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -98,7 +97,7 @@ public partial class CpuHelper
 
     public static bool IsIntel()
     {
-        using var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
+        using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
         var vendor = key?.GetValue("VendorIdentifier")?.ToString() ?? "";
         return vendor.Contains("GenuineIntel", StringComparison.OrdinalIgnoreCase);
     }

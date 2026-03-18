@@ -1,4 +1,4 @@
-using AutoOS.Views.Installer.Actions;
+﻿using AutoOS.Views.Installer.Actions;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -86,10 +86,9 @@ public static partial class StoreHelper
 
             var namePart = identifier.Split('_')[0];
             var mainPath = allFiles.FirstOrDefault(f => Path.GetFileName(f).StartsWith(namePart, StringComparison.OrdinalIgnoreCase)) ?? allFiles.First();
-            var depPaths = allFiles.Where(f => f != mainPath).ToList();
 
             var manager = new PackageManager();
-            var progress = manager.AddPackageAsync(new Uri(mainPath), depPaths.Select(p => new Uri(p)).ToList(), DeploymentOptions.ForceApplicationShutdown);
+            var progress = manager.AddPackageAsync(new Uri(mainPath), null, DeploymentOptions.ForceApplicationShutdown);
 
             var tcs = new TaskCompletionSource<bool>();
             progress.Completed = (info, status) =>
@@ -166,39 +165,57 @@ public static partial class StoreHelper
 
         var installManager = new AppInstallManager();
 
-		try
-		{
+        try
+        {
             AppInstallItem updateItem = await installManager.UpdateAppByPackageFamilyNameAsync(identifier);
             if (updateItem == null)
                 return;
 
             var tcs = new TaskCompletionSource<bool>();
 
-            AppInstallStatus status = default;
-
-            updateItem.StatusChanged += (s, e) =>
+            void OnItemStatusChanged(AppInstallManager sender, AppInstallManagerItemEventArgs args)
             {
-                status = updateItem.GetCurrentStatus();
-
-                uiContext?.Post(_ =>
+                if (args.Item.PackageFamilyName == identifier)
                 {
-                    InstallPage.Info.Title = $"{title} ({status.BytesDownloaded / (1024.0 * 1024.0):F2} MB of {status.DownloadSizeInBytes / (1024.0 * 1024.0):F2} MB)";
-                    InstallPage.ProgressRingControl.Value = status.PercentComplete;
-                    InstallPage.ProgressRingControl.IsIndeterminate = false;
-                }, null);
-            };
+                    var status = args.Item.GetCurrentStatus();
 
-            updateItem.Completed += (s, e) =>
+                    uiContext?.Post(_ =>
+                    {
+                        InstallPage.Info.Title = $"{title} ({status.BytesDownloaded / (1024.0 * 1024.0):F2} MB of {status.DownloadSizeInBytes / (1024.0 * 1024.0):F2} MB)";
+                        InstallPage.ProgressRingControl.Value = status.PercentComplete;
+                        InstallPage.ProgressRingControl.IsIndeterminate = false;
+                    }, null);
+
+                    if (status.InstallState == AppInstallState.Completed || status.InstallState == AppInstallState.Canceled || status.InstallState == AppInstallState.Error)
+                    {
+                        tcs.TrySetResult(true);
+                    }
+                }
+            }
+
+            installManager.ItemStatusChanged += OnItemStatusChanged;
+
+            var initialStatus = updateItem.GetCurrentStatus();
+            if (initialStatus.InstallState == AppInstallState.Completed)
             {
-                InstallPage.Info.Title = $"{title} ({status.BytesDownloaded / (1024.0 * 1024.0):F2} MB of {status.DownloadSizeInBytes / (1024.0 * 1024.0):F2} MB)";
-                InstallPage.ProgressRingControl.Value = status.PercentComplete;
-                InstallPage.ProgressRingControl.IsIndeterminate = true;
-                tcs.TrySetResult(true);
-            };
+                installManager.ItemStatusChanged -= OnItemStatusChanged;
+                return;
+            }
 
             await tcs.Task;
+            installManager.ItemStatusChanged -= OnItemStatusChanged;
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[StoreHelper] Update failed: {ex.Message}");
+        }
+        finally
+        {
+            uiContext?.Post(_ =>
+            {
+                InstallPage.ProgressRingControl.IsIndeterminate = true;
+            }, null);
+        }
     }
 
     public static string GetVersion(string packageFamilyName)
@@ -285,15 +302,12 @@ public static partial class StoreHelper
 
     private static async Task<List<StoreInfo>> GetFiles(string name, string catId, int index = 0)
     {
-        // get token
         var token = await Auth();
 
-        // get category id
         var response = await PostSoap(SoapTemplates.Sync(token, catId, "WIF"), "https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx");
 
         if (string.IsNullOrEmpty(response)) return [];
 
-        // parse response
         var doc = XDocument.Parse(response.Replace("&lt;", "<").Replace("&gt;", ">"));
 
         var filePool = new Dictionary<string, (string ext, string hash, DateTime modified)>();
@@ -368,7 +382,13 @@ public static partial class StoreHelper
             }
         }
 
-        return [.. results.OrderByDescending(r => Version.TryParse(r.Version, out var v) ? v : new Version(0, 0, 0, 0)).ThenByDescending(r => r.LastModified).Skip(index).Take(1)];
+        return [.. results
+        .OrderByDescending(r => r.Name.Contains(arch))
+        .ThenByDescending(r => r.Name.Contains("neutral"))
+        .ThenByDescending(r => Version.TryParse(r.Version, out var v) ? v : new Version(0, 0, 0, 0))
+        .ThenByDescending(r => r.LastModified)
+        .Skip(index)
+        .Take(1)];
     }
 
     private static async Task<string> Auth()

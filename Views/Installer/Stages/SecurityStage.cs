@@ -1,6 +1,11 @@
-﻿using AutoOS.Views.Installer.Actions;
+using AutoOS.Views.Installer.Actions;
+using AutoOS.Helpers.Registry;
 using Microsoft.UI.Xaml.Media;
 using WinRT.Interop;
+using System.Diagnostics;
+using AutoOS.Helpers.Services;
+using Microsoft.Win32;
+using System.ServiceProcess;
 
 namespace AutoOS.Views.Installer.Stages;
 
@@ -28,72 +33,76 @@ public static class SecurityStage
         var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
         {
             // enable "hide windows security systray" policy
-            (@"Enabling ""Hide Windows Security Systray"" policy", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Systray"" /v HideSystray /t REG_DWORD /d 1 /f"), null),
+            (@"Enabling ""Hide Windows Security Systray"" policy", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Systray", "HideSystray", 1, RegistryValueKind.DWord), null),
             
             // remove "securityhealthsystray" from startup
-            (@"Removing ""SecurityHealthSystray"" from startup", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"" /v SecurityHealth /f"), null),
+            (@"Removing ""SecurityHealthSystray"" from startup", async () => RegistryHelper.DeleteValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run", "SecurityHealth"), null),
 
             // enable "do not preserve zone information in file attachments"
-            (@"Enabling ""Do not preserve zone information in file attachments""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments"" /v SaveZoneInformation /t REG_DWORD /d 1 /f"), null),
-
+            (@"Enabling ""Do not preserve zone information in file attachments""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments", "SaveZoneInformation", 1, RegistryValueKind.DWord), null),
+            
             // set "inclusion list for moderate risk file types"" policy to ".bat;.cmd;.vbs;.ps1;.reg;.js;.exe;.msi;"
-            (@"Setting ""Inclusion list for moderate risk file types"" policy to "".bat;.cmd;.vbs;.ps1;.reg;.js;.exe;.msi;""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Associations"" /v ModRiskFileTypes /t REG_SZ /d "".bat;.cmd;.vbs;.reg;.js;.exe;.msi;"" /f"), null),
+            (@"Setting ""Inclusion list for moderate risk file types"" policy to "".bat;.cmd;.vbs;.ps1;.reg;.js;.exe;.msi;""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Associations", "ModRiskFileTypes", ".bat;.cmd;.vbs;.reg;.js;.exe;.msi;", RegistryValueKind.String), null),
 
             // set execution policy to unrestricted
             ("Setting execution policy to unrestricted", async () => await ProcessActions.RunPowerShell("Set-ExecutionPolicy Unrestricted -Force"), null),
 
             // disable windows defender
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"sc stop wscsvc"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender"" /v PassiveMode /t REG_DWORD /d 1 /f"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender"" /v DisableAntiSpyware /t REG_DWORD /d 1 /f"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender"" /v DisableAntiVirus /t REG_DWORD /d 1 /f"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"""C:\Program Files\Windows Defender\MpCmdRun.exe"" -DisableService -HighPriority"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\MsSecCore"" /v Start /t REG_DWORD /d 4 /f"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SecurityHealthService"" /v Start /t REG_DWORD /d 4 /f"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Sense"" /v Start /t REG_DWORD /d 4 /f"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdBoot"" /v Start /t REG_DWORD /d 4 /f"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdFilter"" /v Start /t REG_DWORD /d 4 /f"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisDrv"" /v Start /t REG_DWORD /d 4 /f"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisSvc"" /v Start /t REG_DWORD /d 4 /f"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefsvc"" /v Start /t REG_DWORD /d 4 /f"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefusersvc"" /v Start /t REG_DWORD /d 4 /f"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WinDefend"" /v Start /t REG_DWORD /d 4 /f"), () => WindowsDefender == false),
-            ("Disabling Windows Defender", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\wscsvc"" /v Start /t REG_DWORD /d 4 /f"), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, () => ServicesHelper.StopService("wscsvc")), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender", "PassiveMode", 1, RegistryValueKind.DWord), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender", "DisableAntiSpyware", 1, RegistryValueKind.DWord), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender", "DisableAntiVirus", 1, RegistryValueKind.DWord), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, new ProcessStartInfo(@"C:\Program Files\Windows Defender\MpCmdRun.exe", "-DisableService -HighPriority") { CreateNoWindow = true }), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => { while (new ServiceController("WdFilter").Status != ServiceControllerStatus.Stopped) await Task.Delay(100); }, null),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\MsSecCore", "Start", 4, RegistryValueKind.DWord), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SecurityHealthService", "Start", 4, RegistryValueKind.DWord), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Sense", "Start", 4, RegistryValueKind.DWord), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdBoot", "Start", 4, RegistryValueKind.DWord), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdFilter", "Start", 4, RegistryValueKind.DWord), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisDrv", "Start", 4, RegistryValueKind.DWord), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisSvc", "Start", 4, RegistryValueKind.DWord), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefsvc", "Start", 4, RegistryValueKind.DWord), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefusersvc", "Start", 4, RegistryValueKind.DWord), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WinDefend", "Start", 4, RegistryValueKind.DWord), () => WindowsDefender == false),
+            ("Disabling Windows Defender", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\wscsvc", "Start", 4, RegistryValueKind.DWord), () => WindowsDefender == false),
+
+            // disable "turn on telemetry for defender core service"
+            (@"Disabling ""Turn on telemetry for Defender core service"" policy", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender\Features", "DisableCoreService1DSTelemetry", 1, RegistryValueKind.DWord), null),
 
             // disable smartscreen
-            ("Disabling Smartscreen", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c taskkill /f /im smartscreen.exe & ren C:\Windows\System32\smartscreen.exe smartscreen.exee"), null),
+            ("Disabling Smartscreen", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, async () => { foreach (var p in Process.GetProcessesByName("smartscreen")) p.Kill(); File.Move(@"C:\Windows\System32\smartscreen.exe", @"C:\Windows\System32\smartscreen.exee"); }), null),
 
             // enable windows hardware quality labs (whql) driver enforcement
-            ("Enabling Windows Hardware Quality Labs (WHQL) driver enforcement", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CI\Policy"" /v WhqlSettings /t REG_DWORD /d 1 /f"), null),
+            ("Enabling Windows Hardware Quality Labs (WHQL) driver enforcement", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\CI\Policy", "WhqlSettings", 1, RegistryValueKind.DWord), null),
 
             // enable uac
-            ("Enabling user account control (UAC)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"" /v EnableLUA /t REG_DWORD /d 1 /f"), () => UserAccountControl == true),
-            ("Enabling user account control (UAC)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"" /v PromptOnSecureDesktop /t REG_DWORD /d 1 /f"), () => UserAccountControl == true),
-            ("Enabling user account control (UAC)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"" /v ConsentPromptBehaviorAdmin /t REG_DWORD /d 5 /f"), () => UserAccountControl == true),
+            ("Enabling user account control (UAC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System", "EnableLUA", 1, RegistryValueKind.DWord), () => UserAccountControl == true),
+            ("Enabling user account control (UAC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System", "PromptOnSecureDesktop", 1, RegistryValueKind.DWord), () => UserAccountControl == true),
+            ("Enabling user account control (UAC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System", "ConsentPromptBehaviorAdmin", 5, RegistryValueKind.DWord), () => UserAccountControl == true),
 
             // disable data execution prevention (dep)
-            ("Disabling data execution prevention (DEP)", async () => await ProcessActions.RunNsudo("TrustedInstaller", "bcdedit /set nx AlwaysOff"), () => DEP == false),
+            ("Disabling data execution prevention (DEP)", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, new ProcessStartInfo("bcdedit", "/set nx AlwaysOff") { CreateNoWindow = true }), () => DEP == false),
 
             // disable hypervisor enforced code integrity (hvci)
-            ("Disabling Hypervisor Enforced Code Integrity (HVCI)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity"" /v Enabled /t REG_DWORD /d 0 /f"), () => MemoryIntegrity == false),
+            ("Disabling Hypervisor Enforced Code Integrity (HVCI)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity", "Enabled", 0, RegistryValueKind.DWord), () => MemoryIntegrity == false),
             
             // disable virtualization-based security (VBS)
-            ("Disabling Virtualization-based Security (VBS)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard"" /v EnableVirtualizationBasedSecurity /t REG_DWORD /d 0 /f"), () => VirtualizationBasedSecurity == false),
+            ("Disabling Virtualization-based Security (VBS)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard", "EnableVirtualizationBasedSecurity", 0, RegistryValueKind.DWord), () => VirtualizationBasedSecurity == false),
 
             // enable spectre and meltdown mitigations
-            ("Enabling Spectre & Meltdown Mitigations", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"" /v ""FeatureSettings"" /t REG_DWORD /d 1 /f"), () => AMDCPU == true && SpectreMeltdownMitigations == true),
-            ("Enabling Spectre & Meltdown Mitigations", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"" /v ""FeatureSettingsOverrideMask"" /t REG_DWORD /d 3 /f"), () => AMDCPU == true && SpectreMeltdownMitigations == true),
-            ("Enabling Spectre & Meltdown Mitigations", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"" /v ""FeatureSettingsOverride"" /t REG_DWORD /d 64 /f"), () => AMDCPU == true && SpectreMeltdownMitigations == true),
-            ("Enabling Spectre & Meltdown Mitigations", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"" /v ""FeatureSettings"" /t REG_DWORD /d 0 /f"), () => INTELCPU == true && SpectreMeltdownMitigations == true),
+            ("Enabling Spectre & Meltdown Mitigations", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "FeatureSettings", 1, RegistryValueKind.DWord), () => AMDCPU == true && SpectreMeltdownMitigations == true),
+            ("Enabling Spectre & Meltdown Mitigations", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "FeatureSettingsOverrideMask", 3, RegistryValueKind.DWord), () => AMDCPU == true && SpectreMeltdownMitigations == true),
+            ("Enabling Spectre & Meltdown Mitigations", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "FeatureSettingsOverride", 64, RegistryValueKind.DWord), () => AMDCPU == true && SpectreMeltdownMitigations == true),
+            ("Enabling Spectre & Meltdown Mitigations", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "FeatureSettings", 0, RegistryValueKind.DWord), () => INTELCPU == true && SpectreMeltdownMitigations == true),
 
             // disable spectre and meltdown mitigations
-            ("Disabling Spectre & Meltdown Mitigations", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"" /v ""FeatureSettings"" /t REG_DWORD /d 1 /f"), () => SpectreMeltdownMitigations == false),
-            ("Disabling Spectre & Meltdown Mitigations", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"" /v ""FeatureSettingsOverrideMask"" /t REG_DWORD /d 3 /f"), () => SpectreMeltdownMitigations == false),
-            ("Disabling Spectre & Meltdown Mitigations", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"" /v ""FeatureSettingsOverride"" /t REG_DWORD /d 3 /f"), () => SpectreMeltdownMitigations == false),
+            ("Disabling Spectre & Meltdown Mitigations", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "FeatureSettings", 1, RegistryValueKind.DWord), () => SpectreMeltdownMitigations == false),
+            ("Disabling Spectre & Meltdown Mitigations", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "FeatureSettingsOverrideMask", 3, RegistryValueKind.DWord), () => SpectreMeltdownMitigations == false),
+            ("Disabling Spectre & Meltdown Mitigations", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management", "FeatureSettingsOverride", 3, RegistryValueKind.DWord), () => SpectreMeltdownMitigations == false),
             
             // disable process mitigations
-            ("Disabling process mitigations", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Kernel"" /v ""MitigationAuditOptions"" /t REG_BINARY /d 222222222222222222222222222222222222222222222222 /f"), () => ProcessMitigations == false),
-            ("Disabling process mitigations", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Kernel"" /v ""MitigationOptions"" /t REG_BINARY /d 222222222222222222222222222222222222222222222222 /f"), () => ProcessMitigations == false),
+            ("Disabling process mitigations", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Kernel", "MitigationAuditOptions", Enumerable.Repeat((byte)0x22, 24).ToArray(), RegistryValueKind.Binary), () => ProcessMitigations == false),
+            ("Disabling process mitigations", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Kernel", "MitigationOptions", Enumerable.Repeat((byte)0x22, 24).ToArray(), RegistryValueKind.Binary), () => ProcessMitigations == false),
         };
 
         var filteredActions = actions.Where(a => a.Condition == null || a.Condition.Invoke()).ToList();
@@ -123,28 +132,31 @@ public static class SecurityStage
                     }
                     catch (Exception ex)
                     {
-                        InstallPage.Info.Title += ": " + ex.Message;
+                        await ProcessActions.LogError(ex);
+
+                        InstallPage.Info.Title = $"{previousTitle}: {ex.Message}";
                         InstallPage.Info.Severity = InfoBarSeverity.Error;
                         InstallPage.Progress.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Error);
-                        InstallPage.ProgressRingControl.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         InstallPage.ProgressRingControl.Visibility = Visibility.Collapsed;
                         InstallPage.ResumeButton.Visibility = Visibility.Visible;
-                        await ProcessActions.LogError(ex);
 
                         var tcs = new TaskCompletionSource<bool>();
 
-                        InstallPage.ResumeButton.Click += (sender, e) =>
+                        RoutedEventHandler resumeHandler = null;
+                        resumeHandler = (sender, e) =>
                         {
-                            tcs.TrySetResult(true);
+                            InstallPage.ResumeButton.Click -= resumeHandler;
                             InstallPage.Info.Severity = InfoBarSeverity.Informational;
                             InstallPage.Progress.ClearValue(ProgressBar.ForegroundProperty);
                             Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Normal);
-                            InstallPage.ProgressRingControl.Foreground = null;
                             InstallPage.ProgressRingControl.Visibility = Visibility.Visible;
                             InstallPage.ResumeButton.Visibility = Visibility.Collapsed;
+
+                            tcs.TrySetResult(true);
                         };
 
+                        InstallPage.ResumeButton.Click += resumeHandler;
                         await tcs.Task;
                     }
                 }

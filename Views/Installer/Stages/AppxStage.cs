@@ -2,6 +2,8 @@
 using Microsoft.UI.Xaml.Media;
 using WinRT.Interop;
 using AutoOS.Helpers.Store;
+using System.Diagnostics;
+using AutoOS.Helpers.TaskScheduler;
 
 namespace AutoOS.Views.Installer.Stages;
 
@@ -19,11 +21,12 @@ public static class AppxStage
         var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
         {
             // onedrive
-            ("Uninstalling OneDrive", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c taskkill /f /im ""OneDrive.exe"" & taskkill /f /im ""OneDrive.Sync.Service.exe"""), null),
-            ("Uninstalling OneDrive", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c for %a in (""SysWOW64"" ""System32"") do (if exist ""%windir%\%~a\OneDriveSetup.exe"" (""%windir%\%~a\OneDriveSetup.exe"" /uninstall)) && reg delete ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\{018D5C66-4533-4307-9B53-224DE2ED1FE6}"" /f"), null),
-            ("Uninstalling OneDrive", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c rmdir /s /q ""C:\ProgramData\Microsoft OneDrive"""), null),
-            ("Uninstalling OneDrive", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c rmdir /s /q ""%LOCALAPPDATA%\Microsoft\OneDrive"""), null),
-            ("Uninstalling OneDrive", async () => await ProcessActions.RunPowerShell(@"Get-ScheduledTask | Where-Object {$_.TaskName -like 'OneDrive Startup Task*'} | Unregister-ScheduledTask -Confirm:$false"), null),
+            ("Uninstalling OneDrive", async () => await Task.WhenAll(Process.GetProcessesByName("OneDrive").Concat(Process.GetProcessesByName("OneDrive.Sync.Service")).Select(async process => { process.Kill(); await process.WaitForExitAsync(); })), null),
+            ("Uninstalling OneDrive", async () => await Process.Start(new ProcessStartInfo("cmd.exe", @"/c for %a in (""SysWOW64"" ""System32"") do (if exist ""%windir%\%~a\OneDriveSetup.exe"" (""%windir%\%~a\OneDriveSetup.exe"" /uninstall)) & reg delete ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\{018D5C66-4533-4307-9B53-224DE2ED1FE6}"" /f") { CreateNoWindow = true })!.WaitForExitAsync(), null),
+            ("Uninstalling OneDrive", async () => await Task.WhenAll(Process.GetProcessesByName("UserOOBEBroker").Select(async process => { process.Kill(); await process.WaitForExitAsync(); })), null),
+            ("Uninstalling OneDrive", async () => Directory.Delete(@"C:\ProgramData\Microsoft OneDrive", true), null),
+            ("Uninstalling OneDrive", async () => Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\OneDrive"), true), null),
+            ("Uninstalling OneDrive", async () => TaskSchedulerHelper.Unregister("OneDrive Startup Task"), null),
         };
 
         // add uninstall actions
@@ -121,28 +124,31 @@ public static class AppxStage
                     }
                     catch (Exception ex)
                     {
-                        InstallPage.Info.Title += ": " + ex.Message;
+                        await ProcessActions.LogError(ex);
+
+                        InstallPage.Info.Title = $"{previousTitle}: {ex.Message}";
                         InstallPage.Info.Severity = InfoBarSeverity.Error;
                         InstallPage.Progress.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Error);
-                        InstallPage.ProgressRingControl.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         InstallPage.ProgressRingControl.Visibility = Visibility.Collapsed;
                         InstallPage.ResumeButton.Visibility = Visibility.Visible;
-                        await ProcessActions.LogError(ex);
 
                         var tcs = new TaskCompletionSource<bool>();
 
-                        InstallPage.ResumeButton.Click += (sender, e) =>
+                        RoutedEventHandler resumeHandler = null;
+                        resumeHandler = (sender, e) =>
                         {
-                            tcs.TrySetResult(true);
+                            InstallPage.ResumeButton.Click -= resumeHandler;
                             InstallPage.Info.Severity = InfoBarSeverity.Informational;
                             InstallPage.Progress.ClearValue(ProgressBar.ForegroundProperty);
                             Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Normal);
-                            InstallPage.ProgressRingControl.Foreground = null;
                             InstallPage.ProgressRingControl.Visibility = Visibility.Visible;
                             InstallPage.ResumeButton.Visibility = Visibility.Collapsed;
+
+                            tcs.TrySetResult(true);
                         };
 
+                        InstallPage.ResumeButton.Click += resumeHandler;
                         await tcs.Task;
                     }
                 }

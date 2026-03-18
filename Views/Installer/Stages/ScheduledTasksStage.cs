@@ -1,4 +1,5 @@
-﻿using AutoOS.Views.Installer.Actions;
+﻿using AutoOS.Helpers.TaskScheduler;
+using AutoOS.Views.Installer.Actions;
 using Microsoft.UI.Xaml.Media;
 using WinRT.Interop;
 
@@ -16,10 +17,45 @@ public static class ScheduledTasksStage
         int stagePercentage = 5;
 
         var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
-        {       
-            // disable scheduled tasks
-            ("Disabling scheduled tasks", async () => await ProcessActions.DisableScheduledTasks(), null)
+        {
+
         };
+
+        // add scheduled task actions
+        var tasks = new List<string>
+        {
+            @"\Microsoft\Windows\Autochk\Proxy",
+            @"\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser Exp",
+            @"\Microsoft\Windows\Application Experience\MareBackup",
+            @"\Microsoft\Windows\Application Experience\StartupAppTask",
+            @"\Microsoft\Windows\Customer Experience Improvement Program\Consolidator",
+            @"\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip",
+            @"\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector",
+            @"\Microsoft\Windows\DUSM\dusmtask",
+            @"\Microsoft\Windows\Feedback\Siuf\DmClient",
+            @"\Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload",
+            @"\Microsoft\Windows\Flighting\FeatureConfig\BootstrapUsageDataReporting",
+            @"\Microsoft\Windows\Flighting\FeatureConfig\GovernedFeatureUsageProcessing",
+            @"\Microsoft\Windows\Flighting\FeatureConfig\ReconcileConfigs",
+            @"\Microsoft\Windows\Flighting\FeatureConfig\ReconcileFeatures",
+            @"\Microsoft\Windows\Flighting\FeatureConfig\UsageDataFlushing",
+            @"\Microsoft\Windows\Flighting\FeatureConfig\UsageDataReceiver",
+            @"\Microsoft\Windows\Flighting\FeatureConfig\UsageDataReporting",
+            @"\Microsoft\Windows\Flighting\OneSettings\RefreshCache",
+            @"\Microsoft\Windows\Maps\MapsToastTask",
+            @"\Microsoft\Windows\Maps\MapsUpdateTask",
+            @"\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem",
+            @"\Microsoft\Windows\Speech\SpeechModelDownloadTask",
+            @"\Microsoft\Windows\Sustainability\PowerGridForecastTask",
+            @"\Microsoft\Windows\Sustainability\SustainabilityTelemetry",
+            @"\Microsoft\Windows\WDI\ResolutionHost",
+            @"\Microsoft\Windows\Windows Error Reporting\QueueReporting",
+        };
+
+        foreach (var task in tasks)
+        {
+            actions.Add((@$"Disabling ""{task}""", async () => TaskSchedulerHelper.Toggle(task, false), null));
+        }
 
         var filteredActions = actions.Where(a => a.Condition == null || a.Condition.Invoke()).ToList();
         int groupedTitleCount = 0;
@@ -48,28 +84,31 @@ public static class ScheduledTasksStage
                     }
                     catch (Exception ex)
                     {
-                        InstallPage.Info.Title += ": " + ex.Message;
+                        await ProcessActions.LogError(ex);
+
+                        InstallPage.Info.Title = $"{previousTitle}: {ex.Message}";
                         InstallPage.Info.Severity = InfoBarSeverity.Error;
                         InstallPage.Progress.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Error);
-                        InstallPage.ProgressRingControl.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         InstallPage.ProgressRingControl.Visibility = Visibility.Collapsed;
                         InstallPage.ResumeButton.Visibility = Visibility.Visible;
-                        await ProcessActions.LogError(ex);
 
                         var tcs = new TaskCompletionSource<bool>();
 
-                        InstallPage.ResumeButton.Click += (sender, e) =>
+                        RoutedEventHandler resumeHandler = null;
+                        resumeHandler = (sender, e) =>
                         {
-                            tcs.TrySetResult(true);
+                            InstallPage.ResumeButton.Click -= resumeHandler;
                             InstallPage.Info.Severity = InfoBarSeverity.Informational;
                             InstallPage.Progress.ClearValue(ProgressBar.ForegroundProperty);
                             Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Normal);
-                            InstallPage.ProgressRingControl.Foreground = null;
                             InstallPage.ProgressRingControl.Visibility = Visibility.Visible;
                             InstallPage.ResumeButton.Visibility = Visibility.Collapsed;
+
+                            tcs.TrySetResult(true);
                         };
 
+                        InstallPage.ResumeButton.Click += resumeHandler;
                         await tcs.Task;
                     }
                 }

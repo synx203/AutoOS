@@ -1,5 +1,4 @@
 using Microsoft.UI.Xaml.Data;
-using Microsoft.Win32;
 using System.ComponentModel;
 using System.Net.Security;
 using System.Runtime.CompilerServices;
@@ -171,12 +170,12 @@ public static class GpuHelper
                         {
                             currentVersion = string.Concat(versionParts[2].AsSpan()[1..], versionParts[3].AsSpan()[..2], ".", versionParts[3].AsSpan(2, 2));
                         }
-                        pstates = Registry.GetValue(registryPath, "DisableDynamicPstate", null) is not int pstateValue || pstateValue == 0;
-                        hdcp = Registry.GetValue(registryPath, "RMHdcpKeyglobZero", null) is int intValue && intValue == 0;
+                        pstates = Microsoft.Win32.Registry.GetValue(registryPath, "DisableDynamicPstate", null) is not int pstateValue || pstateValue == 0;
+                        hdcp = Microsoft.Win32.Registry.GetValue(registryPath, "RMHdcpKeyglobZero", null) is int intValue && intValue == 0;
                     }
                     else if (vendorId == "1002")
                     {
-                        currentVersion = (Registry.GetValue(registryPath, "RadeonSoftwareVersion", null) ?? Registry.GetValue(registryPath, "FireproSoftwareVersion", null))?.ToString();
+                        currentVersion = (Microsoft.Win32.Registry.GetValue(registryPath, "RadeonSoftwareVersion", null) ?? Microsoft.Win32.Registry.GetValue(registryPath, "FireproSoftwareVersion", null))?.ToString();
                     }
                     else if (vendorId == "8086")
                     {

@@ -1,7 +1,9 @@
-﻿using AutoOS.Views.Installer.Actions;
+﻿using AutoOS.Helpers.Scheduling;
+using AutoOS.Helpers.Registry;
+using Microsoft.Win32;
 using Microsoft.UI.Xaml.Media;
+using AutoOS.Views.Installer.Actions;
 using WinRT.Interop;
-using AutoOS.Helpers.Scheduling;
 
 namespace AutoOS.Views.Installer.Stages;
 
@@ -26,10 +28,10 @@ public static class SchedulingStage
             ("Optimizing Affinities", async () => await Task.Delay(2000), () => PCores >= 4),
 
             // disable interrupt steering
-            ("Disabling interrupt steering", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\kernel"" /v InterruptSteeringFlags /t REG_DWORD /d 1 /f"), () => PCores >= 4),
+            ("Disabling interrupt steering", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\kernel", "InterruptSteeringFlags", 1, RegistryValueKind.DWord), () => PCores >= 4),
         
             // disable thread dpcs
-            ("Disabling Thread DPCs", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\kernel"" /v ThreadDpcEnable /t REG_DWORD /f /d 0"), null),
+            ("Disabling Thread DPCs", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\kernel", "ThreadDpcEnable", 0, RegistryValueKind.DWord), null),
         };
 
         var filteredActions = actions.Where(a => a.Condition == null || a.Condition.Invoke()).ToList();
@@ -59,28 +61,31 @@ public static class SchedulingStage
                     }
                     catch (Exception ex)
                     {
-                        InstallPage.Info.Title += ": " + ex.Message;
+                        await ProcessActions.LogError(ex);
+
+                        InstallPage.Info.Title = $"{previousTitle}: {ex.Message}";
                         InstallPage.Info.Severity = InfoBarSeverity.Error;
                         InstallPage.Progress.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Error);
-                        InstallPage.ProgressRingControl.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         InstallPage.ProgressRingControl.Visibility = Visibility.Collapsed;
                         InstallPage.ResumeButton.Visibility = Visibility.Visible;
-                        await ProcessActions.LogError(ex);
 
                         var tcs = new TaskCompletionSource<bool>();
 
-                        InstallPage.ResumeButton.Click += (sender, e) =>
+                        RoutedEventHandler resumeHandler = null;
+                        resumeHandler = (sender, e) =>
                         {
-                            tcs.TrySetResult(true);
+                            InstallPage.ResumeButton.Click -= resumeHandler;
                             InstallPage.Info.Severity = InfoBarSeverity.Informational;
                             InstallPage.Progress.ClearValue(ProgressBar.ForegroundProperty);
                             Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Normal);
-                            InstallPage.ProgressRingControl.Foreground = null;
                             InstallPage.ProgressRingControl.Visibility = Visibility.Visible;
                             InstallPage.ResumeButton.Visibility = Visibility.Collapsed;
+
+                            tcs.TrySetResult(true);
                         };
 
+                        InstallPage.ResumeButton.Click += resumeHandler;
                         await tcs.Task;
                     }
                 }
@@ -96,45 +101,6 @@ public static class SchedulingStage
             previousTitle = title;
         }
 
-        if (currentGroup.Count > 0)
-        {
-            foreach (var groupedAction in currentGroup)
-            {
-                try
-                {
-                    await groupedAction();
-                }
-                catch (Exception ex)
-                {
-                    InstallPage.Info.Title += ": " + ex.Message;
-                    InstallPage.Info.Severity = InfoBarSeverity.Error;
-                    InstallPage.Progress.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
-                    Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Error);
-                    InstallPage.ProgressRingControl.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
-                    InstallPage.ProgressRingControl.Visibility = Visibility.Collapsed;
-                    InstallPage.ResumeButton.Visibility = Visibility.Visible;
-                    await ProcessActions.LogError(ex);
-
-                    var tcs = new TaskCompletionSource<bool>();
-
-                    InstallPage.ResumeButton.Click += (sender, e) =>
-                    {
-                        tcs.TrySetResult(true);
-                        InstallPage.Info.Severity = InfoBarSeverity.Informational;
-                        InstallPage.Progress.ClearValue(ProgressBar.ForegroundProperty);
-                        Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Normal);
-                        InstallPage.ProgressRingControl.Foreground = null;
-                        InstallPage.ProgressRingControl.Visibility = Visibility.Visible;
-                        InstallPage.ResumeButton.Visibility = Visibility.Collapsed;
-                    };
-
-                    await tcs.Task;
-                }
-            }
-
-            InstallPage.Progress.Value += incrementPerTitle;
-            Helpers.Taskbar.TaskbarHelper.SetProgressValue(WindowHandle, InstallPage.Progress.Value, 100);
-        }
         if (filteredActions.Count == 0)
         {
             InstallPage.Progress.Value += stagePercentage;

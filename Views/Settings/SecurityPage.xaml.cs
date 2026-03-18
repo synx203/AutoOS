@@ -1,4 +1,5 @@
-﻿using AutoOS.Views.Installer.Actions;
+using AutoOS.Helpers.Registry;
+using AutoOS.Helpers.Services;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Win32;
@@ -20,18 +21,18 @@ public sealed partial class SecurityPage : Page
     private bool isInitializingDEPState = true;
     private bool isInitializingMemoryIntegrityState = true;
     private bool isInitializingVBSState = true;
-	private bool isInitializingSpectreMeltdownState = true;
+    private bool isInitializingSpectreMeltdownState = true;
     private bool isInitializingProcessMitigationsState = true;
-    
+
     public SecurityPage()
     {
         InitializeComponent();
         GetWindowsDefenderState();
         GetUACState();
         GetDEPState();
-		GetMemoryIntegrityState();
-		GetVBSState();
-		GetSpectreMeltdownState();
+        GetMemoryIntegrityState();
+        GetVBSState();
+        GetSpectreMeltdownState();
         GetProcessMitigationsState();
     }
 
@@ -117,22 +118,22 @@ public sealed partial class SecurityPage : Page
         // toggle windows defender
         if (WindowsDefender.IsOn)
         {
-            await ProcessActions.RunNsudo("TrustedInstaller", @"sc stop wscsvc");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender"" /v PassiveMode /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender"" /v DisableAntiSpyware /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender"" /v DisableAntiVirus /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"""C:\Program Files\Windows Defender\MpCmdRun.exe"" -EnableService -HighPriority");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\MsSecCore"" /v Start /t REG_DWORD /d 0 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SecurityHealthService"" /v Start /t REG_DWORD /d 3 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Sense"" /v Start /t REG_DWORD /d 3 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdBoot"" /v Start /t REG_DWORD /d 0 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdFilter"" /v Start /t REG_DWORD /d 0 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisDrv"" /v Start /t REG_DWORD /d 3 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisSvc"" /v Start /t REG_DWORD /d 3 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefsvc"" /v Start /t REG_DWORD /d 3 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefusersvc"" /v Start /t REG_DWORD /d 2 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WinDefend"" /v Start /t REG_DWORD /d 2 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\wscsvc"" /v Start /t REG_DWORD /d 2 /f");
+            RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, () => ServicesHelper.StopService("wscsvc"));
+            RegistryHelper.DeleteValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender", "PassiveMode");
+            RegistryHelper.DeleteValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender", "DisableAntiSpyware");
+            RegistryHelper.DeleteValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender", "DisableAntiVirus");
+            await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, new ProcessStartInfo(@"C:\Program Files\Windows Defender\MpCmdRun.exe", "-EnableService -HighPriority") { CreateNoWindow = true });
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\MsSecCore", "Start", 0, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SecurityHealthService", "Start", 3, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Sense", "Start", 3, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdBoot", "Start", 0, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdFilter", "Start", 0, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisDrv", "Start", 3, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisSvc", "Start", 3, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefsvc", "Start", 3, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefusersvc", "Start", 2, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WinDefend", "Start", 2, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\wscsvc", "Start", 2, RegistryValueKind.DWord);
         }
         else
         {
@@ -148,126 +149,125 @@ public sealed partial class SecurityPage : Page
                 return (k?.GetValue("DisableRealtimeMonitoring") as int?) != 1;
             }
 
-            if (!IsTamperOn() && !IsRealtimeOn())
-                return;
-
-            var panel = new StackPanel
+            if (IsTamperOn() || IsRealtimeOn())
             {
-                Spacing = 8
-            };
-
-            var dialogProgressBar = new ProgressBar
-            {
-                IsIndeterminate = true
-            };
-            panel.Children.Add(dialogProgressBar);
-
-            var dialogInfoText = new TextBlock { };
-
-            var dialogHyperlink = new Hyperlink
-            {
-                UnderlineStyle = UnderlineStyle.None
-            };
-            dialogHyperlink.Inlines.Add(new Run
-            {
-                Text = "Windows Security"
-            });
-
-            dialogHyperlink.Click += async (_, __) =>
-            {
-                await Task.Run(() =>
+                var panel = new StackPanel
                 {
-                    try
-                    {
-                        Process.Start(new ProcessStartInfo
-                        {
-                            FileName = "windowsdefender://threatsettings",
-                            UseShellExecute = true
-                        });
-                    }
-                    catch { }
+                    Spacing = 8
+                };
+
+                var dialogProgressBar = new ProgressBar
+                {
+                    IsIndeterminate = true
+                };
+                panel.Children.Add(dialogProgressBar);
+
+                var dialogInfoText = new TextBlock { };
+
+                var dialogHyperlink = new Hyperlink
+                {
+                    UnderlineStyle = UnderlineStyle.None
+                };
+                dialogHyperlink.Inlines.Add(new Run
+                {
+                    Text = "Windows Security"
                 });
-            };
 
-            dialogInfoText.Inlines.Add(new Run { Text = "Open " });
-            dialogInfoText.Inlines.Add(dialogHyperlink);
-            dialogInfoText.Inlines.Add(new Run
-            {
-                Text = " and disable Real-time protection and Tamper Protection."
-            });
-
-            var dialogInfoBar = new InfoBar
-            {
-                IsOpen = true,
-                Severity = InfoBarSeverity.Informational,
-                IsClosable = false,
-                Content = new Grid
+                dialogHyperlink.Click += async (_, __) =>
                 {
-                    Padding = new Thickness(12, 0, 16, 0),
-                    Children = { dialogInfoText }
-                }
-            };
-
-            panel.Children.Add(dialogInfoBar);
-
-            var contentDialog = new ContentDialog
-            {
-                Title = "Disable Windows Security",
-                Content = panel,
-                PrimaryButtonText = "Done",
-                IsPrimaryButtonEnabled = false,
-                XamlRoot = XamlRoot
-            };
-
-            contentDialog.Resources["ContentDialogMaxWidth"] = 800;
-
-            contentDialog.Opened += async (_, __) =>
-            {
-                while (true)
-                {
-                    await Task.Delay(1000);
-
-                    if (!IsTamperOn() && !IsRealtimeOn())
+                    await Task.Run(() =>
                     {
-                        contentDialog.IsPrimaryButtonEnabled = true;
-                        dialogProgressBar.IsIndeterminate = false;
-                        dialogProgressBar.Value = 100;
-                        dialogProgressBar.Foreground = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemFillColorSuccess"]);
-                        dialogInfoBar.Severity = InfoBarSeverity.Success;
-                        dialogInfoText.Inlines.Clear();
-                        dialogInfoText.Inlines.Add(new Run
+                        try
                         {
-                            Text = "Windows Security is disabled. Click done to continue."
-                        });
-
-                        foreach (var p in Process.GetProcessesByName("SecHealthUI"))
-                        {
-                            try { p.Kill(); } catch { }
+                            Process.Start(new ProcessStartInfo
+                            {
+                                FileName = "windowsdefender://threatsettings",
+                                UseShellExecute = true
+                            });
                         }
+                        catch { }
+                    });
+                };
 
-                        break;
+                dialogInfoText.Inlines.Add(new Run { Text = "Open " });
+                dialogInfoText.Inlines.Add(dialogHyperlink);
+                dialogInfoText.Inlines.Add(new Run
+                {
+                    Text = " and disable Real-time protection and Tamper Protection."
+                });
+
+                var dialogInfoBar = new InfoBar
+                {
+                    IsOpen = true,
+                    Severity = InfoBarSeverity.Informational,
+                    IsClosable = false,
+                    Content = new Grid
+                    {
+                        Padding = new Thickness(12, 0, 16, 0),
+                        Children = { dialogInfoText }
                     }
-                }
-            };
+                };
 
-            await contentDialog.ShowAsync();
-    
-            await ProcessActions.RunNsudo("TrustedInstaller", @"sc stop wscsvc");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender"" /v PassiveMode /t REG_DWORD /d 1 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender"" /v DisableAntiSpyware /t REG_DWORD /d 1 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender"" /v DisableAntiVirus /t REG_DWORD /d 1 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"""C:\Program Files\Windows Defender\MpCmdRun.exe"" -DisableService -HighPriority");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\MsSecCore"" /v Start /t REG_DWORD /d 4 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SecurityHealthService"" /v Start /t REG_DWORD /d 4 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Sense"" /v Start /t REG_DWORD /d 4 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdBoot"" /v Start /t REG_DWORD /d 4 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdFilter"" /v Start /t REG_DWORD /d 4 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisDrv"" /v Start /t REG_DWORD /d 4 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisSvc"" /v Start /t REG_DWORD /d 4 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefsvc"" /v Start /t REG_DWORD /d 4 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefusersvc"" /v Start /t REG_DWORD /d 4 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WinDefend"" /v Start /t REG_DWORD /d 4 /f");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\wscsvc"" /v Start /t REG_DWORD /d 4 /f");
+                panel.Children.Add(dialogInfoBar);
+
+                var contentDialog = new ContentDialog
+                {
+                    Title = "Disable Windows Security",
+                    Content = panel,
+                    PrimaryButtonText = "Done",
+                    IsPrimaryButtonEnabled = false,
+                    XamlRoot = XamlRoot
+                };
+
+                contentDialog.Resources["ContentDialogMaxWidth"] = 800;
+
+                contentDialog.Opened += async (_, __) =>
+                {
+                    while (true)
+                    {
+                        await Task.Delay(1000);
+
+                        if (!IsTamperOn() && !IsRealtimeOn())
+                        {
+                            contentDialog.IsPrimaryButtonEnabled = true;
+                            dialogProgressBar.IsIndeterminate = false;
+                            dialogProgressBar.Value = 100;
+                            dialogProgressBar.Foreground = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemFillColorSuccess"]);
+                            dialogInfoBar.Severity = InfoBarSeverity.Success;
+                            dialogInfoText.Inlines.Clear();
+                            dialogInfoText.Inlines.Add(new Run
+                            {
+                                Text = "Windows Security is disabled. Click done to continue."
+                            });
+
+                            foreach (var process in Process.GetProcessesByName("SecHealthUI"))
+                                process.Kill();
+
+                            break;
+                        }
+                    }
+                };
+
+                await contentDialog.ShowAsync();
+            }
+
+            RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, () => ServicesHelper.StopService("wscsvc"));
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender", "PassiveMode", 1, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender", "DisableAntiSpyware", 1, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender", "DisableAntiVirus", 1, RegistryValueKind.DWord);
+            await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, new ProcessStartInfo(@"C:\Program Files\Windows Defender\MpCmdRun.exe", "-DisableService -HighPriority") { CreateNoWindow = true });
+            while (new ServiceController("WdFilter").Status != ServiceControllerStatus.Stopped) await Task.Delay(100);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\MsSecCore", "Start", 4, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SecurityHealthService", "Start", 4, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Sense", "Start", 4, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdBoot", "Start", 4, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdFilter", "Start", 4, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisDrv", "Start", 4, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisSvc", "Start", 4, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefsvc", "Start", 4, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefusersvc", "Start", 4, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WinDefend", "Start", 4, RegistryValueKind.DWord);
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\wscsvc", "Start", 4, RegistryValueKind.DWord);
         }
 
         // delay
@@ -640,121 +640,121 @@ public sealed partial class SecurityPage : Page
         }
     }
 
-	private void GetVBSState()
-	{
-		// get state
-		if ((Registry.GetValue(@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\WindowsHello", "Enabled", 0) is int helloVal && helloVal == 1) || (Registry.GetValue(@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard", "EnableVirtualizationBasedSecurity", 0) is int vbsVal && vbsVal == 1))
-		{
-			VirtualizationBasedSecurity.IsOn = true;
-			initialVBSState = true;
-		}
+    private void GetVBSState()
+    {
+        // get state
+        if ((Registry.GetValue(@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\WindowsHello", "Enabled", 0) is int helloVal && helloVal == 1) || (Registry.GetValue(@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard", "EnableVirtualizationBasedSecurity", 0) is int vbsVal && vbsVal == 1))
+        {
+            VirtualizationBasedSecurity.IsOn = true;
+            initialVBSState = true;
+        }
 
-		isInitializingVBSState = false;
-	}
+        isInitializingVBSState = false;
+    }
 
-	private async void VirtualizationBasedSecurity_Toggled(object sender, RoutedEventArgs e)
-	{
-		if (isInitializingVBSState) return;
+    private async void VirtualizationBasedSecurity_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (isInitializingVBSState) return;
 
-		// disable hittestvisible to avoid double-clicking
-		VirtualizationBasedSecurity.IsHitTestVisible = false;
+        // disable hittestvisible to avoid double-clicking
+        VirtualizationBasedSecurity.IsHitTestVisible = false;
 
-		// remove infobar
-		WindowsDefenderInfo.Children.Clear();
+        // remove infobar
+        WindowsDefenderInfo.Children.Clear();
 
-		// add infobar
-		WindowsDefenderInfo.Children.Add(new InfoBar
-		{
-			Title = VirtualizationBasedSecurity.IsOn ? "Enabling Virtualization-based Security (VBS)..." : "Disabling Virtualization-based Security (VBS)...",
-			IsClosable = false,
-			IsOpen = true,
-			Severity = InfoBarSeverity.Informational,
-			Margin = new Thickness(0, 0, 0, 12)
-		});
+        // add infobar
+        WindowsDefenderInfo.Children.Add(new InfoBar
+        {
+            Title = VirtualizationBasedSecurity.IsOn ? "Enabling Virtualization-based Security (VBS)..." : "Disabling Virtualization-based Security (VBS)...",
+            IsClosable = false,
+            IsOpen = true,
+            Severity = InfoBarSeverity.Informational,
+            Margin = new Thickness(0, 0, 0, 12)
+        });
 
-		// toggle
-		Registry.SetValue(@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard", "EnableVirtualizationBasedSecurity", VirtualizationBasedSecurity.IsOn ? 1 : 0, RegistryValueKind.DWord);
+        // toggle
+        Registry.SetValue(@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard", "EnableVirtualizationBasedSecurity", VirtualizationBasedSecurity.IsOn ? 1 : 0, RegistryValueKind.DWord);
 
-		if (!VirtualizationBasedSecurity.IsOn)
-		{
-			if (Registry.GetValue(@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\WindowsHello", "Enabled", 0) is int helloVal && helloVal == 1)
-			{
-				var dialog = new ContentDialog
-				{
-					Title = "Disable Windows Hello",
-					Content = "Windows Hello has to be disabled in order to disable Virtualization-based Security (VBS). Do you want to disable Windows Hello?",
-					PrimaryButtonText = "Yes",
-					DefaultButton = ContentDialogButton.Close,
-					CloseButtonText = "No",
-					XamlRoot = XamlRoot
-				};
+        if (!VirtualizationBasedSecurity.IsOn)
+        {
+            if (Registry.GetValue(@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\WindowsHello", "Enabled", 0) is int helloVal && helloVal == 1)
+            {
+                var dialog = new ContentDialog
+                {
+                    Title = "Disable Windows Hello",
+                    Content = "Windows Hello has to be disabled in order to disable Virtualization-based Security (VBS). Do you want to disable Windows Hello?",
+                    PrimaryButtonText = "Yes",
+                    DefaultButton = ContentDialogButton.Close,
+                    CloseButtonText = "No",
+                    XamlRoot = XamlRoot
+                };
 
-				var result = await dialog.ShowAsync();
+                var result = await dialog.ShowAsync();
 
-				if (result == ContentDialogResult.Primary)
-				{
-					Registry.SetValue(@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\WindowsHello", "Enabled", 0, RegistryValueKind.DWord);
-				}
-				else
-				{
-					isInitializingVBSState = true;
-					VirtualizationBasedSecurity.IsOn = true;
-					isInitializingVBSState = false;
+                if (result == ContentDialogResult.Primary)
+                {
+                    Registry.SetValue(@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\WindowsHello", "Enabled", 0, RegistryValueKind.DWord);
+                }
+                else
+                {
+                    isInitializingVBSState = true;
+                    VirtualizationBasedSecurity.IsOn = true;
+                    isInitializingVBSState = false;
 
-					// re-enable hittestvisible
-					VirtualizationBasedSecurity.IsHitTestVisible = true;
+                    // re-enable hittestvisible
+                    VirtualizationBasedSecurity.IsHitTestVisible = true;
 
-					// remove infobar
-					WindowsDefenderInfo.Children.Clear();
+                    // remove infobar
+                    WindowsDefenderInfo.Children.Clear();
 
                     return;
-				}
-			}
-		}
+                }
+            }
+        }
 
-		// delay
-		await Task.Delay(500);
+        // delay
+        await Task.Delay(500);
 
-		// re-enable hittestvisible
-		VirtualizationBasedSecurity.IsHitTestVisible = true;
+        // re-enable hittestvisible
+        VirtualizationBasedSecurity.IsHitTestVisible = true;
 
-		// remove infobar
-		WindowsDefenderInfo.Children.Clear();
+        // remove infobar
+        WindowsDefenderInfo.Children.Clear();
 
-		// add infobar
-		var infoBar = new InfoBar
-		{
-			Title = VirtualizationBasedSecurity.IsOn ? "Successfully enabled Virtualization-based Security (VBS)." : "Successfully disabled Virtualization-based Security (VBS).",
-			IsClosable = false,
-			IsOpen = true,
-			Severity = InfoBarSeverity.Success,
-			Margin = new Thickness(0, 0, 0, 12)
-		};
-		WindowsDefenderInfo.Children.Add(infoBar);
+        // add infobar
+        var infoBar = new InfoBar
+        {
+            Title = VirtualizationBasedSecurity.IsOn ? "Successfully enabled Virtualization-based Security (VBS)." : "Successfully disabled Virtualization-based Security (VBS).",
+            IsClosable = false,
+            IsOpen = true,
+            Severity = InfoBarSeverity.Success,
+            Margin = new Thickness(0, 0, 0, 12)
+        };
+        WindowsDefenderInfo.Children.Add(infoBar);
 
-		// add restart button if needed
-		if (VirtualizationBasedSecurity.IsOn != initialVBSState)
-		{
-			infoBar.Title += " A restart is required to apply the change.";
-			infoBar.ActionButton = new Button
-			{
-				Content = "Restart",
-				HorizontalAlignment = HorizontalAlignment.Right
-			};
-			((Button)infoBar.ActionButton).Click += (s, args) =>
-				Process.Start(new ProcessStartInfo("shutdown", "/r /f /t 0") { CreateNoWindow = true });
-		}
-		else
-		{
-			// delay
-			await Task.Delay(2000);
+        // add restart button if needed
+        if (VirtualizationBasedSecurity.IsOn != initialVBSState)
+        {
+            infoBar.Title += " A restart is required to apply the change.";
+            infoBar.ActionButton = new Button
+            {
+                Content = "Restart",
+                HorizontalAlignment = HorizontalAlignment.Right
+            };
+            ((Button)infoBar.ActionButton).Click += (s, args) =>
+                Process.Start(new ProcessStartInfo("shutdown", "/r /f /t 0") { CreateNoWindow = true });
+        }
+        else
+        {
+            // delay
+            await Task.Delay(2000);
 
-			// remove infobar
-			WindowsDefenderInfo.Children.Clear();
-		}
-	}
+            // remove infobar
+            WindowsDefenderInfo.Children.Clear();
+        }
+    }
 
-	private void GetSpectreMeltdownState()
+    private void GetSpectreMeltdownState()
     {
         // check registry
         string cpuVendor = (string)Registry.GetValue(@"HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\CentralProcessor\0", "VendorIdentifier", null);

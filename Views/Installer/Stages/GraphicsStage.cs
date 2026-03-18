@@ -1,17 +1,17 @@
-﻿using AutoOS.Helpers.GPU;
-using AutoOS.Helpers.Monitor;
-using AutoOS.Views.Installer.Actions;
-using Microsoft.UI.Xaml.Media;
-using System.Diagnostics;
-using Windows.Storage;
+﻿using Windows.Storage;
 using WinRT.Interop;
+using AutoOS.Helpers.Registry;
+using Microsoft.Win32;
+using System.Diagnostics;
+using AutoOS.Views.Installer.Actions;
+using AutoOS.Helpers.Monitor;
+using AutoOS.Helpers.GPU;
+using Microsoft.UI.Xaml.Media;
 
 namespace AutoOS.Views.Installer.Stages;
 
 public static class GraphicsStage
 {
-    public static bool NVIDIA;
-
     private static readonly ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
     public static IntPtr WindowHandle { get; private set; }
     public static async Task Run()
@@ -22,7 +22,7 @@ public static class GraphicsStage
         var GPUs = PreparingStage.GPUs;
         bool MSI = PreparingStage.MSI;
         bool CRU = PreparingStage.CRU;
-        NVIDIA = GPUs.Any(g => g.VendorId == "10de");
+        bool NVIDIA = GPUs.Any(g => g.VendorId == "10de");
         bool AMD = GPUs.Any(g => g.VendorId == "1002");
         bool INTEL = GPUs.Any(g => g.VendorId == "8086");
 
@@ -37,14 +37,14 @@ public static class GraphicsStage
         var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
         {
             // system -> display -> graphics -> default graphics settings
-            (@"Enabling ""Hardware-accelerated GPU scheduling"" (HAGS)", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers"" /v ""HwSchMode"" /t REG_DWORD /d 2 /f"), null),
-            (@"Enabling ""Optimizations for windowed games""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\DirectX\UserGpuPreferences"" /v ""DirectXUserGlobalSettings"" /t REG_SZ /d ""SwapEffectUpgradeEnable=1;"" /f"), null),
+            (@"Enabling ""Hardware-accelerated GPU scheduling"" (HAGS)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers", "HwSchMode", 2, RegistryValueKind.DWord), null),
+            (@"Enabling ""Optimizations for windowed games""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Microsoft\DirectX\UserGpuPreferences", "DirectXUserGlobalSettings", "SwapEffectUpgradeEnable=1;", RegistryValueKind.String), null),
 
             // apply custom resolution utility (cru) profile
             ("Importing Custom Resolution Utility (CRU) profile", async () => await Task.Delay(1500), () => CRU == true),
-            ("Importing Custom Resolution Utility (CRU) profile", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = localSettings.Values["CruProfile"] ?.ToString(), Arguments = "-i" }) !.WaitForExitAsync()), () => CRU == true),
+            ("Importing Custom Resolution Utility (CRU) profile", async () => await Process.Start(new ProcessStartInfo { FileName = localSettings.Values["CruProfile"]?.ToString(), Arguments = "-i", WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => CRU == true),
             ("Applying Custom Resolution Utility (CRU) profile", async () => await Task.Delay(1500), () => CRU == true),
-            ("Applying Custom Resolution Utility (CRU) profile", async () => await ProcessActions.RunApplication("CRU", "restart64.exe", "/q"), () => CRU == true),
+            ("Applying Custom Resolution Utility (CRU) profile", async () => await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "CRU", "restart64.exe"), "/q") { CreateNoWindow = true })!.WaitForExitAsync(), () => CRU == true),
             ("Applying Custom Resolution Utility (CRU) profile", async () => await Task.Delay(2000), () => CRU == true),
 
             // set the highest supported refresh rate for every monitor
@@ -57,20 +57,20 @@ public static class GraphicsStage
 
             // install msi afterburner
             ("Installing MSI Afterburner", async () => await ProcessActions.RunExtract(Path.Combine(Path.GetTempPath(), "MSI Afterburner.zip"), @"C:\Program Files (x86)\MSI Afterburner"), null),
-            ("Installing MSI Afterburner", async () => await ProcessActions.RunNsudo("CurrentUser", @"""C:\Program Files (x86)\MSI Afterburner\Redist\vc_redist.x86.exe"" /q"), null),
-            ("Installing MSI Afterburner", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Afterburner"" /v ""DisplayIcon"" /t REG_SZ /d ""C:\Program Files (x86)\MSI Afterburner\uninstall.exe"" /f"), null),
-            ("Installing MSI Afterburner", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Afterburner"" /v ""DisplayName"" /t REG_SZ /d ""MSI Afterburner 4.6.6"" /f"), null),
-            ("Installing MSI Afterburner", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Afterburner"" /v ""DisplayVersion"" /t REG_SZ /d ""4.6.6"" /f"), null),
-            ("Installing MSI Afterburner", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Afterburner"" /v ""Publisher"" /t REG_SZ /d ""MSI Co., LTD"" /f"), null),
-            ("Installing MSI Afterburner", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Afterburner"" /v ""UninstallString"" /t REG_SZ /d ""C:\Program Files (x86)\MSI Afterburner\uninstall.exe"" /f"), null),
-            ("Installing MSI Afterburner", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c mkdir ""%APPDATA%\Microsoft\Windows\Start Menu\Programs\MSI Afterburner"" ""%APPDATA%\Microsoft\Windows\Start Menu\Programs\MSI Afterburner\SDK"""), null),
+            ("Installing MSI Afterburner", async () => await Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files (x86)\MSI Afterburner\Redist\vc_redist.x86.exe", Arguments = "/q", WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), null),
+            ("Installing MSI Afterburner", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Afterburner", "DisplayIcon", @"C:\Program Files (x86)\MSI Afterburner\uninstall.exe", RegistryValueKind.String), null),
+            ("Installing MSI Afterburner", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Afterburner", "DisplayName", "MSI Afterburner 4.6.6", RegistryValueKind.String), null),
+            ("Installing MSI Afterburner", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Afterburner", "DisplayVersion", "4.6.6", RegistryValueKind.String), null),
+            ("Installing MSI Afterburner", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Afterburner", "Publisher", "MSI Co., LTD", RegistryValueKind.String), null),
+            ("Installing MSI Afterburner", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Afterburner", "UninstallString", @"C:\Program Files (x86)\MSI Afterburner\uninstall.exe", RegistryValueKind.String), null),
+            ("Installing MSI Afterburner", async () => { string startMenuPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Start Menu\Programs\MSI Afterburner"); Directory.CreateDirectory(startMenuPath); Directory.CreateDirectory(Path.Combine(startMenuPath, "SDK")); }, null),
             ("Installing MSI Afterburner", async () => await ProcessActions.RunPowerShell(@"$Shell=New-Object -ComObject WScript.Shell; @(@{P='MSI Afterburner.lnk';T='C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe'},@{P='ReadMe.lnk';T='C:\Program Files (x86)\MSI Afterburner\Doc\ReadMe.pdf'},@{P='Uninstall.lnk';T='C:\Program Files (x86)\MSI Afterburner\Uninstall.exe'},@{P='SDK\MSI Afterburner localization reference.lnk';T='C:\Program Files (x86)\MSI Afterburner\SDK\Doc\Localization reference.pdf'},@{P='SDK\MSI Afterburner skin format reference.lnk';T='C:\Program Files (x86)\MSI Afterburner\SDK\Doc\USF skin format reference.pdf'},@{P='SDK\Samples.lnk';T='C:\Program Files (x86)\MSI Afterburner\SDK\Samples\'}) | % {$Shortcut=$Shell.CreateShortcut([System.IO.Path]::Combine($env:APPDATA, 'Microsoft\Windows\Start Menu\Programs\MSI Afterburner', $_.P)); $Shortcut.TargetPath=$_.T; $Shortcut.Save()}"), null),
 
             // import msi afterburner profile
-            ("Importing MSI Afterburner profile", async () => await Task.Run(() => File.Copy(localSettings.Values["MsiProfile"] ?.ToString(), Path.Combine(@"C:\Program Files (x86)\MSI Afterburner\Profiles\", Path.GetFileName(localSettings.Values["MsiProfile"] ?.ToString())))), () => MSI == true),
+            ("Importing MSI Afterburner profile", async () => File.Copy(localSettings.Values["MsiProfile"]?.ToString(), Path.Combine(@"C:\Program Files (x86)\MSI Afterburner\Profiles\", Path.GetFileName(localSettings.Values["MsiProfile"]?.ToString()))), () => MSI == true),
 
             // apply msi afterburner profile
-            ("Applying MSI Afterburner profile", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe", Arguments = "/Profile1 /q" })), () => MSI == true),
+            ("Applying MSI Afterburner profile", async () => await Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe", Arguments = "/Profile1 /q", WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => MSI == true),
         
             // download obs studio
             ("Downloading OBS Studio", async () => await ProcessActions.RunDownload(await ProcessActions.GetLatestObsStudioUrl(), Path.GetTempPath(), "OBS-Studio-Windows-x64-Installer.exe"), null),
@@ -84,12 +84,13 @@ public static class GraphicsStage
             ("Installing OBS Studio", async () => iniHelper.AddValue("RecEncoder", "obs_qsv11_v2", "AdvOut"), () => NVIDIA == false && INTEL == true),
             ("Installing OBS Studio", async () => iniHelper.AddValue("Encoder", "h264_texture_amf", "AdvOut"), () => NVIDIA == false && AMD == true),
             ("Installing OBS Studio", async () => iniHelper.AddValue("RecEncoder", "h264_texture_amf", "AdvOut"), () => NVIDIA == false &&  AMD == true),
-            ("Installing OBS Studio", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c move ""C:\Program Files\obs-studio\$APPDATA\obs-studio-hook"" ""%ProgramData%\obs-studio-hook"""), null),
-            ("Installing OBS Studio", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c move ""%TEMP%\obs-studio"" ""%APPDATA%"""), null),
-            ("Installing OBS Studio", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c rmdir /S /Q ""C:\Program Files\obs-studio\$PLUGINSDIR"" & rmdir /S /Q ""C:\Program Files\obs-studio\$APPDATA"""), null),
-            ("Installing OBS Studio", async () => obsVersion = await Task.Run(() => FileVersionInfo.GetVersionInfo(@"C:\Program Files\obs-studio\bin\64bit\obs64.exe").ProductVersion), null),
-            ("Installing OBS Studio", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\OBS Studio"" /v ""DisplayVersion"" /t REG_SZ /d ""{obsVersion}"" /f"), null),
-            ("Installing OBS Studio", async () => await ProcessActions.RunNsudo("CurrentUser", $"cmd /c reg import \"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "obs.reg")}\""), null),
+            ("Installing OBS Studio", async () => Directory.Move(@"C:\Program Files\obs-studio\$APPDATA\obs-studio-hook", Environment.ExpandEnvironmentVariables(@"%ProgramData%\obs-studio-hook")), null),
+            ("Installing OBS Studio", async () => { Directory.Move(Path.Combine(Path.GetTempPath(), "obs-studio"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "obs-studio")); }, null),
+            ("Installing OBS Studio", async () => Directory.Delete(@"C:\Program Files\obs-studio\$PLUGINSDIR", true), null),
+            ("Installing OBS Studio", async () => Directory.Delete(@"C:\Program Files\obs-studio\$APPDATA", true), null),
+            ("Installing OBS Studio", async () => obsVersion = FileVersionInfo.GetVersionInfo(@"C:\Program Files\obs-studio\bin\64bit\obs64.exe").ProductVersion, null),
+            ("Installing OBS Studio", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\OBS Studio", "DisplayVersion", obsVersion, RegistryValueKind.String), null),
+            ("Installing OBS Studio", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = $"import \"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "obs.reg")}\"", CreateNoWindow = true })!.WaitForExitAsync(), null),
             ("Installing OBS Studio", async () => await ProcessActions.RunPowerShell(@"$s=New-Object -ComObject WScript.Shell;$sc=$s.CreateShortcut([System.IO.Path]::Combine($env:ProgramData,'Microsoft\Windows\Start Menu\Programs\OBS Studio.lnk'));$sc.TargetPath='C:\Program Files\obs-studio\bin\64bit\obs64.exe';$sc.WorkingDirectory='C:\Program Files\obs-studio\bin\64bit';$sc.Save()"), null)
         };
 
@@ -170,28 +171,31 @@ public static class GraphicsStage
                     }
                     catch (Exception ex)
                     {
-                        InstallPage.Info.Title += ": " + ex.Message;
+                        await ProcessActions.LogError(ex);
+
+                        InstallPage.Info.Title = $"{previousTitle}: {ex.Message}";
                         InstallPage.Info.Severity = InfoBarSeverity.Error;
                         InstallPage.Progress.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Error);
-                        InstallPage.ProgressRingControl.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         InstallPage.ProgressRingControl.Visibility = Visibility.Collapsed;
                         InstallPage.ResumeButton.Visibility = Visibility.Visible;
-                        await ProcessActions.LogError(ex);
 
                         var tcs = new TaskCompletionSource<bool>();
 
-                        InstallPage.ResumeButton.Click += (sender, e) =>
+                        RoutedEventHandler resumeHandler = null;
+                        resumeHandler = (sender, e) =>
                         {
-                            tcs.TrySetResult(true);
+                            InstallPage.ResumeButton.Click -= resumeHandler;
                             InstallPage.Info.Severity = InfoBarSeverity.Informational;
                             InstallPage.Progress.ClearValue(ProgressBar.ForegroundProperty);
                             Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Normal);
-                            InstallPage.ProgressRingControl.Foreground = null;
                             InstallPage.ProgressRingControl.Visibility = Visibility.Visible;
                             InstallPage.ResumeButton.Visibility = Visibility.Collapsed;
+
+                            tcs.TrySetResult(true);
                         };
 
+                        InstallPage.ResumeButton.Click += resumeHandler;
                         await tcs.Task;
                     }
                 }

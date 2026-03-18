@@ -1,6 +1,9 @@
+using AutoOS.Helpers.Registry;
+using Microsoft.Win32;
 using System.Diagnostics;
 using Windows.Win32;
 using Windows.Win32.System.Services;
+using static AutoOS.Helpers.Registry.RegistryHelper;
 
 namespace AutoOS.Helpers.Services;
 
@@ -8,7 +11,7 @@ public static class ServicesHelper
 {
     public unsafe static void KillServiceProcess(string baseServiceName)
     {
-        using var scmHandle = PInvoke.OpenSCManager(null, null, 0x0004);
+        using var scmHandle = PInvoke.OpenSCManager(null, null, PInvoke.SERVICE_QUERY_CONFIG);
         if (scmHandle.IsInvalid) return;
 
         SC_HANDLE rawScmHandle = (SC_HANDLE)scmHandle.DangerousGetHandle();
@@ -63,6 +66,64 @@ public static class ServicesHelper
                             catch { }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    public static void StartService(string serviceName)
+    {
+        using var scmHandle = PInvoke.OpenSCManager(null, null, PInvoke.SC_MANAGER_CONNECT);
+        if (scmHandle.IsInvalid) return;
+
+        using var serviceHandle = PInvoke.OpenService(scmHandle, serviceName, PInvoke.SERVICE_START);
+        if (serviceHandle.IsInvalid) return;
+
+        PInvoke.StartService(serviceHandle, null);
+    }
+
+    public static void StopService(string serviceName)
+    {
+        using var scmHandle = PInvoke.OpenSCManager(null, null, PInvoke.SC_MANAGER_CONNECT);
+        if (scmHandle.IsInvalid) return;
+
+        using var serviceHandle = PInvoke.OpenService(scmHandle, serviceName, PInvoke.SERVICE_STOP);
+        if (serviceHandle.IsInvalid) return;
+
+        PInvoke.ControlService(serviceHandle, PInvoke.SERVICE_CONTROL_STOP, out SERVICE_STATUS status);
+    }
+
+    public static void GroupServices()
+    {
+        string[] services =
+        [
+            "AppXSvc", "AudioEndpointBuilder", "BITS", "BrokerInfrastructure", "CDPSvc",
+            "ClipSVC", "CoreMessagingRegistrar", "DcomLaunch", "DeviceAssociationService",
+            "Dhcp", "DispBrokerDesktopSvc", "DisplayEnhancementService", "Dnscache",
+            "DPS", "EventLog", "EventSystem", "FDResPub", "FontCache", "hidserv",
+            "iphlpsvc", "KeyIso", "LanmanServer", "LanmanWorkstation", "LicenseManager",
+            "lmhosts", "LSM", "NcbService", "NcdAutoSetup", "NlaSvc", "nsi", "PcaSvc",
+            "Power", "SamSs", "Schedule", "SENS", "ShellHWDetection", "SSDPSRV",
+            "SstpSvc", "StorSvc", "SysMain", "SystemEventsBroker", "Themes",
+            "TimeBrokerSvc", "TokenBroker", "TrkWks", "UsoSvc", "VaultSvc",
+            "WdiSystemHost", "WinHttpAutoProxySvc", "WpnService", "wuauserv"
+        ];
+
+        string[] userServices = ["CDPUserSvc_", "OneSyncSvc_", "WpnUserService_"];
+
+        foreach (var service in services)
+        {
+            RegistryHelper.SetValue(Identity.TrustedInstaller, $@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\{service}", "SvcHostSplitDisable", 1, RegistryValueKind.DWord);
+        }
+
+        using var baseKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services");
+        foreach (string subKeyName in baseKey.GetSubKeyNames())
+        {
+            foreach (var prefix in userServices)
+            {
+                if (subKeyName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    RegistryHelper.SetValue(Identity.TrustedInstaller, $@"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\{subKeyName}", "SvcHostSplitDisable", 1, RegistryValueKind.DWord);
                 }
             }
         }

@@ -199,12 +199,12 @@ internal static class DeviceHelper
                 deviceId = pnpDeviceId.Substring(pnpDeviceId.IndexOf("PID_") + 4, 4).ToLowerInvariant();
             string registryPath = $@"SYSTEM\CurrentControlSet\Control\Class\{GetDeviceRegistryPropertyString(deviceInfoSetHandle, &deviceInfoData, SPDRP_DRIVER)}";
 
-            string driverVersion = Registry.LocalMachine.OpenSubKey(registryPath).GetValue("DriverVersion")?.ToString();
+            string driverVersion = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(registryPath).GetValue("DriverVersion")?.ToString();
 
             uint msiSupported = 2, msiLimit = 0, devicePolicy = 0, devicePriority = 0;
             ulong assignmentSetOverride = 0;
 
-            using (var deviceRegKey = Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Enum\{pnpDeviceId}\Device Parameters", false))
+            using (var deviceRegKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Enum\{pnpDeviceId}\Device Parameters", false))
             {
                 if (deviceRegKey != null)
                 {
@@ -220,7 +220,7 @@ internal static class DeviceHelper
                     {
                         devicePolicy = Convert.ToUInt32(affinityKey.GetValue("DevicePolicy") ?? 0);
                         devicePriority = Convert.ToUInt32(affinityKey.GetValue("DevicePriority") ?? 0);
-                        if (affinityKey.GetValue("AssignmentSetOverride") is byte[] bytes && bytes.Length > 0)
+                        if ((object)affinityKey.GetValue("AssignmentSetOverride") is byte[] bytes && bytes.Length > 0)
                         {
                             byte[] full = new byte[8];
                             Array.Copy(bytes, full, Math.Min(bytes.Length, 8));
@@ -250,7 +250,7 @@ internal static class DeviceHelper
 
             if (type == DeviceType.NIC)
             {
-                using var classKey = Registry.LocalMachine.OpenSubKey(registryPath);
+                using var classKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(registryPath);
                 nicDeviceType = classKey?.GetValue("*PhysicalMediaType")?.ToString() switch
                 {
                     "9" => NicDeviceType.WiFi,
@@ -342,7 +342,7 @@ internal static class DeviceHelper
 
     public static void SetMSIMode(string pnpDeviceId, bool msiSupported, uint msiLimit)
     {
-        using var interruptKey = Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Enum\{pnpDeviceId}\Device Parameters", true).CreateSubKey("Interrupt Management");
+        using var interruptKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Enum\{pnpDeviceId}\Device Parameters", true).CreateSubKey("Interrupt Management");
 
         if (msiSupported)
         {
@@ -363,7 +363,7 @@ internal static class DeviceHelper
 
     public static void SetAffinityPolicy(string pnpDeviceId, uint devicePolicy, uint devicePriority, ulong assignmentSetOverride)
     {
-        using var devParamsKey = Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Enum\{pnpDeviceId}\Device Parameters", true);
+        using var devParamsKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Enum\{pnpDeviceId}\Device Parameters", true);
         if (devParamsKey == null) return;
 
         if (devicePolicy == 0 && devicePriority == 0 && assignmentSetOverride == 0)
@@ -436,7 +436,7 @@ internal static class DeviceHelper
 
     public static void SetRSS(DeviceInfo device, ulong assignmentSetOverride)
     {
-        using var classKey = Registry.LocalMachine.OpenSubKey(device.RegistryPath, true);
+        using var classKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(device.RegistryPath, true);
         if (classKey?.GetValue("*PhysicalMediaType")?.ToString() != "14") return;
 
         if (device.DevicePolicy == 4 && assignmentSetOverride != 0)
@@ -462,7 +462,7 @@ internal static class DeviceHelper
         string serviceName = ndiKey?.GetValue("Service")?.ToString()?.TrimEnd('.');
         if (string.IsNullOrEmpty(serviceName)) return false;
 
-        using var serviceKey = Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Services\{serviceName}");
+        using var serviceKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Services\{serviceName}");
         if (serviceKey?.GetValue("ImagePath") is not string imagePath) return false;
 
         string systemRoot = Environment.GetEnvironmentVariable("SystemRoot")!;
@@ -492,7 +492,7 @@ internal static class DeviceHelper
                 if (p->IfType == 24 || p->OperStatus != IF_OPER_STATUS.IfOperStatusUp) continue;
 
                 string guid = new((sbyte*)p->AdapterName.Value);
-                using var netKey = Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Control\Network\{{4D36E972-E325-11CE-BFC1-08002BE10318}}\{guid}\Connection");
+                using var netKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Control\Network\{{4D36E972-E325-11CE-BFC1-08002BE10318}}\{guid}\Connection");
                 if (string.Equals(netKey?.GetValue("PnpInstanceID")?.ToString(), pnpDeviceId, StringComparison.OrdinalIgnoreCase)) return true;
             }
         }

@@ -2,6 +2,9 @@ using AutoOS.Views.Installer.Actions;
 using Microsoft.UI.Xaml.Media;
 using WinRT.Interop;
 using AutoOS.Views.Settings.Power;
+using System.Diagnostics;
+using AutoOS.Helpers.Registry;
+using Microsoft.Win32;
 
 namespace AutoOS.Views.Installer.Stages;
 
@@ -23,7 +26,7 @@ public static class PowerStage
         var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
         {
             // reset power plans
-            ("Resetting Power plans", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"powercfg -restoredefaultschemes"), null),
+            ("Resetting Power plans", async () => await Process.Start(new ProcessStartInfo { FileName = "powercfg", Arguments = "-restoredefaultschemes", UseShellExecute = false, CreateNoWindow = true })!.WaitForExitAsync(), null),
 
             // create "autoos" power plan
             (@"Creating ""AutoOS"" Power plan", async () => guid = PowerApi.DuplicateScheme(new Guid("8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"), "AutoOS", "AutoOS Power Plan"), null),
@@ -124,9 +127,9 @@ public static class PowerStage
             ("Applying Changes", async () => PowerApi.PowerSetActiveScheme(guid), null),
 
             // disable hibernation
-            ("Disabling hibernation", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Power"" /v HibernateEnabled /t REG_DWORD /d 0 /f"), null),
-            ("Disabling hibernation", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Power"" /v HiberbootEnabled /t REG_DWORD /d 0 /f"), null),
-            ("Disabling hibernation", async () => await ProcessActions.RunNsudo("CurrentUser", @"powercfg /h off"), null),
+            ("Disabling hibernation", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Power", "HibernateEnabled", 0, RegistryValueKind.DWord), null),
+            ("Disabling hibernation", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Power", "HiberbootEnabled", 0, RegistryValueKind.DWord), null),
+            ("Disabling hibernation", async () => await Process.Start(new ProcessStartInfo { FileName = "powercfg", Arguments = "/h off", UseShellExecute = false, CreateNoWindow = true })!.WaitForExitAsync(), null),
         };
 
         var filteredActions = actions.Where(a => a.Condition == null || a.Condition.Invoke()).ToList();
@@ -156,28 +159,31 @@ public static class PowerStage
                     }
                     catch (Exception ex)
                     {
-                        InstallPage.Info.Title += ": " + ex.Message;
+                        await ProcessActions.LogError(ex);
+
+                        InstallPage.Info.Title = $"{previousTitle}: {ex.Message}";
                         InstallPage.Info.Severity = InfoBarSeverity.Error;
                         InstallPage.Progress.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Error);
-                        InstallPage.ProgressRingControl.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         InstallPage.ProgressRingControl.Visibility = Visibility.Collapsed;
                         InstallPage.ResumeButton.Visibility = Visibility.Visible;
-                        await ProcessActions.LogError(ex);
 
                         var tcs = new TaskCompletionSource<bool>();
 
-                        InstallPage.ResumeButton.Click += (sender, e) =>
+                        RoutedEventHandler resumeHandler = null;
+                        resumeHandler = (sender, e) =>
                         {
-                            tcs.TrySetResult(true);
+                            InstallPage.ResumeButton.Click -= resumeHandler;
                             InstallPage.Info.Severity = InfoBarSeverity.Informational;
                             InstallPage.Progress.ClearValue(ProgressBar.ForegroundProperty);
                             Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Normal);
-                            InstallPage.ProgressRingControl.Foreground = null;
                             InstallPage.ProgressRingControl.Visibility = Visibility.Visible;
                             InstallPage.ResumeButton.Visibility = Visibility.Collapsed;
+
+                            tcs.TrySetResult(true);
                         };
 
+                        InstallPage.ResumeButton.Click += resumeHandler;
                         await tcs.Task;
                     }
                 }

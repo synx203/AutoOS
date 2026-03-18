@@ -1,9 +1,11 @@
-﻿using AutoOS.Views.Startup.Actions;
-using AutoOS.Helpers.Device;
+﻿using AutoOS.Helpers.Device;
+using AutoOS.Helpers.Registry;
 using Microsoft.UI.Xaml.Media;
 using System.Diagnostics;
+using AutoOS.Helpers.Services;
 using System.Text.Json.Nodes;
 using Windows.Storage;
+using AutoOS.Views.Installer.Actions;
 
 namespace AutoOS.Views.Startup.Stages;
 
@@ -46,52 +48,50 @@ public static class StartupStage
         var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
         {
             // sync time
-            ("Syncing time", async () => await StartupActions.RunNsudo("CurrentUser", "net start w32time"), null),
-            ("Syncing time", async () => await StartupActions.RunNsudo("CurrentUser", "w32tm /resync"), null),
-            ("Syncing time", async () => await StartupActions.RunNsudo("CurrentUser", "net stop w32time"), null),
+            ("Syncing time", async () => ServicesHelper.StartService("w32time"), null),
+            ("Syncing time", async () => await Process.Start(new ProcessStartInfo("w32tm", "/resync") { CreateNoWindow = true })!.WaitForExitAsync(), null),
+            ("Syncing time", async () => ServicesHelper.StopService("w32time"), null),
 
             // apply msi afterburner profile
-            ("Applying MSI Afterburner profile", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe", Arguments = "/Profile1 /q" })), () => MSI == true),
+            ("Applying MSI Afterburner profile", async () => await Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe", Arguments = "/Profile1 /q" })!.WaitForExitAsync(), () => MSI == true),
 
             // disable xhci interrupt moderation (imod)
-            ("Disabling XHCI Interrupt Moderation (IMOD)", async () => await Task.Run(() => { foreach (var device in DeviceHelper.GetDevices(DeviceType.XHCI)) if (JsonNode.Parse(localSettings.Values["XHCIs"]?.ToString() ?? "[]")?.AsArray()?.FirstOrDefault(x => x?["PnpDeviceId"]?.ToString() == device.PnpDeviceId)?["IsActive"]?.GetValue<bool>() == false) DeviceHelper.ToggleImod(device, false); }), () => IMOD),
+            ("Disabling XHCI Interrupt Moderation (IMOD)", async () => { foreach (var device in DeviceHelper.GetDevices(DeviceType.XHCI)) if (JsonNode.Parse(localSettings.Values["XHCIs"]?.ToString() ?? "[]")?.AsArray()?.FirstOrDefault(x => x?["PnpDeviceId"]?.ToString() == device.PnpDeviceId)?["IsActive"]?.GetValue<bool>() == false) DeviceHelper.ToggleImod(device, false); }, () => IMOD),
 
             // disable device power management
-            ("Disabling device power management", async () => await StartupActions.RunPowerShellScript("devicepowermanagement.ps1", ""), null),
+            ("Disabling device power management", async () => await ProcessActions.RunPowerShellScript("devicepowermanagement.ps1", ""), null),
 
             // launch lowaudiolatency
-            ("Launching LowAudioLatency", async () => await StartupActions.RunApplication("LocalState", "LowAudioLatency", "low_audio_latency_no_console.exe", ""), null),
+            ("Launching LowAudioLatency", async () => Process.Start(new ProcessStartInfo(Path.Combine(PathHelper.GetAppDataFolderPath(), "LowAudioLatency", "low_audio_latency_no_console.exe")) { CreateNoWindow = true }), null),
 
             // launch obs studio
-            ("Launching OBS Studio", async () => await StartupActions.RunNsudo("CurrentUser", @"cmd /c del ""%APPDATA%\obs-studio\.sentinel"" /s /f /q"), () => OBS == true),
-            ("Launching OBS Studio", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\obs-studio\bin\64bit\obs64.exe", Arguments = "--disable-updater --startreplaybuffer --minimize-to-tray", WorkingDirectory = @"C:\Program Files\obs-studio\bin\64bit" })), () => OBS == true),
+            ("Launching OBS Studio", async () => ProcessActions.CleanDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "obs-studio", ".sentinel")), () => OBS == true),
+            ("Launching OBS Studio", async () => Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\obs-studio\bin\64bit\obs64.exe", Arguments = "--disable-updater --startreplaybuffer --minimize-to-tray", WorkingDirectory = @"C:\Program Files\obs-studio\bin\64bit" }), () => OBS == true),
 
             // debloat discord
-            ("Debloating Discord", async () => await Task.Run(() => { discordVersion = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord")).GetDirectories().FirstOrDefault(d => d.Name.StartsWith("app-"))?.Name[4..]; }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_cloudsync-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_dispatch-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_erlpack-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_game_utils-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_hook-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_overlay2-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_rpc-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_spellcheck-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_zstd-1"), true); } catch { } }), () => Discord == true),
+            ("Debloating Discord", async () => { discordVersion = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord")).GetDirectories().FirstOrDefault(d => d.Name.StartsWith("app-"))?.Name[4..]; }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_cloudsync-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_dispatch-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_erlpack-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_game_utils-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_hook-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_overlay2-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_rpc-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_spellcheck-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_zstd-1"), true); } catch { } }, () => Discord == true),
 
             // clean temp directories
-            ("Cleaning temp directories", async () => await StartupActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\Logs"""), null),
-            ("Cleaning temp directories", async () => await StartupActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\SoftwareDistribution"""), null),
-            ("Cleaning temp directories", async () => await StartupActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\System32\LogFiles\*.*"""), null),
-            ("Cleaning temp directories", async () => await StartupActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\System32\SleepStudy\*.*"""), null),
-            ("Cleaning temp directories", async () => await StartupActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\System32\sru"""), null),
-            ("Cleaning temp directories", async () => await StartupActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\System32\WDI\*.*"""), null),
-            ("Cleaning temp directories", async () => await StartupActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\System32\winevt\Logs\*.*"""), null),
-            ("Cleaning temp directories", async () => await StartupActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\SystemTemp\*.*"""), null),
-            ("Cleaning temp directories", async () => await StartupActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\Temp\*.*"""), null),
-            ("Cleaning temp directories", async () => await StartupActions.RunNsudo("CurrentUser", @"cmd /c del /s /f /q %temp%\*.*"), null),
-            ("Cleaning temp directories", async () => await StartupActions.RunNsudo("CurrentUser", @"cmd /c rd /s /q %temp%"), null),
-            ("Cleaning temp directories", async () => await StartupActions.RunNsudo("CurrentUser", @"cmd /c md %temp%"), null),
-            ("Cleaning temp directories", async () => await StartupActions.RunNsudo("CurrentUser", @"sc stop TrustedInstaller"), null),
+            ("Cleaning temp directories", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, async () => { ProcessActions.CleanDirectory(@"C:\Windows\Logs"); }), null),
+            ("Cleaning temp directories", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, async () => { ProcessActions.CleanDirectory(@"C:\Windows\Panther"); }), null),
+            ("Cleaning temp directories", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, async () => { ProcessActions.CleanDirectory(@"C:\Windows\SoftwareDistribution"); }), null),
+            ("Cleaning temp directories", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, async () => { ProcessActions.CleanDirectory(@"C:\Windows\System32\LogFiles"); }), null),
+            ("Cleaning temp directories", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, async () => { ProcessActions.CleanDirectory(@"C:\Windows\System32\SleepStudy"); }), null),
+            ("Cleaning temp directories", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, async () => { ProcessActions.CleanDirectory(@"C:\Windows\System32\sru"); }), null),
+            ("Cleaning temp directories", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, async () => { ProcessActions.CleanDirectory(@"C:\Windows\System32\WDI"); }), null),
+            ("Cleaning temp directories", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, async () => { ProcessActions.CleanDirectory(@"C:\Windows\System32\winevt\Logs"); }), null),
+            ("Cleaning temp directories", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, async () => { ProcessActions.CleanDirectory(@"C:\Windows\SystemTemp"); }), null),
+            ("Cleaning temp directories", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, async () => { ProcessActions.CleanDirectory(@"C:\Windows\Temp"); }), null),
+            ("Cleaning temp directories", async () => ProcessActions.CleanDirectory(Path.GetTempPath()), null)
         };
 
         var filteredActions = actions.Where(a => a.Condition == null || a.Condition.Invoke()).ToList();

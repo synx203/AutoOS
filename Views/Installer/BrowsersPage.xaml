@@ -34,7 +34,7 @@
                             <GridView.ItemTemplate>
                                 <DataTemplate x:DataType="views:GridViewItem">
                                     <Grid Height="85"
-                                          Margin="12">
+                                          Margin="8">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
@@ -78,7 +78,7 @@
                             <GridView.ItemTemplate>
                                 <DataTemplate x:DataType="views:GridViewItem">
                                     <Grid Height="85"
-                                          Margin="12">
+                                          Margin="8">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>

@@ -45,7 +45,8 @@ public sealed partial class GraphicsPage : Page
                 ["Location"] = gpu.Location,
                 ["PStates"] = gpu.PStates,
                 ["HDCP"] = gpu.HDCP,
-                ["HDMIDPAudio"] = gpu.HDMIDPAudio
+                ["HDMIDPAudio"] = gpu.HDMIDPAudio,
+                ["CurrentVersion"] = gpu.CurrentVersion
             });
         }
         localSettings.Values["GPUs"] = array.ToJsonString();
@@ -82,7 +83,8 @@ public sealed partial class GraphicsPage : Page
                             Location = obj["Location"]?.ToString(),
                             PStates = obj["PStates"]?.GetValue<bool>() ?? false,
                             HDCP = obj["HDCP"]?.GetValue<bool>() ?? false,
-                            HDMIDPAudio = obj["HDMIDPAudio"]?.GetValue<bool>() ?? false
+                            HDMIDPAudio = obj["HDMIDPAudio"]?.GetValue<bool>() ?? false,
+                            CurrentVersion = obj["CurrentVersion"]?.ToString()
                         });
                     }
                 }

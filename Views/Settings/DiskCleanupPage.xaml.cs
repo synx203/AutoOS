@@ -6,6 +6,7 @@ using System.Diagnostics;
 using Windows.Storage;
 using Windows.Storage.FileProperties;
 using AutoOS.Views.Installer.Actions;
+using AutoOS.Helpers.Registry;
 
 namespace AutoOS.Views.Settings;
 
@@ -88,23 +89,24 @@ public sealed partial class DiskCleanupPage : Page
     private async void RunDiskCleanup_Checked(object sender, RoutedEventArgs e)
     {
         // clean temp directories
-        await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\Logs""");
-        await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\Panther""");
-        await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\SoftwareDistribution""");
-        await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\System32\LogFiles\*.*""");
-        await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\System32\SleepStudy\*.*""");
-        await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\System32\sru""");
-        await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\System32\WDI\*.*""");
-        await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\System32\winevt\Logs\*.*""");
-        await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\SystemTemp\*.*""");
-        await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c del /s /f /q ""C:\Windows\Temp\*.*""");
-        await ProcessActions.RunNsudo("CurrentUser", @"cmd /c del /s /f /q %temp%\*.*");
-        await ProcessActions.RunNsudo("CurrentUser", @"cmd /c rd /s /q %temp%");
-        await ProcessActions.RunNsudo("CurrentUser", @"cmd /c md %temp%");
-        await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c del /f /q ""C:\DumpStack.log""");
+        RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, () =>
+        {
+            ProcessActions.CleanDirectory(@"C:\Windows\Logs");
+            ProcessActions.CleanDirectory(@"C:\Windows\Panther");
+            ProcessActions.CleanDirectory(@"C:\Windows\SoftwareDistribution");
+            ProcessActions.CleanDirectory(@"C:\Windows\System32\LogFiles");
+            ProcessActions.CleanDirectory(@"C:\Windows\System32\SleepStudy");
+            ProcessActions.CleanDirectory(@"C:\Windows\System32\sru");
+            ProcessActions.CleanDirectory(@"C:\Windows\System32\WDI");
+            ProcessActions.CleanDirectory(@"C:\Windows\System32\winevt\Logs");
+            ProcessActions.CleanDirectory(@"C:\Windows\SystemTemp");
+            ProcessActions.CleanDirectory(@"C:\Windows\Temp");
+            ProcessActions.CleanDirectory(Path.GetTempPath());
+            File.Delete(@"C:\DumpStack.log");
+        });
 
         // run disk cleanup
-        await Process.Start(new ProcessStartInfo { FileName = @"C:\Windows\System32\cleanmgr", Arguments = "/sagerun:0" })!.WaitForExitAsync();
+        await Process.Start(new ProcessStartInfo { FileName = @"C:\Windows\System32\cleanmgr.exe", Arguments = "/sagerun:0", UseShellExecute = false, CreateNoWindow = true })!.WaitForExitAsync();
 
         CleanDisks.IsChecked = false;
 

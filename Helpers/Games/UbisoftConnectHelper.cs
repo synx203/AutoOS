@@ -36,7 +36,7 @@ public static class UbisoftConnectHelper
             {
                 if (!string.IsNullOrEmpty(currentName) && !string.IsNullOrEmpty(publisher) && !string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(thumbImage) && !string.IsNullOrEmpty(backgroundImage))
                 {
-                    using var key = Registry.CurrentUser.OpenSubKey($@"Software\Ubisoft\Launcher\Installs\{appId}");
+                    using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey($@"Software\Ubisoft\Launcher\Installs\{appId}");
                     if (key != null && key.GetValue("InstallState")?.ToString() == "1")
                     {
                         parsedGames.Add((currentName, publisher, appId, thumbImage, backgroundImage));

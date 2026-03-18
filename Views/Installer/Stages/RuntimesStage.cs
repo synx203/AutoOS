@@ -1,6 +1,9 @@
 ﻿using AutoOS.Views.Installer.Actions;
 using Microsoft.UI.Xaml.Media;
 using WinRT.Interop;
+using System.Diagnostics;
+using AutoOS.Helpers.Registry;
+using Microsoft.Win32;
 
 namespace AutoOS.Views.Installer.Stages;
 
@@ -21,14 +24,20 @@ public static class RuntimesStage
             ("Downloading the Visual C++ Redistributable", async () => await ProcessActions.RunDownload("https://github.com/abbodi1406/vcredist/releases/latest/download/VisualCppRedist_AIO_x86_x64.exe", Path.GetTempPath(), "VisualCppRedist_AIO_x86_x64.exe"), null),
 
             // install visual c++ redistributable
-            ("Installing the Visual C++ Redistributable", async () => await ProcessActions.RunNsudo("CurrentUser", @"""%TEMP%\VisualCppRedist_AIO_x86_x64.exe"" /ai /gm2"), null),
+            ("Installing the Visual C++ Redistributable", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "VisualCppRedist_AIO_x86_x64.exe"), Arguments = "/ai /gm2", WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), null),
 
             // download the microsoft edge webview2 runtime
             ("Downloading the Microsoft Edge WebView2 Runtime", async () => await ProcessActions.RunDownload("https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/7dedb563-79f6-48af-b588-dd8e97f4b73c/MicrosoftEdgeWebView2RuntimeInstallerX64.exe", Path.GetTempPath(), "MicrosoftEdgeWebView2RuntimeInstallerX64.exe"), null),
 
             // install microsoft edge webview2 runtime
-            ("Installing the Microsoft Edge WebView2 Runtime", async () => await ProcessActions.RunNsudo("CurrentUser", @"""%TEMP%\MicrosoftEdgeWebView2RuntimeInstallerX64.exe"" /silent /install"), null),
-            ("Installing the Microsoft Edge WebView2 Runtime", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MicrosoftEdgeUpdate.exe"" /v Debugger /t REG_SZ /d ""%windir%\System32\taskkill.exe"" /f"), null),
+            ("Installing the Microsoft Edge WebView2 Runtime", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "MicrosoftEdgeWebView2RuntimeInstallerX64.exe"), Arguments = "/silent /install", WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), null),
+            ("Installing the Microsoft Edge WebView2 Runtime", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MicrosoftEdgeUpdate.exe", "Debugger", @"%windir%\System32\taskkill.exe", RegistryValueKind.String), null),
+
+            // download microsoft windows app runtime
+            ("Downloading the Microsoft Windows App Runtime", async () => await ProcessActions.RunDownload("https://aka.ms/windowsappsdk/1.6/1.6.250602001/windowsappruntimeinstall-x64.exe", Path.GetTempPath(), "WindowsAppRuntimeInstall-x64.exe"), null),
+
+            // install microsoft windows app runtime
+            ("Installing the Microsoft Windows App Runtime", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "WindowsAppRuntimeInstall-x64.exe"), Arguments = "--quiet --force --msix --license" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), null),
 
             // download the directx redistributable
             ("Downloading the DirectX Redistributable", async () => await ProcessActions.RunDownload("https://download.microsoft.com/download/8/4/A/84A35BF1-DAFE-4AE8-82AF-AD2AE20B6B14/directx_Jun2010_redist.exe", Path.GetTempPath(), "directx_Jun2010_redist.exe"), null),
@@ -37,7 +46,7 @@ public static class RuntimesStage
             ("Extracting the DirectX Redistributable", async () => await ProcessActions.RunExtract(Path.Combine(Path.GetTempPath(), "directx_Jun2010_redist.exe"), Path.Combine(Path.GetTempPath(), "directx_Jun2010_redist")),null),
 
             // install the directx redistributable
-            ("Installing the DirectX Redistributable", async () => await ProcessActions.RunNsudo("CurrentUser", @"""%TEMP%\directx_Jun2010_redist\DXSetup.exe"" /silent"), null),
+            ("Installing the DirectX Redistributable", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "directx_Jun2010_redist", "DXSetup.exe"), Arguments = "/silent", WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), null),
         };
 
         var filteredActions = actions.Where(a => a.Condition == null || a.Condition.Invoke()).ToList();
@@ -67,28 +76,31 @@ public static class RuntimesStage
                     }
                     catch (Exception ex)
                     {
-                        InstallPage.Info.Title += ": " + ex.Message;
+                        await ProcessActions.LogError(ex);
+
+                        InstallPage.Info.Title = $"{previousTitle}: {ex.Message}";
                         InstallPage.Info.Severity = InfoBarSeverity.Error;
                         InstallPage.Progress.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Error);
-                        InstallPage.ProgressRingControl.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         InstallPage.ProgressRingControl.Visibility = Visibility.Collapsed;
                         InstallPage.ResumeButton.Visibility = Visibility.Visible;
-                        await ProcessActions.LogError(ex);
 
                         var tcs = new TaskCompletionSource<bool>();
 
-                        InstallPage.ResumeButton.Click += (sender, e) =>
+                        RoutedEventHandler resumeHandler = null;
+                        resumeHandler = (sender, e) =>
                         {
-                            tcs.TrySetResult(true);
+                            InstallPage.ResumeButton.Click -= resumeHandler;
                             InstallPage.Info.Severity = InfoBarSeverity.Informational;
                             InstallPage.Progress.ClearValue(ProgressBar.ForegroundProperty);
                             Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Normal);
-                            InstallPage.ProgressRingControl.Foreground = null;
                             InstallPage.ProgressRingControl.Visibility = Visibility.Visible;
                             InstallPage.ResumeButton.Visibility = Visibility.Collapsed;
+
+                            tcs.TrySetResult(true);
                         };
 
+                        InstallPage.ResumeButton.Click += resumeHandler;
                         await tcs.Task;
                     }
                 }

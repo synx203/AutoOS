@@ -1,5 +1,8 @@
-﻿using AutoOS.Views.Installer.Actions;
+﻿using AutoOS.Helpers.Registry;
+using AutoOS.Views.Installer.Actions;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.Win32;
+using AutoOS.Helpers.Services;
 using WinRT.Interop;
 
 namespace AutoOS.Views.Installer.Stages;
@@ -20,7 +23,8 @@ public static class MemoryManagementStage
         var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
         {
             // disable superfetch
-            ("Disabling Superfetch", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\SysMain"" /v ""Start"" /t REG_DWORD /d 4 /f & sc stop SysMain"), () => SSD == true),
+            ("Disabling Superfetch", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\SysMain", "Start", 4, RegistryValueKind.DWord), () => SSD == true),
+            ("Disabling Superfetch", async () => ServicesHelper.StopService("SysMain"), () => SSD == true),
             
             // disable "applicationlaunchprefetching"
             (@"Disabling ""ApplicationLaunchPrefetching""", async () => await ProcessActions.RunPowerShell(@"Disable-MMAgent -ApplicationLaunchPrefetching"), () => SSD == true),
@@ -65,28 +69,31 @@ public static class MemoryManagementStage
                     }
                     catch (Exception ex)
                     {
-                        InstallPage.Info.Title += ": " + ex.Message;
+                        await ProcessActions.LogError(ex);
+
+                        InstallPage.Info.Title = $"{previousTitle}: {ex.Message}";
                         InstallPage.Info.Severity = InfoBarSeverity.Error;
                         InstallPage.Progress.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Error);
-                        InstallPage.ProgressRingControl.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         InstallPage.ProgressRingControl.Visibility = Visibility.Collapsed;
                         InstallPage.ResumeButton.Visibility = Visibility.Visible;
-                        await ProcessActions.LogError(ex);
 
                         var tcs = new TaskCompletionSource<bool>();
 
-                        InstallPage.ResumeButton.Click += (sender, e) =>
+                        RoutedEventHandler resumeHandler = null;
+                        resumeHandler = (sender, e) =>
                         {
-                            tcs.TrySetResult(true);
+                            InstallPage.ResumeButton.Click -= resumeHandler;
                             InstallPage.Info.Severity = InfoBarSeverity.Informational;
                             InstallPage.Progress.ClearValue(ProgressBar.ForegroundProperty);
                             Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Normal);
-                            InstallPage.ProgressRingControl.Foreground = null;
                             InstallPage.ProgressRingControl.Visibility = Visibility.Visible;
                             InstallPage.ResumeButton.Visibility = Visibility.Collapsed;
+
+                            tcs.TrySetResult(true);
                         };
 
+                        InstallPage.ResumeButton.Click += resumeHandler;
                         await tcs.Task;
                     }
                 }

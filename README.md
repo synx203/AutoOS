@@ -309,33 +309,47 @@ This project is licensed under the **GNU General Public License v3.0**. See the 
 
 ### Third-Party Components
 
-1. **NSudo**
-   - Licensed under the **MIT License**.
-   - Source: [M2TeamArchived/NSudo](https://github.com/M2TeamArchived/NSudo)
-
-2. **nvidiaProfileInspector**
+1. **nvidiaProfileInspector**
    - Licensed under the **MIT License**.
    - Source: [Orbmu2k/nvidiaProfileInspector](https://github.com/Orbmu2k/nvidiaProfileInspector)
 
-3. **LowAudioLatency**
-    - Licensed under the **MIT License**.
-    - Source: [sppdl/LowAudioLatency](https://github.com/spddl/LowAudioLatency)
-
-4. **RadeonSoftwareSlimmer**
+2. **RadeonSoftwareSlimmer**
    - Licensed under the **GNU General Public License v3.0**.
    - Source: [GSDragoon/RadeonSoftwareSlimmer](https://github.com/GSDragoon/RadeonSoftwareSlimmer)
    - Changes: Added command line options for preinstall
    - Fork: [tinodin/RadeonSoftwareSlimmer](https://github.com/tinodin/RadeonSoftwareSlimmer)
 
-5. **Service List Builder**
+3. **LowAudioLatency**
+    - Licensed under the **MIT License**.
+    - Source: [sppdl/LowAudioLatency](https://github.com/spddl/LowAudioLatency)
+
+4. **Service List Builder**
    - Licensed under the **GNU General Public License v3.0**.
    - Source: [valleyofdoom/service-list-builder](https://github.com/valleyofdoom/service-list-builder)
    - Changes: Removed `shutdown /r /t 0` from created lists, added `--output-dir` switch because of MSIX restrictions.
    - Fork: [tinodin/service-list-builder](https://github.com/tinodin/service-list-builder)
 
-6. **ClassicWindowSwitcher**
+5. **ClassicWindowSwitcher**
    - Licensed under the **GNU General Public License v2.0**.
    - Source: [Ingan121/ClassicWindowSwitcher](https://github.com/Ingan121/ClassicWindowSwitcher)
+
+6. **Custom Resolution Utility (CRU)**
+```
+Copyright (C) 2012-2022 ToastyX
+https://monitortests.com/custom-resolution-utility
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software the rights to use, copy, and/or distribute copies of the
+software subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies of the software.
+
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR
+OTHER LIABILITY IN CONNECTION WITH THE USE OF THE SOFTWARE.
+```
+- Source: [Custom Resolution Utility (CRU)](https://monitortests.com/custom-resolution-utility)
 
 7. **7-Zip**
 ```
@@ -487,21 +501,3 @@ The license for original unRAR code has the following restriction:
 --
 ```
 - Source: [7-Zip](https://www.7-zip.org)
- 
-8. **Custom Resolution Utility (CRU)**
-```
-Copyright (C) 2012-2022 ToastyX
-https://monitortests.com/custom-resolution-utility
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software the rights to use, copy, and/or distribute copies of the
-software subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies of the software.
-
-THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR
-OTHER LIABILITY IN CONNECTION WITH THE USE OF THE SOFTWARE.
-```
-- Source: [Custom Resolution Utility (CRU)](https://monitortests.com/custom-resolution-utility)

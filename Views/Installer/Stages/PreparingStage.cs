@@ -145,8 +145,7 @@ public static class PreparingStage
             {
                 FileName = "powershell.exe",
                 Arguments = $@"-NoProfile -ExecutionPolicy Bypass -Command ""Add-MpPreference -ExclusionPath '{AppDomain.CurrentDomain.BaseDirectory}'""",
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden
+                CreateNoWindow = true
             });
 
             ScheduleMode = localSettings.Values["ScheduleMode"]?.ToString();
@@ -235,7 +234,8 @@ public static class PreparingStage
                         Location = obj["Location"]?.ToString(),
                         PStates = obj["PStates"]?.GetValue<bool>() ?? false,
                         HDCP = obj["HDCP"]?.GetValue<bool>() ?? false,
-                        HDMIDPAudio = obj["HDMIDPAudio"]?.GetValue<bool>() ?? false
+                        HDMIDPAudio = obj["HDMIDPAudio"]?.GetValue<bool>() ?? false,
+                        CurrentVersion = obj["CurrentVersion"]?.ToString()
                     });
                 }
             }

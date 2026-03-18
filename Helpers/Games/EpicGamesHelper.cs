@@ -689,7 +689,7 @@ public static class EpicGamesHelper
         }
 
         // launch epic games to get new token
-        await Task.Run(() => Process.Start(new ProcessStartInfo(EpicGamesPath) { WindowStyle = ProcessWindowStyle.Hidden }));
+        Process.Start(new ProcessStartInfo(EpicGamesPath) { WindowStyle = ProcessWindowStyle.Hidden });
 
         // wait for token to get used
         while (true)

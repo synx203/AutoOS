@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.ServiceProcess;
 using Windows.Storage;
 using AutoOS.Helpers.Picker;
+using AutoOS.Views.Installer.Actions;
 
 namespace AutoOS.Views.Settings;
 
@@ -92,7 +93,7 @@ public sealed partial class GraphicsPage : Page
                         foreach (var process in Process.GetProcessesByName("obs64"))
                         {
                             process.Kill();
-                            process.WaitForExit();
+                            await process.WaitForExitAsync();
                         }
                     }
 
@@ -124,14 +125,14 @@ public sealed partial class GraphicsPage : Page
                     // apply profile
                     if (localSettings.Values["MsiProfile"] != null)
                     {
-                        await Task.Run(() => Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })?.WaitForExit());
+                        await Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })!.WaitForExitAsync();
                     }
 
                     // launch obs studio
                     if (!(localSettings.Values["OBS"] as int? == 0))
                     {
-                        await Task.Run(() => Process.Start(new ProcessStartInfo("cmd.exe") { Arguments = @"/c del ""%APPDATA%\obs-studio\.sentinel"" /s /f /q", CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, UseShellExecute = false })?.WaitForExit());
-                        await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\obs-studio\bin\64bit\obs64.exe", Arguments = "--disable-updater --startreplaybuffer --minimize-to-tray", WorkingDirectory = @"C:\Program Files\obs-studio\bin\64bit" }));
+                        ProcessActions.CleanDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "obs-studio", ".sentinel"));
+                        Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\obs-studio\bin\64bit\obs64.exe", Arguments = "--disable-updater --startreplaybuffer --minimize-to-tray", WorkingDirectory = @"C:\Program Files\obs-studio\bin\64bit" });
                     }
                 }
                 else
@@ -163,7 +164,7 @@ public sealed partial class GraphicsPage : Page
                         foreach (var process in Process.GetProcessesByName("obs64"))
                         {
                             process.Kill();
-                            process.WaitForExit();
+                            await process.WaitForExitAsync();
                         }
                     }
 
@@ -192,14 +193,14 @@ public sealed partial class GraphicsPage : Page
                     // apply profile
                     if (localSettings.Values["MsiProfile"] != null)
                     {
-                        await Task.Run(() => Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })?.WaitForExit());
+                        await Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })!.WaitForExitAsync();
                     }
 
                     // launch obs studio
                     if (!(localSettings.Values["OBS"] as int? == 0))
                     {
-                        await Task.Run(() => Process.Start(new ProcessStartInfo("cmd.exe") { Arguments = @"/c del ""%APPDATA%\obs-studio\.sentinel"" /s /f /q", CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, UseShellExecute = false })?.WaitForExit());
-                        await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\obs-studio\bin\64bit\obs64.exe", Arguments = "--disable-updater --startreplaybuffer --minimize-to-tray", WorkingDirectory = @"C:\Program Files\obs-studio\bin\64bit" }));
+                        ProcessActions.CleanDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "obs-studio", ".sentinel"));
+                        Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\obs-studio\bin\64bit\obs64.exe", Arguments = "--disable-updater --startreplaybuffer --minimize-to-tray", WorkingDirectory = @"C:\Program Files\obs-studio\bin\64bit" });
                     }
                 }
                 else
@@ -358,10 +359,7 @@ public sealed partial class GraphicsPage : Page
 
         if (changedDevices.Count > 0)
         {
-            foreach (var device in changedDevices)
-            {
-                await Task.Run(() => DeviceHelper.RestartDevice(device));
-            }
+            await DeviceHelper.RestartDevicesAsync(changedDevices);
         }
 
         progressButton.CheckedContent = null;
@@ -419,7 +417,7 @@ public sealed partial class GraphicsPage : Page
             foreach (var process in Process.GetProcessesByName("obs64"))
             {
                 process.Kill();
-                process.WaitForExit();
+                await process.WaitForExitAsync();
             }
         }
 
@@ -427,19 +425,19 @@ public sealed partial class GraphicsPage : Page
         await Task.Delay(400);
 
         // restart driver
-        await Task.Run(() => Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "CRU", "restart64.exe")) { Arguments = "/q" })?.WaitForExit());
+        await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "CRU", "restart64.exe")) { Arguments = "/q" })!.WaitForExitAsync();
 
         // apply profile
         if (localSettings.Values["MsiProfile"] != null)
         {
-            await Task.Run(() => Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })?.WaitForExit());
+            await Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })!.WaitForExitAsync();
         }
 
         // launch obs studio
         if (!(localSettings.Values["OBS"] as int? == 0))
         {
-            await Task.Run(() => Process.Start(new ProcessStartInfo("cmd.exe") { Arguments = @"/c del ""%APPDATA%\obs-studio\.sentinel"" /s /f /q", CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, UseShellExecute = false })?.WaitForExit());
-            await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\obs-studio\bin\64bit\obs64.exe", Arguments = "--disable-updater --startreplaybuffer --minimize-to-tray", WorkingDirectory = @"C:\Program Files\obs-studio\bin\64bit" }));
+            ProcessActions.CleanDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "obs-studio", ".sentinel"));
+            Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\obs-studio\bin\64bit\obs64.exe", Arguments = "--disable-updater --startreplaybuffer --minimize-to-tray", WorkingDirectory = @"C:\Program Files\obs-studio\bin\64bit" });
         }
 
         // re-enable hittestvisible
@@ -520,7 +518,7 @@ public sealed partial class GraphicsPage : Page
             foreach (var process in Process.GetProcessesByName("obs64"))
             {
                 process.Kill();
-                process.WaitForExit();
+                await process.WaitForExitAsync();
             }
         }
 
@@ -528,19 +526,19 @@ public sealed partial class GraphicsPage : Page
         await Task.Delay(400);
 
         // restart driver
-        await Task.Run(() => Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "CRU", "restart64.exe")) { Arguments = "/q" })?.WaitForExit());
+        await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "CRU", "restart64.exe")) { Arguments = "/q" })!.WaitForExitAsync();
 
         // apply profile
         if (localSettings.Values["MsiProfile"] != null)
         {
-            await Task.Run(() => Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })?.WaitForExit());
+            await Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })!.WaitForExitAsync();
         }
 
         // launch obs studio
         if (!(localSettings.Values["OBS"] as int? == 0))
         {
-            await Task.Run(() => Process.Start(new ProcessStartInfo("cmd.exe") { Arguments = @"/c del ""%APPDATA%\obs-studio\.sentinel"" /s /f /q", CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, UseShellExecute = false })?.WaitForExit());
-            await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\obs-studio\bin\64bit\obs64.exe", Arguments = "--disable-updater --startreplaybuffer --minimize-to-tray", WorkingDirectory = @"C:\Program Files\obs-studio\bin\64bit" }));
+            ProcessActions.CleanDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "obs-studio", ".sentinel"));
+            Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\obs-studio\bin\64bit\obs64.exe", Arguments = "--disable-updater --startreplaybuffer --minimize-to-tray", WorkingDirectory = @"C:\Program Files\obs-studio\bin\64bit" });
         }
 
         // re-enable hittestvisible
@@ -718,7 +716,7 @@ public sealed partial class GraphicsPage : Page
                 File.Copy(file.Path, Path.Combine(@"C:\Program Files (x86)\MSI Afterburner\Profiles", file.Name), true);
 
                 // apply profile
-                await Task.Run(() => Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })?.WaitForExit());
+                await Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })!.WaitForExitAsync();
 
                 // remove infobar
                 MsiAfterburnerInfo.Children.Clear();
@@ -791,7 +789,10 @@ public sealed partial class GraphicsPage : Page
         });
 
         // launch
-        await Task.Run(() => Process.Start(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe")?.WaitForInputIdle());
+        Process.Start(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe");
+
+        // delay
+        await Task.Delay(1000);
 
         // remove infobar
         MsiAfterburnerInfo.Children.Clear();
@@ -852,8 +853,8 @@ public sealed partial class GraphicsPage : Page
         if (OBS.IsOn)
         {
             // launch obs studio
-            await Task.Run(() => Process.Start(new ProcessStartInfo("cmd.exe") { Arguments = @"/c del ""%APPDATA%\obs-studio\.sentinel"" /s /f /q", CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, UseShellExecute = false })?.WaitForExit());
-            await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\obs-studio\bin\64bit\obs64.exe", Arguments = "--disable-updater --startreplaybuffer --minimize-to-tray", WorkingDirectory = @"C:\Program Files\obs-studio\bin\64bit" }));
+            ProcessActions.CleanDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "obs-studio", ".sentinel"));
+            Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\obs-studio\bin\64bit\obs64.exe", Arguments = "--disable-updater --startreplaybuffer --minimize-to-tray", WorkingDirectory = @"C:\Program Files\obs-studio\bin\64bit" });
 
             // delay
             await Task.Delay(1500);
@@ -866,7 +867,7 @@ public sealed partial class GraphicsPage : Page
                 foreach (var process in Process.GetProcessesByName("obs64"))
                 {
                     process.Kill();
-                    process.WaitForExit();
+                    await process.WaitForExitAsync();
                 }
             }
 

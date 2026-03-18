@@ -64,18 +64,16 @@ public sealed partial class UpdatePage : Page
         }
         else
         {
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "powershell.exe",
-                    Arguments = $"-ExecutionPolicy Bypass -File \"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "pausewindowsupdates.ps1")}\"",
-                    CreateNoWindow = true
-                }
-            };
-
-            process.Start();
-            await process.WaitForExitAsync();
+            // pause for 100 years
+            string start = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssK");
+            string end = DateTime.UtcNow.AddYears(100).ToString("yyyy-MM-ddTHH:mm:ssK");
+            using var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\WindowsUpdate\UX\Settings");
+            key.SetValue("PauseFeatureUpdatesStartTime", start, RegistryValueKind.String);
+            key.SetValue("PauseFeatureUpdatesEndTime", end, RegistryValueKind.String);
+            key.SetValue("PauseQualityUpdatesStartTime", start, RegistryValueKind.String);
+            key.SetValue("PauseQualityUpdatesEndTime", end, RegistryValueKind.String);
+            key.SetValue("PauseUpdatesStartTime", start, RegistryValueKind.String);
+            key.SetValue("PauseUpdatesExpiryTime", end, RegistryValueKind.String);
         }
 
         // delay

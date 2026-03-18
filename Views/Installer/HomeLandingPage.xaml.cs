@@ -1,10 +1,9 @@
-﻿using AutoOS.Views.Installer.Actions;
 using Microsoft.Win32;
-using System.Runtime.InteropServices;
 using Windows.Storage;
-using Windows.System;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
+using System.Diagnostics;
+using AutoOS.Helpers.Registry;
 
 namespace AutoOS.Views.Installer
 {
@@ -64,8 +63,8 @@ namespace AutoOS.Views.Installer
             #endif
 
             // enable app access to location
-            await ProcessActions.RunNsudo("TrustedInstaller", @"C:\Windows\system32\SystemSettingsAdminFlows.exe SetCamSystemGlobal location 1");
-            await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy"" /v LetAppsAccessLocation /t REG_DWORD /d 1 /f");
+            await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, new ProcessStartInfo { FileName = @"C:\Windows\system32\SystemSettingsAdminFlows.exe", Arguments = "SetCamSystemGlobal location 1", CreateNoWindow = true });
+            RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy", "LetAppsAccessLocation", 1, RegistryValueKind.DWord);
 
             // switch keyboard layout
             if (!(localSettings.Values["HasChangedLayout"] as bool? == true))

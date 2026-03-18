@@ -61,7 +61,7 @@ public static unsafe partial class MonitorHelper
         var results = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         try
         {
-            using var monitorKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\DISPLAY");
+            using var monitorKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\DISPLAY");
             if (monitorKey == null) return results;
 
             foreach (var hwId in monitorKey.GetSubKeyNames())

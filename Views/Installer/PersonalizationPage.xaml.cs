@@ -245,23 +245,11 @@ public sealed partial class PersonalizationPage : Page
 
         if (ContextMenu.IsOn)
         {
-            await Task.Run(() => Process.Start(new ProcessStartInfo
-            {
-                FileName = "reg.exe",
-                Arguments = @"add ""HKEY_CURRENT_USER\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32"" /ve /t REG_SZ /d """" /f",
-                CreateNoWindow = true,
-                UseShellExecute = false
-            })?.WaitForExit());
+            Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32", "", "", RegistryValueKind.String);
         }
         else
         {
-            await Task.Run(() => Process.Start(new ProcessStartInfo
-            {
-                FileName = "reg.exe",
-                Arguments = @"delete ""HKEY_CURRENT_USER\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}"" /f",
-                CreateNoWindow = true,
-                UseShellExecute = false
-            })?.WaitForExit());
+            Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}", false);
         }
     }
 
@@ -306,13 +294,7 @@ public sealed partial class PersonalizationPage : Page
         string value = TaskbarAlignment.SelectedIndex == 0 ? "0" : "1";
         Symbol icon = TaskbarAlignment.SelectedIndex == 0 ? Symbol.AlignLeft : Symbol.AlignCenter;
 
-        await Task.Run(() => Process.Start(new ProcessStartInfo
-        {
-            FileName = "reg.exe",
-            Arguments = $@"add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced"" /v TaskbarAl /t REG_DWORD /d {value} /f",
-            CreateNoWindow = true,
-            UseShellExecute = false
-        })?.WaitForExit());
+        Registry.SetValue(@"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarAl", Convert.ToInt32(value), RegistryValueKind.DWord);
 
         TaskbarIcon.HeaderIcon = new SymbolIcon(icon);
     }

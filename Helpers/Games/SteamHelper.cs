@@ -9,7 +9,7 @@ namespace AutoOS.Helpers.Games;
 
 public static class SteamHelper
 {
-    public static readonly string SteamDir = (Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam")?.GetValue("SteamPath") as string ?? @"C:\Program Files (x86)\Steam").Replace('/', '\\');
+    public static readonly string SteamDir = (Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam")?.GetValue("SteamPath") as string ?? @"C:\Program Files (x86)\Steam").Replace('/', '\\');
     public static readonly string SteamPath = Path.Combine(SteamDir, "steam.exe");
     public static readonly string SteamLibraryPath = Path.Combine(SteamDir, @"steamapps\libraryfolders.vdf");
     public static readonly string SteamLibraryCacheDir = Path.Combine(SteamDir, @"appcache\librarycache");

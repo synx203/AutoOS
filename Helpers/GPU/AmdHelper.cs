@@ -1,5 +1,9 @@
 ﻿using AutoOS.Views.Installer.Actions;
+using AutoOS.Helpers.Registry;
+using AutoOS.Helpers.Services;
 using System.Text.Json.Nodes;
+using System.Diagnostics;
+using Microsoft.Win32;
 
 namespace AutoOS.Helpers.GPU;
 
@@ -74,172 +78,176 @@ public static class AmdHelper
             (@"Extracting AMD driver", async () => await ProcessActions.RunExtract(Path.Combine(Path.GetTempPath(), "driver.exe"), Path.Combine(Path.GetTempPath(), "driver")), null),
 
             // strip amd driver
-            (@"Stripping AMD driver", async () => await ProcessActions.RunApplication("RadeonSoftwareSlimmer", "RadeonSoftwareSlimmer.exe", $@"--extracted-installer ""{Path.Combine(Path.GetTempPath(), "driver")}"" --config ""{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "RadeonSoftwareSlimmer", "config.ini")}"""), null),
+            (@"Stripping AMD driver", async () => await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "RadeonSoftwareSlimmer", "RadeonSoftwareSlimmer.exe"), $@"--extracted-installer ""{Path.Combine(Path.GetTempPath(), "driver")}"" --config ""{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "RadeonSoftwareSlimmer", "config.ini")}""") { CreateNoWindow = true })!.WaitForExitAsync(), null),
 
             // install amd driver
-            (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => await ProcessActions.RunNsudo("CurrentUser", $@"""%TEMP%\driver\Setup.exe"" -install"), null),
+            (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "driver", "Setup.exe"), Arguments = "-install", UseShellExecute = false, CreateNoWindow = true })!.WaitForExitAsync(), null),
             (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => await Task.Delay(3000), null),
             (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => GpuHelper.RefreshGpu(gpu), null),
 
             // accept eula
-            ("Accepting EULA", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN\DisplayOverride"" /v ""EulaAccepted"" /t REG_SZ /d true /f"), null),
+            ("Accepting EULA", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\DisplayOverride", "EulaAccepted", "true", RegistryValueKind.String), null),
 
             // disable issue detection
-            ("Disabling issue detection", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\AIM"" /v ""LaunchBugTool"" /t REG_DWORD /d 0 /f"), null),
+            ("Disabling issue detection", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\AIM", "LaunchBugTool", 0, RegistryValueKind.DWord), null),
 
             // settings -> hotkeys
-            (@"Disabling ""Use Hotkeys""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN\R3DBk"" /v ChillHk /t REG_DWORD /d 4730 /f"), null),
-            (@"Disabling ""Use Hotkeys""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v ChillHk /t REG_DWORD /d 4730 /f"), null),
-            (@"Disabling ""Use Hotkeys""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN\R3DBk"" /v DelagHk /t REG_DWORD /d 4684 /f"), null),
-            (@"Disabling ""Use Hotkeys""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v DelagHk /t REG_DWORD /d 4684 /f"), null),
-            (@"Disabling ""Use Hotkeys""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN\R3DBk"" /v BoostHk /t REG_DWORD /d 4683 /f"), null),
-            (@"Disabling ""Use Hotkeys""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v BoostHk /t REG_DWORD /d 4683 /f"), null),
-            (@"Disabling ""Use Hotkeys""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN\R3DBk"" /v DelagBoostIndicatorHk /t REG_DWORD /d 1053260 /f"), null),
-            (@"Disabling ""Use Hotkeys""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v DelagBoostIndicatorHk /t REG_DWORD /d 1053260 /f"), null),
-            (@"Disabling ""Use Hotkeys""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\DVR"" /v HotkeysDisabled /t REG_DWORD /d 1 /f"), null),
+            (@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\R3DBk", "ChillHk", 4730, RegistryValueKind.DWord), null),
+            (@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "ChillHk", 4730, RegistryValueKind.DWord), null),
+            (@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\R3DBk", "DelagHk", 4684, RegistryValueKind.DWord), null),
+            (@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "DelagHk", 4684, RegistryValueKind.DWord), null),
+            (@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\R3DBk", "BoostHk", 4683, RegistryValueKind.DWord), null),
+            (@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "BoostHk", 4683, RegistryValueKind.DWord), null),
+            (@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\R3DBk", "DelagBoostIndicatorHk", 1053260, RegistryValueKind.DWord), null),
+            (@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "DelagBoostIndicatorHk", 1053260, RegistryValueKind.DWord), null),
+            (@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\DVR", "HotkeysDisabled", 1, RegistryValueKind.DWord), null),
 
             // settings -> general
-            (@"Disabling ""In-Game Overlay""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\DVR"" /v ""ShowRSOverlay"" /t REG_SZ /d false /f"), null),
-            (@"Disabling ""In-Game Overlay""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN\Performance"" /v ""MetricsOverlayState"" /t REG_DWORD /d 0 /f"), null),
-            (@"Disabling ""Web Browser""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v ""AllowWebContent"" /t REG_SZ /d false /f"), null),
-            (@"Disabling ""Web Browser""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v ""RSXBrowserUnavailable"" /t REG_SZ /d true /f"), null), // older versions not sure
-            (@"Disabling ""System Tray Menu""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v ""SystemTray"" /t REG_SZ /d false /f"), null),
-            (@"Disabling ""Tutorials""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v ""CN_Hide_Tutorials"" /t REG_SZ /d true /f"), null),
-            (@"Disabling ""Advertisements""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v ""CN_Hide_FeatureData"" /t REG_SZ /d true /f"), null),
-            (@"Disabling ""Toast Notifications""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v ""CN_Hide_Toast_Notification"" /t REG_SZ /d true /f"), null),
-            (@"Disabling ""Animations & effects""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v ""AnimationEffect"" /t REG_SZ /d false /f"), null),
+            (@"Disabling ""In-Game Overlay""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\DVR", "ShowRSOverlay", "false", RegistryValueKind.String), null),
+            (@"Disabling ""In-Game Overlay""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\Performance", "MetricsOverlayState", 0, RegistryValueKind.DWord), null),
+            (@"Disabling ""Web Browser""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "AllowWebContent", "false", RegistryValueKind.String), null),
+            (@"Disabling ""Web Browser""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "RSXBrowserUnavailable", "true", RegistryValueKind.String), null), // older versions not sure
+            (@"Disabling ""System Tray Menu""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "SystemTray", "false", RegistryValueKind.String), null),
+            (@"Disabling ""Tutorials""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "CN_Hide_Tutorials", "true", RegistryValueKind.String), null),
+            (@"Disabling ""Advertisements""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "CN_Hide_FeatureData", "true", RegistryValueKind.String), null),
+            (@"Disabling ""Toast Notifications""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "CN_Hide_Toast_Notification", "true", RegistryValueKind.String), null),
+            (@"Disabling ""Animations & effects""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "AnimationEffect", "false", RegistryValueKind.String), null),
 
             // set theme to system
-            (@"Setting ""Theme"" to ""System""", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\AMD\CN"" /v ""RSXColorScheme"" /t REG_DWORD /d 0 /f"), null),
+            (@"Setting ""Theme"" to ""System""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "RSXColorScheme", 0, RegistryValueKind.DWord), null),
 
             // disable "radeon™ super resolution"
-            (@"Disabling ""Radeon™ Super Resolution""", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v KMD_RadeonUpscalingEnabled /t REG_DWORD /d 0 /f"), null),
+            (@"Disabling ""Radeon™ Super Resolution""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_RadeonUpscalingEnabled", 0, RegistryValueKind.DWord), null),
 
             // disable "amd fluid motion frames 2.1"
-            (@"Disabling ""AMD Fluid Motion Frames 2.1""", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DrvFrameGenEnabled /t REG_BINARY /d 00000000 /f"), null),
+            (@"Disabling ""AMD Fluid Motion Frames 2.1""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DrvFrameGenEnabled", new byte[] { 0, 0, 0, 0 }, RegistryValueKind.Binary), null),
 
             // disable "radeon™ anti lag"
-            (@"Disabling ""Radeon™ Anti Lag""", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v KMD_DeLagEnabled /t REG_DWORD /d 0 /f"), null),
+            (@"Disabling ""Radeon™ Anti Lag""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_DeLagEnabled", 0, RegistryValueKind.DWord), null),
 
             // disable "radeon™ boost"
-            (@"Disabling ""Radeon™ Boost""", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v KMD_RadeonBoostEnabled /t REG_DWORD /d 0 /f"), null),
+            (@"Disabling ""Radeon™ Boost""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_RadeonBoostEnabled", 0, RegistryValueKind.DWord), null),
 
             // disable "radeon™ chill"
-            (@"Disabling ""Radeon™ Chill""", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v KMD_ChillEnabled /t REG_DWORD /d 0 /f"), null),
+            (@"Disabling ""Radeon™ Chill""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_ChillEnabled", 0, RegistryValueKind.DWord), null),
 
             // disable "radeon™ image sharpening"
-            (@"Disabling ""Radeon™ Image Sharpening""", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v KMD_USUEnable /t REG_DWORD /d 0 /f"), null),
+            (@"Disabling ""Radeon™ Image Sharpening""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_USUEnable", 0, RegistryValueKind.DWord), null),
 
             // disable "radeon™ enhanced sync"
-            (@"Disabling ""Radeon™ Enhanced Sync""", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}\UMD"" /v TurboSync /t REG_BINARY /d 3000 /f"), null),
+            (@"Disabling ""Radeon™ Enhanced Sync""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "TurboSync", new byte[] { 0x30, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary), null),
 
             // set "wait for vertical refresh" to "off, unless application specifies"
-            (@"Setting ""Wait for Vertical Refresh"" to Off, unless application specifies", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}\UMD"" /v VSyncControl /t REG_BINARY /d 3100 /f"), null),
+            (@"Setting ""Wait for Vertical Refresh"" to Off, unless application specifies", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "VSyncControl", new byte[] { 0x31, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary), null),
 
             // disable "frame rate target control"
-            (@"Disabling ""Frame rate target control""", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v KMD_FRTEnabled /t REG_DWORD /d 0 /f"), null),
+            (@"Disabling ""Frame rate target control""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_FRTEnabled", 0, RegistryValueKind.DWord), null),
 
             // set "anti-aliasing" to "use application settings"
-            (@"Setting ""Anti-Aliasing"" to Use application settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}\UMD"" /v EQAA /t REG_BINARY /d 3000 /f"), null),
+            (@"Setting ""Anti-Aliasing"" to Use application settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "EQAA", new byte[] { 0x30, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary), null),
 
             // set "anti-aliasing method" to "multisampling"
-            (@"Setting ""Anti-Aliasing Method"" to Multisampling", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}\UMD"" /v ASTT /t REG_BINARY /d 3000 /f"), null),
+            (@"Setting ""Anti-Aliasing Method"" to Multisampling", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "ASTT", new byte[] { 0x30, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary), null),
 
             // disable "morphological anti-aliasing"
-            (@"Disabling ""Morphological Anti-Aliasing""", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}\UMD"" /v MLF /t REG_BINARY /d 3000 /f"), null),
+            (@"Disabling ""Morphological Anti-Aliasing""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "MLF", new byte[] { 0x30, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary), null),
 
             // set "texture filtering quality" to "performance"
-            (@"Setting ""Texture Filtering Quality"" to Performance", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}\UMD"" /v TFQ /t REG_BINARY /d 3200 /f"), null),
+            (@"Setting ""Texture Filtering Quality"" to Performance", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "TFQ", new byte[] { 0x32, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary), null),
 
             // enable "surface format optimization"
-            (@"Enabling ""Surface Format Optimization""", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}\UMD"" /v SurfaceFormatReplacements /t REG_BINARY /d 3100 /f"), null),
+            (@"Enabling ""Surface Format Optimization""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "SurfaceFormatReplacements", new byte[] { 0x31, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary), null),
 
             // set "tessellation mode" to "override application setting"
-            (@"Setting ""Tessellation Mode"" to Override application setting", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}\UMD"" /v Tessellation_OPTION /t REG_BINARY /d 3200 /f"), null),
+            (@"Setting ""Tessellation Mode"" to Override application setting", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "Tessellation_OPTION", new byte[] { 0x32, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary), null),
 
             // set "maximum tessellation level" to "off"
-            (@"Setting ""Maximum Tessellation Level"" to Off", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}\UMD"" /v Tessellation /t REG_BINARY /d 3100 /f"), null),
+            (@"Setting ""Maximum Tessellation Level"" to Off", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "Tessellation", new byte[] { 0x31, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary), null),
 
             // disable "opengl triple buffering"
-            (@"Disabling ""OpenGL Triple Buffering""", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}\UMD"" /v EnableTripleBuffering /t REG_BINARY /d 3000 /f"), null),
+            (@"Disabling ""OpenGL Triple Buffering""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "EnableTripleBuffering", new byte[] { 0x30, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary), null),
 
             // disable "10-bit pixel format"
-            (@"Disabling ""10-Bit Pixel Format""", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}\UMD"" /v VisualEnhancements_Capabilities /t REG_BINARY /d 00000000 /f"), null),
-            (@"Disabling ""10-Bit Pixel Format""", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v KMD_10BitMode /t REG_DWORD /d 2 /f"), null),
+            (@"Disabling ""10-Bit Pixel Format""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "VisualEnhancements_Capabilities", new byte[] { 0, 0, 0, 0 }, RegistryValueKind.Binary), null),
+            (@"Disabling ""10-Bit Pixel Format""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_10BitMode", 2, RegistryValueKind.DWord), null),
 
             // Credit: imribiy
             // https://github.com/imribiy/amd-gpu-tweaks
             // configuring miscellaneous amd settings
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v StutterMode /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v KMD_EnableAmdFendrOptions /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v KMD_FramePacingSupport /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DalDisableStutter /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableBlockWrite /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableFBCSupport /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableFBCForFullScreenApp /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v PP_Force3DPerformanceMode /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v PP_ForceHighDPMLevel /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v PP_SclkDeepSleepDisable /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v PP_GfxOffControl /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v PP_ThermalAutoThrottlingEnable /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v PP_EnableRaceToIdle /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v EnableUlps /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v EnableUlps_NA /t REG_SZ /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v PP_DisableULPS /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v KMD_EnableULPS /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v KMD_ForceD3ColdSupport /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v EnableAspmL0s /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v EnableAspmL1 /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v EnableAspmL1SS /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableAspmL0s /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableAspmL1 /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableGfxClockGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableVceClockGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableSamuClockGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableRomMGCGClockGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableGfxCoarseGrainClockGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableGfxMediumGrainClockGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableGfxFineGrainClockGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableHdpMGClockGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v EnableVceSwClockGating /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v EnableUvdClockGating /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v EnableGfxClockGatingThruSmu /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v EnableSysClockGatingThruSmu /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableXdmaSclkGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DalFineGrainClockGating /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableRomMediumGrainClockGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableNbioMediumGrainClockGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableMcMediumGrainClockGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v IRQMgrDisableIHClockGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableGfxMGLS /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableHdpClockPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableUVDPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableVCEPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableAcpPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableDrmdmaPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableGfxCGPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableStaticGfxMGPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableDynamicGfxMGPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableCpPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableGDSPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableXdmaPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableGFXPipelinePowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisableQuickGfxMGPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DisablePowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v SMU_DisableMmhubPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v SMU_DisableAthubPowerGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DalForceMaxDisplayClock /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DalDisableClockGating /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DalDisableDeepSleep /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v DalDisableDiv2 /t REG_DWORD /d 1 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v EnableSpreadSpectrum /t REG_DWORD /d 0 /f"), null),
-            (@"Configuring Miscellaneous AMD Settings", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""{gpu.RegistryPath}"" /v EnableVcePllSpreadSpectrum /t REG_DWORD /d 0 /f"), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "StutterMode", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_EnableAmdFendrOptions", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_FramePacingSupport", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DalDisableStutter", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableBlockWrite", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableFBCSupport", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableFBCForFullScreenApp", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "PP_Force3DPerformanceMode", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "PP_ForceHighDPMLevel", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "PP_SclkDeepSleepDisable", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "PP_GfxOffControl", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "PP_ThermalAutoThrottlingEnable", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "PP_EnableRaceToIdle", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableUlps", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableUlps_NA", "0", RegistryValueKind.String), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "PP_DisableULPS", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_EnableULPS", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_ForceD3ColdSupport", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableAspmL0s", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableAspmL1", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableAspmL1SS", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableAspmL0s", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableAspmL1", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableGfxClockGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableVceClockGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableSamuClockGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableRomMGCGClockGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableGfxCoarseGrainClockGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableGfxMediumGrainClockGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableGfxFineGrainClockGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableHdpMGClockGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableVceSwClockGating", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableUvdClockGating", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableGfxClockGatingThruSmu", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableSysClockGatingThruSmu", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableXdmaSclkGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DalFineGrainClockGating", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableRomMediumGrainClockGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableNbioMediumGrainClockGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableMcMediumGrainClockGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "IRQMgrDisableIHClockGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableGfxMGLS", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableHdpClockPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableUVDPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableVCEPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableAcpPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableDrmdmaPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableGfxCGPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableStaticGfxMGPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableDynamicGfxMGPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableCpPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableGDSPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableXdmaPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableGFXPipelinePowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableQuickGfxMGPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisablePowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "SMU_DisableMmhubPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "SMU_DisableAthubPowerGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DalForceMaxDisplayClock", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DalDisableClockGating", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DalDisableDeepSleep", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DalDisableDiv2", 1, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableSpreadSpectrum", 0, RegistryValueKind.DWord), null),
+            (@"Configuring Miscellaneous AMD Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableVcePllSpreadSpectrum", 0, RegistryValueKind.DWord), null),
 
             // disable unnecessary services
-            ("Disabling unnecessary services", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AMD Crash Defender Service"" /v Start /t REG_DWORD /d 4 /f & sc stop ""AMD Crash Defender Service"""), null),
-            ("Disabling unnecessary services", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\amdfendr"" /v Start /t REG_DWORD /d 4 /f & sc stop ""amdfendr"""), null),
-            ("Disabling unnecessary services", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\amdfendrmgr"" /v Start /t REG_DWORD /d 4 /f & sc stop ""amdfendrmgr"""), null),
-            ("Disabling unnecessary services", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\amdlog"" /v Start /t REG_DWORD /d 4 /f & sc stop ""amdlog"""), null),
+            ("Disabling unnecessary services", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AMD Crash Defender Service", "Start", 4, RegistryValueKind.DWord), null),
+            ("Disabling unnecessary services", async () => ServicesHelper.StopService("AMD Crash Defender Service"), null),
+            ("Disabling unnecessary services", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\amdfendr", "Start", 4, RegistryValueKind.DWord), null),
+            ("Disabling unnecessary services", async () => ServicesHelper.StopService("amdfendr"), null),
+            ("Disabling unnecessary services", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\amdfendrmgr", "Start", 4, RegistryValueKind.DWord), null),
+            ("Disabling unnecessary services", async () => ServicesHelper.StopService("amdfendrmgr"), null),
+            ("Disabling unnecessary services", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\amdlog", "Start", 4, RegistryValueKind.DWord), null),
+            ("Disabling unnecessary services", async () => ServicesHelper.StopService("amdlog"), null),
 
             // disable high-definition multimedia interface (hdmi)/displayport (dp) audio
             ("Disabling High-Definition Multimedia Interface (HDMI)/DisplayPort (DP) Audio", async () => GpuHelper.ToggleHdmiDpAudio(gpu, false), () => gpu.HDMIDPAudio == false)

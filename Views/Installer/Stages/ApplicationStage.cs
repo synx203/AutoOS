@@ -7,6 +7,10 @@ using System.Xml.Linq;
 using WinRT.Interop;
 using AutoOS.Helpers.Processes;
 using AutoOS.Helpers.Games;
+using AutoOS.Helpers.Registry;
+using AutoOS.Helpers.Services;
+using Microsoft.Win32;
+using AutoOS.Helpers.TaskScheduler;
 
 namespace AutoOS.Views.Installer.Stages;
 
@@ -139,14 +143,14 @@ public static class ApplicationStage
 
             // log in to icloud
             ("Please log in to your iCloud account", async () => await Task.Delay(1000), () => iCloud == true),
-            ("Please log in to your iCloud account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\AppleInc.iCloud_" + icloudVersion + "_x64__nzyj5cx40ttqa", "iCloud", "iCloudHome.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => iCloud == true),
+            ("Please log in to your iCloud account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\AppleInc.iCloud_" + icloudVersion + "_x64__nzyj5cx40ttqa", "iCloud", "iCloudHome.exe"), WindowStyle = ProcessWindowStyle.Maximized })!.WaitForExitAsync(), () => iCloud == true),
 
             // disable icloud startup entries
-            ("Disabling iCloud startup entries", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\AppleInc.iCloud_nzyj5cx40ttqa\iCloudHomeStartupTask"" /v State /t REG_DWORD /d 1 /f"), () => iCloud == true),
-            ("Disabling iCloud startup entries", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\AppleInc.iCloud_nzyj5cx40ttqa\iCloudDriveStartupTask"" /v State /t REG_DWORD /d 1 /f"), () => iCloud == true),
-            ("Disabling iCloud startup entries", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\AppleInc.iCloud_nzyj5cx40ttqa\iCloudCKKSStartupTask"" /v State /t REG_DWORD /d 1 /f"), () => iCloud == true),
-            ("Disabling iCloud startup entries", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\AppleInc.iCloud_nzyj5cx40ttqa\iCloudPhotosStartupTask"" /v State /t REG_DWORD /d 1 /f"), () => iCloud == true),
-            ("Disabling iCloud startup entries", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\AppleInc.iCloud_nzyj5cx40ttqa\iCloudPhotoStreamsStartupTask"" /v State /t REG_DWORD /d 1 /f"), () => iCloud == true),
+            ("Disabling iCloud startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\AppleInc.iCloud_nzyj5cx40ttqa\iCloudHomeStartupTask", "State", 1, RegistryValueKind.DWord), () => iCloud == true),
+            ("Disabling iCloud startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\AppleInc.iCloud_nzyj5cx40ttqa\iCloudDriveStartupTask", "State", 1, RegistryValueKind.DWord), () => iCloud == true),
+            ("Disabling iCloud startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\AppleInc.iCloud_nzyj5cx40ttqa\iCloudCKKSStartupTask", "State", 1, RegistryValueKind.DWord), () => iCloud == true),
+            ("Disabling iCloud startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\AppleInc.iCloud_nzyj5cx40ttqa\iCloudPhotosStartupTask", "State", 1, RegistryValueKind.DWord), () => iCloud == true),
+            ("Disabling iCloud startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\AppleInc.iCloud_nzyj5cx40ttqa\iCloudPhotoStreamsStartupTask", "State", 1, RegistryValueKind.DWord), () => iCloud == true),
 
             // download bitwarden
             ("Downloading Bitwarden", async () => await StoreHelper.Download("8bitSolutionsLLC.bitwardendesktop_h4e712dmw3xyy"), () => Bitwarden == true),
@@ -157,7 +161,7 @@ public static class ApplicationStage
 
             // log in to bitwarden
             ("Please log in to your Bitwarden account", async () => await Task.Delay(1000), () => Bitwarden == true),
-            ("Please log in to your Bitwarden account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\8bitSolutionsLLC.bitwardendesktop_" + bitwardenVersion + "_x64__h4e712dmw3xyy", "app", "Bitwarden.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => Bitwarden == true),
+            ("Please log in to your Bitwarden account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\8bitSolutionsLLC.bitwardendesktop_" + bitwardenVersion + "_x64__h4e712dmw3xyy", "app", "Bitwarden.exe"), WindowStyle = ProcessWindowStyle.Maximized })!.WaitForExitAsync(), () => Bitwarden == true),
 
             // download 1password
             ("Downloading 1Password", async () => await StoreHelper.Download("DC5C6510.2032887045529_2v019pwa6amcg"), () => OnePassword == true),
@@ -169,7 +173,7 @@ public static class ApplicationStage
             // log in to 1password
             ("Please log in to your 1Password account", async () => await Task.Delay(1000), () => OnePassword == true),
             ("Please log in to your 1Password account", async () => { var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "1Password", "settings", "settings.json"); Directory.CreateDirectory(Path.GetDirectoryName(path) !); await File.WriteAllTextAsync(path, "{ \"version\": 1, \"updates.updateChannel\": \"PRODUCTION\", \"authTags\": {}, \"app.keepInTray\": false }"); }, () => OnePassword == true),
-            ("Please log in to your 1Password account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\DC5C6510.2032887045529_" + onePasswordVersion + "_x64__2v019pwa6amcg", "1Password.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => OnePassword == true),
+            ("Please log in to your 1Password account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\DC5C6510.2032887045529_" + onePasswordVersion + "_x64__2v019pwa6amcg", "1Password.exe"), WindowStyle = ProcessWindowStyle.Maximized })!.WaitForExitAsync(), () => OnePassword == true),
 
             // download nanazip
             ("Downloading NanaZip", async () => await StoreHelper.Download("40174MouriNaruto.NanaZip_8672y6p4v2rg0"), null),
@@ -184,54 +188,54 @@ public static class ApplicationStage
             //("Installing Files", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -AppInstallerFile ""$env:TEMP\Files.stable.appinstaller"""), null),
             //("Installing Files", async () => await ProcessActions.RunDownload("https://www.dl.dropboxusercontent.com/scl/fi/u2hcpijo21p8i0u6lj6qm/Files.zip?rlkey=e5pq2cbj4sevh5lf5jfmvv5hc&st=8o8frer3&dl=0", Path.GetTempPath(), "Files.zip"), null),
             //("Installing Files", async () => await ProcessActions.RunExtract(Path.Combine(Path.GetTempPath(), "Files.zip"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "Files_1y0xx7n9077q4", "LocalState")), null),
-            //("Installing Files", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Classes\Folder\shell\open\command"" /ve /t REG_EXPAND_SZ /d ""\""%LOCALAPPDATA%\\Files\\Files.App.Launcher.exe\"" \""%1\"""" /f"), null),
-            //("Installing Files", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Classes\Folder\shell\open\command"" /v ""DelegateExecute"" /t REG_SZ /d ""2"" /f"), null),
-            //("Installing Files", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Classes\Folder\shell\explore\command"" /ve /t REG_EXPAND_SZ /d ""\""%LOCALAPPDATA%\\Files\\Files.App.Launcher.exe\"" \""%1\"""" /f"), null),
-            //("Installing Files", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Classes\Folder\shell\explore\command"" /v ""DelegateExecute"" /t REG_SZ /d ""2"" /f"), null),
-            //("Installing Files", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Classes\CLSID\{52205fd8-5dfb-447d-801a-d0b52f2e83e1}\shell\opennewwindow\command"" /ve /t REG_EXPAND_SZ /d ""\""%LOCALAPPDATA%\\Files\\Files.App.Launcher.exe\"""" /f"), null),
-            //("Installing Files", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Classes\CLSID\{52205fd8-5dfb-447d-801a-d0b52f2e83e1}\shell\opennewwindow\command"" /v ""DelegateExecute"" /t REG_SZ /d ""2"" /f"), null),
+            //("Installing Files", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Classes\Folder\shell\open\command", "", @"""%LOCALAPPDATA%\Files\Files.App.Launcher.exe"" ""%1""", RegistryValueKind.ExpandString), null),
+            //("Installing Files", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Classes\Folder\shell\open\command", "DelegateExecute", "2", RegistryValueKind.String), null),
+            //("Installing Files", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Classes\Folder\shell\explore\command", "", @"""%LOCALAPPDATA%\Files\Files.App.Launcher.exe"" ""%1""", RegistryValueKind.ExpandString), null),
+            //("Installing Files", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Classes\Folder\shell\explore\command", "DelegateExecute", "2", RegistryValueKind.String), null),
+            //("Installing Files", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Classes\CLSID\{52205fd8-5dfb-447d-801a-d0b52f2e83e1}\shell\opennewwindow\command", "", @"""%LOCALAPPDATA%\Files\Files.App.Launcher.exe""", RegistryValueKind.ExpandString), null),
+            //("Installing Files", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Classes\CLSID\{52205fd8-5dfb-447d-801a-d0b52f2e83e1}\shell\opennewwindow\command", "DelegateExecute", "2", RegistryValueKind.String), null),
 
             // download everything
             ("Downloading Everything", async () => await ProcessActions.RunDownload("https://www.voidtools.com/Everything-1.5.0.1404a.x64-Setup.exe", Path.GetTempPath(), "Everything.exe"), null),
             
             // install everything
-            ("Installing Everything", async () => await ProcessActions.RunNsudo("CurrentUser", @"""%TEMP%\Everything.exe"" /S"), null),
-            ("Installing Everything", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c mkdir ""%APPDATA%\Everything"""), null),
-            ("Installing Everything", async () => await Task.Run(() => File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "Everything-1.5a.ini"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Everything", "Everything-1.5a.ini"), true)), null),
-            ("Installing Everything", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\Everything 1.5a\Everything.exe", WindowStyle = ProcessWindowStyle.Hidden, Arguments = "-install-run-on-system-startup"})), null),
-            ("Installing Everything", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\Everything 1.5a\Everything.exe", WindowStyle = ProcessWindowStyle.Hidden, Arguments = "-startup", })), null),
+            ("Installing Everything", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "Everything.exe"), Arguments = "/S" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), null),
+            ("Installing Everything", async () => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Everything")), null),
+            ("Installing Everything", async () => File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "Everything-1.5a.ini"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Everything", "Everything-1.5a.ini"), true), null),
+            ("Installing Everything", async () => await Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\Everything 1.5a\Everything.exe", WindowStyle = ProcessWindowStyle.Hidden, Arguments = "-install-run-on-system-startup"})!.WaitForExitAsync(), null),
+            ("Installing Everything", async () => Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\Everything 1.5a\Everything.exe", WindowStyle = ProcessWindowStyle.Hidden, Arguments = "-startup" }), null),
 
             // remove everything desktop shortcut 
-            ("Removing Everything desktop shortcut", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c del /f /q ""%HOMEPATH%\Desktop\Everything 1.5a.lnk"""), null),
+            ("Removing Everything desktop shortcut", async () => File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Everything 1.5a.lnk")), null),
 
             // download windhawk
-            ("Downloading Windhawk", async () => await ProcessActions.RunDownload("https://www.dl.dropboxusercontent.com/scl/fi/yndylbu9slapalnfvj7p6/Windhawk.zip?rlkey=xhw0ohomb44hxvc28pm80sii2&st=ikti98yr&dl=0", Path.GetTempPath(), "Windhawk.zip"), null),
+            ("Downloading Windhawk", async () => await ProcessActions.RunDownload("https://www.dl.dropboxusercontent.com/scl/fi/1id8mn7onjmyvd5ky1hka/Windhawk.zip?rlkey=0y77dk0u8crd34gnhszpt4nqc&st=391uel11&dl=0", Path.GetTempPath(), "Windhawk.zip"), null),
 
             // install windhawk
             ("Installing Windhawk", async () => await ProcessActions.RunExtract(Path.Combine(Path.GetTempPath(), "Windhawk.zip"), @"C:\Program Files\Windhawk"), null),
-            ("Installing Windhawk", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c move ""C:\Program Files\Windhawk\Windhawk"" ""%ProgramData%\Windhawk"""), null),
-            ("Installing Windhawk", async () => await ProcessActions.RunNsudo("CurrentUser", $"cmd /c reg import \"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "windhawk.reg")}\""), null),
-            //("Installing Windhawk", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings"" /v LightThemePath /t REG_SZ /d {LightThemePath}  /f"), null),
-            //("Installing Windhawk", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings"" /v DarkThemePath /t REG_SZ /d {DarkThemePath} /f"), null),
-            ("Installing Windhawk", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher"" /v Disabled /t REG_DWORD /d 1 /f"), () => ScheduleMode == "Always Light" || ScheduleMode == "Always Dark"),
-            ("Installing Windhawk", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings"" /v ScheduleMode /t REG_SZ /d {scheduleMode} /f"), null),
-            ("Installing Windhawk", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings"" /v CustomLight /t REG_SZ /d {LightTime} /f"), null),
-            ("Installing Windhawk", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings"" /v CustomDark /t REG_SZ /d {DarkTime} /f"), null),
-            ("Installing Windhawk", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\taskbar-notification-icons-show-all"" /v Disabled /t REG_DWORD /d 1 /f"), () => AlwaysShowTrayIcons == false),
-            ("Installing Windhawk", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"sc create Windhawk binPath= ""\""C:\Program Files\Windhawk\windhawk.exe\"" -service"" start= auto"), null),
+            ("Installing Windhawk", async () => await Task.Run(() => Directory.Move(@"C:\Program Files\Windhawk\Windhawk", @"C:\ProgramData\Windhawk")), null),
+            ("Installing Windhawk", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = @$"import ""{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "windhawk.reg")}""", CreateNoWindow = true })!.WaitForExitAsync(), null),
+            //("Installing Windhawk", async () => await RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings", "LightThemePath", LightThemePath, RegistryValueKind.String), null),
+            //("Installing Windhawk", async () => await RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings", "DarkThemePath", DarkThemePath, RegistryValueKind.String), null),
+            ("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher", "Disabled", 1, RegistryValueKind.DWord), () => ScheduleMode == "Always Light" || ScheduleMode == "Always Dark"),
+            ("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings", "ScheduleMode", scheduleMode, RegistryValueKind.String), null),
+            ("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings", "CustomLight", LightTime, RegistryValueKind.String), null),
+            ("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings", "CustomDark", DarkTime, RegistryValueKind.String), null),
+            ("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\taskbar-notification-icons-show-all", "Disabled", 1, RegistryValueKind.DWord), () => AlwaysShowTrayIcons == false),
+            ("Installing Windhawk", async () => await Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = @"create Windhawk binPath= ""\""C:\Program Files\Windhawk\windhawk.exe\"" -service"" start= auto", CreateNoWindow = true })!.WaitForExitAsync(), null),
             ("Installing Windhawk", async () => await ProcessActions.RunPowerShell(@"$s=New-Object -ComObject WScript.Shell;$sc=$s.CreateShortcut([IO.Path]::Combine($env:APPDATA,'Microsoft\Windows\Start Menu\Programs\Windhawk.lnk'));$sc.TargetPath='C:\Program Files\Windhawk\windhawk.exe';$sc.Save()"), null),
-            ("Installing Windhawk", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"sc start Windhawk"), null),
+            ("Installing Windhawk", async () => ServicesHelper.StartService("Windhawk"), null),
             
             // download startallback
             ("Downloading StartAllBack", async () => await ProcessActions.RunDownload("https://www.startallback.com/download.php", Path.GetTempPath(), "StartAllBackSetup.exe"), null),
 
             // install startallback
-            ("Installing StartAllBack", async () => await ProcessActions.RunNsudo("CurrentUser", $"cmd /c reg import \"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "startallback.reg")}\""), null),
-            ("Installing StartAllBack", async () => await ProcessActions.RunNsudo("CurrentUser", @"""%TEMP%\StartAllBackSetup.exe"" /silent /allusers"), null),
-            ("Installing StartAllBack", async () => await ProcessActions.RunNsudo("CurrentUser", @"SCHTASKS /Change /TN ""StartAllBack Update"" /Disable"), null),
+            ("Installing StartAllBack", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = @$"import ""{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "startallback.reg")}""", CreateNoWindow = true })!.WaitForExitAsync(), null),
+            ("Installing StartAllBack", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "StartAllBackSetup.exe"), Arguments = "/silent /allusers" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), null),
+            ("Installing StartAllBack", async () => TaskSchedulerHelper.Toggle(@"StartAllBack Update", false), null),
 
             // activate startallback
-            ("Activating StartAllBack", async () => await ProcessActions.RunPowerShellScript("startallback.ps1", ""), null),
+            ("Activating StartAllBack", async () => await ProcessActions.PatchStartAllBack(), null),
             ("Activating StartAllBack", async () => await Task.Delay(2000), null),
 
             // download process explorer
@@ -240,63 +244,65 @@ public static class ApplicationStage
 
             // install process explorer
             //("Installing Process Explorer", async () => await ProcessActions.RunExtract(Path.Combine(Path.GetTempPath(), "ProcessExplorer.zip"), Path.Combine(Path.GetTempPath(), "ProcessExplorer")), null),
-            //("Installing Process Explorer", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), "ProcessExplorer", "procexp64.exe"), @"C:\Windows\procexp64.exe", true)), null),
-			("Installing Process Explorer", async () => await Task.Run(() => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Process Explorer"))), null),
-            ("Installing Process Explorer", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), "procexp64.exe"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Process Explorer", "procexp64.exe"), true)), null),
+            //("Installing Process Explorer", async () => File.Copy(Path.Combine(Path.GetTempPath(), "ProcessExplorer", "procexp64.exe"), @"C:\Windows\procexp64.exe", true), null),
+			("Installing Process Explorer", async () => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Process Explorer")), null),
+            ("Installing Process Explorer", async () => File.Copy(Path.Combine(Path.GetTempPath(), "procexp64.exe"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Process Explorer", "procexp64.exe"), true), null),
             ("Installing Process Explorer", async () => await ProcessActions.RunPowerShell(@"$Shell = New-Object -ComObject WScript.Shell; $Shortcut = $Shell.CreateShortcut([System.IO.Path]::Combine($env:ProgramData, 'Microsoft\Windows\Start Menu\Programs\Process Explorer.lnk')); $Shortcut.TargetPath = [System.IO.Path]::Combine($env:ProgramFiles, 'Process Explorer\procexp64.exe'); $Shortcut.Save()"), null),
-            ("Installing Process Explorer", async () => await ProcessActions.RunNsudo("CurrentUser", $"cmd /c reg import \"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "processexplorer.reg")}\""), null),
+            ("Installing Process Explorer", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = $@"import ""{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "processexplorer.reg")}""", CreateNoWindow = true })!.WaitForExitAsync(), null),
             ("Installing Process Explorer", async () => await Task.Delay(500), null),
 
             // download office
             ("Downloading Office", async () => await ProcessActions.RunDownload("https://officecdn.microsoft.com/pr/wsus/setup.exe", Path.GetTempPath(), "setup.exe"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
 
             // install office
-            ("Installing Office", async () => await Task.Run(() => File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "configuration.xml"), Path.Combine(Path.GetTempPath(), "configuration.xml"), true)), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Installing Office", async () => await Task.Run(() => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "Word").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }), () => Word == true),
-            ("Installing Office", async () => await Task.Run(() => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "Excel").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }), () => Excel == true),
-            ("Installing Office", async () => await Task.Run(() => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "PowerPoint").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }), () => PowerPoint == true),
-            ("Installing Office", async () => await Task.Run(() => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "OneNote").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }), () => OneNote == true),
-            ("Installing Office", async () => await Task.Run(() => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "Teams").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }), () => Teams == true),
-            ("Installing Office", async () => await Task.Run(() => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "OutlookForWindows").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }), () => Outlook == true),
-            ("Installing Office", async () => await Task.Run(() => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "OneDrive").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }), () => OneDrive == true),
-            ("Installing Office", async () => await ProcessActions.RunNsudo("CurrentUser", @"""%TEMP%\setup.exe"" /configure ""%TEMP%\configuration.xml"""), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Installing Office", async () => File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "configuration.xml"), Path.Combine(Path.GetTempPath(), "configuration.xml"), true), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Installing Office", async () => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "Word").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }, () => Word == true),
+            ("Installing Office", async () => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "Excel").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }, () => Excel == true),
+            ("Installing Office", async () => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "PowerPoint").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }, () => PowerPoint == true),
+            ("Installing Office", async () => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "OneNote").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }, () => OneNote == true),
+            ("Installing Office", async () => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "Teams").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }, () => Teams == true),
+            ("Installing Office", async () => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "OutlookForWindows").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }, () => Outlook == true),
+            ("Installing Office", async () => { var doc = XDocument.Load(Path.Combine(Path.GetTempPath(), "configuration.xml")); doc.Root.Descendants("ExcludeApp").Where(x => (string)x.Attribute("ID") == "OneDrive").Remove(); doc.Save(Path.Combine(Path.GetTempPath(), "configuration.xml")); }, () => OneDrive == true),
+            ("Installing Office", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "setup.exe"), Arguments = $@"/configure ""{Path.Combine(Path.GetTempPath(), "configuration.xml")}""" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
 
             // disable office startup entries
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_CLASSES_ROOT\PROTOCOLS\Filter\AutorunsDisabled\text/xml\CLSID"" /t REG_SZ /d ""{807583E5-5146-11D5-A672-00B0D022E945}"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_CLASSES_ROOT\PROTOCOLS\Filter\text/xml"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_CLASSES_ROOT\PROTOCOLS\Handler\AutorunsDisabled\mso-minsb-roaming.16\CLSID"" /t REG_SZ /d ""{83C25742-A9F7-49FB-9138-434302C88D07}"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_CLASSES_ROOT\PROTOCOLS\Handler\mso-minsb-roaming.16"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_CLASSES_ROOT\PROTOCOLS\Handler\AutorunsDisabled\mso-minsb.16\CLSID"" /t REG_SZ /d ""{42089D2D-912D-4018-9087-2B87803E93FB}"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_CLASSES_ROOT\PROTOCOLS\Handler\AutorunsDisabled\mso-minsb.16"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_CLASSES_ROOT\PROTOCOLS\Handler\AutorunsDisabled\osf-roaming.16\CLSID"" /t REG_SZ /d ""{42089D2D-912D-4018-9087-2B87803E93FB}"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_CLASSES_ROOT\PROTOCOLS\Handler\osf-roaming.16"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_CLASSES_ROOT\PROTOCOLS\Handler\AutorunsDisabled\osf.16\CLSID"" /t REG_SZ /d ""{5504BE45-A83B-4808-900A-3A5C36E7F77A}"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_CLASSES_ROOT\PROTOCOLS\Handler\osf.16"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"" /v ""(Default)"" /t REG_SZ /d ""Lync Click to Call BHO"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"" /v ""NoExplorer"" /t REG_SZ /d ""1"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"" /v ""(Default)"" /t REG_SZ /d ""Lync Click to Call"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"" /v ""MenuText"" /t REG_SZ /d ""Lync Click to Call"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"" /v ""Icon"" /t REG_SZ /d ""C:\Program Files\Microsoft Office\root\VFS\ProgramFilesX86\Microsoft Office\Office16\lync.exe,1"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"" /v ""HotIcon"" /t REG_SZ /d ""C:\Program Files\Microsoft Office\root\VFS\ProgramFilesX86\Microsoft Office\Office16\lync.exe,1"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"" /v ""CLSID"" /t REG_SZ /d ""{1FBA04EE-3024-11d2-8F1F-0000F87ABD16}"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"" /v ""ClsidExtension"" /t REG_SZ /d ""{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"" /v ""Default Visible"" /t REG_SZ /d ""Yes"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"" /v ""ButtonText"" /t REG_SZ /d ""Lync Click to Call"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"" /f"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"schtasks /Change /TN ""\Microsoft\Office\Office Actions Server"" /Disable"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"schtasks /Change /TN ""\Microsoft\Office\Office Automatic Updates 2.0"" /Disable"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"schtasks /Change /TN ""\Microsoft\Office\Office Background Push Maintenance"" /Disable"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"schtasks /Change /TN ""\Microsoft\Office\Office ClickToRun Service Monitor"" /Disable"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"schtasks /Change /TN ""\Microsoft\Office\Office Feature Updates"" /Disable"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"schtasks /Change /TN ""\Microsoft\Office\Office Feature Updates Logon"" /Disable"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"schtasks /Change /TN ""\Microsoft\Office\Office Performance Monitor"" /Disable"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_CLASSES_ROOT\PROTOCOLS\Handler\AutorunsDisabled\mso-minsb.16\CLSID"" /t REG_SZ /d ""{42089D2D-912D-4018-9087-2B87803E93FB}"" /f"), () => OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg delete ""HKEY_CLASSES_ROOT\PROTOCOLS\Handler\mso-minsb.16"" /f"), () => OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"schtasks /Change /TN ""\OneDrive Per-Machine Standalone Update Task"" /Disable"), () => OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunPowerShell(@"Get-ScheduledTask | Where-Object {$_.TaskName -like 'OneDrive Reporting Task*'} | Disable-ScheduledTask"), () => OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\FileSyncHelper"" /v Start /t REG_DWORD /d 4 /f & sc stop ""FileSyncHelper"""), () => OneDrive == true),
-            ("Disabling Office startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\OneDrive Updater Service"" /v Start /t REG_DWORD /d 4 /f & sc stop ""OneDrive Updater Service"""), () => OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_CLASSES_ROOT\PROTOCOLS\Filter\AutorunsDisabled\text/xml\CLSID", "", "{807583E5-5146-11D5-A672-00B0D022E945}", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.DeleteKey(RegistryHelper.Identity.TrustedInstaller, @"HKEY_CLASSES_ROOT\PROTOCOLS\Filter\text/xml"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_CLASSES_ROOT\PROTOCOLS\Handler\AutorunsDisabled\mso-minsb-roaming.16\CLSID", "", "{83C25742-A9F7-49FB-9138-434302C88D07}", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.DeleteKey(RegistryHelper.Identity.TrustedInstaller, @"HKEY_CLASSES_ROOT\PROTOCOLS\Handler\mso-minsb-roaming.16"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_CLASSES_ROOT\PROTOCOLS\Handler\AutorunsDisabled\mso-minsb.16\CLSID", "", "{42089D2D-912D-4018-9087-2B87803E93FB}", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.DeleteKey(RegistryHelper.Identity.TrustedInstaller, @"HKEY_CLASSES_ROOT\PROTOCOLS\Handler\AutorunsDisabled\mso-minsb.16"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_CLASSES_ROOT\PROTOCOLS\Handler\AutorunsDisabled\osf-roaming.16\CLSID", "", "{42089D2D-912D-4018-9087-2B87803E93FB}", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.DeleteKey(RegistryHelper.Identity.TrustedInstaller, @"HKEY_CLASSES_ROOT\PROTOCOLS\Handler\osf-roaming.16"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_CLASSES_ROOT\PROTOCOLS\Handler\AutorunsDisabled\osf.16\CLSID", "", "{5504BE45-A83B-4808-900A-3A5C36E7F77A}", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.DeleteKey(RegistryHelper.Identity.TrustedInstaller, @"HKEY_CLASSES_ROOT\PROTOCOLS\Handler\osf.16"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}", "", "Lync Click to Call BHO", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}", "NoExplorer", "1", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.DeleteKey(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}", "", "Lync Click to Call", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}", "MenuText", "Lync Click to Call", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}", "Icon", @"C:\Program Files\Microsoft Office\root\VFS\ProgramFilesX86\Microsoft Office\Office16\lync.exe,1", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}", "HotIcon", @"C:\Program Files\Microsoft Office\root\VFS\ProgramFilesX86\Microsoft Office\Office16\lync.exe,1", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}", "CLSID", "{1FBA04EE-3024-11d2-8F1F-0000F87ABD16}", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}", "ClsidExtension", "{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}", "Default Visible", "Yes", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\AutorunsDisabled\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}", "ButtonText", "Lync Click to Call", RegistryValueKind.String), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.DeleteKey(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Internet Explorer\Extensions\{31D09BA0-12F5-4CCE-BE8A-2923E76605DA}"), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+            ("Disabling Office startup entries", async () => TaskSchedulerHelper.Toggle(@"\Microsoft\Office\Office Actions Server", false), () => Word || Excel || PowerPoint || OneNote || Teams || Outlook || OneDrive),
+            ("Disabling Office startup entries", async () => TaskSchedulerHelper.Toggle(@"\Microsoft\Office\Office Automatic Updates 2.0", false), () => Word || Excel || PowerPoint || OneNote || Teams || Outlook || OneDrive),
+            ("Disabling Office startup entries", async () => TaskSchedulerHelper.Toggle(@"\Microsoft\Office\Office Background Push Maintenance", false), () => Word || Excel || PowerPoint || OneNote || Teams || Outlook || OneDrive),
+            ("Disabling Office startup entries", async () => TaskSchedulerHelper.Toggle(@"\Microsoft\Office\Office ClickToRun Service Monitor", false), () => Word || Excel || PowerPoint || OneNote || Teams || Outlook || OneDrive),
+            ("Disabling Office startup entries", async () => TaskSchedulerHelper.Toggle(@"\Microsoft\Office\Office Feature Updates", false), () => Word || Excel || PowerPoint || OneNote || Teams || Outlook || OneDrive),
+            ("Disabling Office startup entries", async () => TaskSchedulerHelper.Toggle(@"\Microsoft\Office\Office Feature Updates Logon", false), () => Word || Excel || PowerPoint || OneNote || Teams || Outlook || OneDrive),
+            ("Disabling Office startup entries", async () => TaskSchedulerHelper.Toggle(@"\Microsoft\Office\Office Performance Monitor", false), () => Word || Excel || PowerPoint || OneNote || Teams || Outlook || OneDrive),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_CLASSES_ROOT\PROTOCOLS\Handler\AutorunsDisabled\mso-minsb.16\CLSID", "", "{42089D2D-912D-4018-9087-2B87803E93FB}", RegistryValueKind.String), () => OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.DeleteKey(RegistryHelper.Identity.TrustedInstaller, @"HKEY_CLASSES_ROOT\PROTOCOLS\Handler\mso-minsb.16"), () => OneDrive == true),
+            ("Disabling Office startup entries", async () => TaskSchedulerHelper.Toggle("OneDrive Per-Machine Standalone Update Task", false), () => OneDrive == true),
+            ("Disabling Office startup entries", async () => TaskSchedulerHelper.Toggle("OneDrive Reporting Task", false), () => OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\FileSyncHelper", "Start", 4, RegistryValueKind.DWord), () => OneDrive == true),
+            ("Disabling Office startup entries", async () => ServicesHelper.StopService("FileSyncHelper"), () => OneDrive == true),
+            ("Disabling Office startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\OneDrive Updater Service", "Start", 4, RegistryValueKind.DWord), () => OneDrive == true),
+            ("Disabling Office startup entries", async () => ServicesHelper.StopService("OneDrive Updater Service"), () => OneDrive == true),
 
             // disable office telemetry
             ("Disabling Office telemetry", async () => await ProcessActions.RunPowerShellScript("disableofficetelemetry.ps1", ""), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
@@ -305,10 +311,10 @@ public static class ApplicationStage
             ("Downloading Visual Studio", async () => await ProcessActions.RunDownload("https://aka.ms/vs/stable/vs_community.exe", Path.GetTempPath(), "vs_Community.exe"), () => VisualStudio == true),
 
             // install visual studio
-            ("Installing Visual Studio", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c ""%TEMP%\vs_Community.exe"" --quiet --wait"), () => VisualStudio == true),
+            ("Installing Visual Studio", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "vs_Community.exe"), Arguments = "--quiet --wait" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => VisualStudio == true),
 
             // optimize visual studio
-            ("Optimizing Visual Studio", async () => await Task.Run(async () => { while (Process.GetProcessesByName("VSNgenRunner").Length == 1) await Task.Delay(500); }), () => VisualStudio == true),
+            ("Optimizing Visual Studio", async () => { while (Process.GetProcessesByName("VSNgenRunner").Length == 1) await Task.Delay(500); }, () => VisualStudio == true),
 
             // pin visual studio to the taskbar
             ("Pinning Visual Studio to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type Link -Path ""C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Visual Studio.lnk"""), () => VisualStudio == true),
@@ -317,20 +323,20 @@ public static class ApplicationStage
             ("Downloading Mica Visual Studio", async () => await ProcessActions.RunDownload("https://github.com/Tech5G5G/Mica-Visual-Studio/releases/latest/download/MicaVisualStudio.vsix", Path.GetTempPath(), "MicaVisualStudio.vsix"), () => VisualStudio == true),
 
             // install mica visual studio
-            ("Installing Mica Visual Studio", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c ""C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\VSIXInstaller.exe"" /quiet /admin %TEMP%\MicaVisualStudio.vsix"), () => VisualStudio == true),
+            ("Installing Mica Visual Studio", async () => await Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\VSIXInstaller.exe", Arguments = $"/quiet /admin {Path.Combine(Path.GetTempPath(), "MicaVisualStudio.vsix")}" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => VisualStudio == true),
 
             // download xaml styler
             ("Downloading XAML Styler", async () => await ProcessActions.RunDownload("https://marketplace.visualstudio.com/_apis/public/gallery/publishers/TeamXavalon/vsextensions/XAMLStyler2022/3.2501.8/vspackage", Path.GetTempPath(), "XamlStyler.Extension.Windows.VS2022.vsix"), () => VisualStudio == true),
 
             // install xaml styler
-            ("Installing XAML Styler", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c ""C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\VSIXInstaller.exe"" /quiet /admin %TEMP%\XamlStyler.Extension.Windows.VS2022.vsix"), () => VisualStudio == true),
+            ("Installing XAML Styler", async () => await Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\VSIXInstaller.exe", Arguments = $"/quiet /admin {Path.Combine(Path.GetTempPath(), "XamlStyler.Extension.Windows.VS2022.vsix")}" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => VisualStudio == true),
 
             // download visual studio code
             ("Downloading Visual Studio Code", async () => await ProcessActions.RunDownload("https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user", Path.GetTempPath(), "VSCodeUserSetup-x64.exe"), () => VisualStudioCode == true),
 
             // install visual studio code
-            ("Installing Visual Studio Code", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c ""%TEMP%\VSCodeUserSetup-x64.exe"" /VERYSILENT /NORESTART /MERGETASKS=!runcode"), () => VisualStudioCode ==  true),
-            
+            ("Installing Visual Studio Code", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "VSCodeUserSetup-x64.exe"), Arguments = "/VERYSILENT /NORESTART /MERGETASKS=!runcode" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => VisualStudioCode ==  true),
+
             // pin visual studio code to the taskbar
             ("Pinning Visual Studio Code to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Start Menu\Programs\Visual Studio Code\Visual Studio Code.lnk")}"""), () => VisualStudioCode == true),
 
@@ -338,19 +344,19 @@ public static class ApplicationStage
             ("Downloading Git", async () => await ProcessActions.RunDownload("https://github.com/git-for-windows/git/releases/download/v2.53.0.windows.1/Git-2.53.0-64-bit.exe", Path.GetTempPath(), "Git64-bit.exe"), () => Git == true),
 
             // install git
-            ("Installing Git", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c ""%TEMP%\Git64-bit.exe"" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /NOICONS /COMPONENTS=GitLFS,GitGUI,GitCore"), () => Git ==  true),
+            ("Installing Git", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "Git64-bit.exe"), Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /NOICONS /COMPONENTS=GitLFS,GitGUI,GitCore" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => Git ==  true),
 
-            // download pyton
-            ("Downloading Pyton", async () => await ProcessActions.RunDownload("https://www.python.org/ftp/python/3.14.2/python-3.14.2-amd64.exe", Path.GetTempPath(), "python-3.14.2-amd64.exe"), () => Python == true),
+            // download python
+            ("Downloading Python", async () => await ProcessActions.RunDownload("https://www.python.org/ftp/python/3.14.2/python-3.14.2-amd64.exe", Path.GetTempPath(), "python-3.14.2-amd64.exe"), () => Python == true),
 
             // install python
-            ("Installing Python", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c ""%TEMP%\python-3.14.2-amd64.exe"" /quiet InstallAllUsers=1 PrependPath=1"), () => Python == true),
-           
+            ("Installing Python", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "python-3.14.2-amd64.exe"), Arguments = "/quiet InstallAllUsers=1 PrependPath=1" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => Python == true),
+
             // download nodejs
             ("Downloading Node.js", async () => await ProcessActions.RunDownload("https://nodejs.org/dist/v24.12.0/node-v24.12.0-x64.msi", Path.GetTempPath(), "node-v24.12.0-x64.msi"), () => Nodejs == true),
 
             // install nodejs
-            ("Installing Node.js", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c ""%TEMP%\node-v24.12.0-x64.msi"" /qn"), () => Nodejs ==  true),
+            ("Installing Node.js", async () => await Process.Start(new ProcessStartInfo { FileName = "msiexec.exe", Arguments = $@"/i ""{Path.Combine(Path.GetTempPath(), "node-v24.12.0-x64.msi")}"" /qn" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => Nodejs ==  true),
 
             // download trello
             ("Downloading Trello", async () => await StoreHelper.Download("45273LiamForsyth.PawsforTrello_7pb5ddty8z1pa"), () => Trello == true),
@@ -364,7 +370,7 @@ public static class ApplicationStage
 
             // log in to trello
             ("Please log in to your Trello account", async () => await Task.Delay(1000), () => Trello == true),
-            ("Please log in to your Trello account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\45273LiamForsyth.PawsforTrello_" + trelloVersion + @"_x64__7pb5ddty8z1pa\app", "Trello.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => Trello == true),
+            ("Please log in to your Trello account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\45273LiamForsyth.PawsforTrello_" + trelloVersion + @"_x64__7pb5ddty8z1pa\app", "Trello.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => Trello == true),
 
             // download dolby access
             ("Downloading Dolby Access", async () => await StoreHelper.Download("DolbyLaboratories.DolbyAccess_rz1tebttyb220", 1), () => AppleMusic == true),
@@ -375,7 +381,7 @@ public static class ApplicationStage
 
             // log in to dolby access
             ("Please log in to your Dolby Access account", async () => await Task.Delay(1000), () => AppleMusic == true),
-            ("Please log in to your Dolby Access account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\DolbyLaboratories.DolbyAccess_" + dolbyAccessVersion + "_x64__rz1tebttyb220", "DolbyAccess.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => AppleMusic == true),
+            ("Please log in to your Dolby Access account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\DolbyLaboratories.DolbyAccess_" + dolbyAccessVersion + "_x64__rz1tebttyb220", "DolbyAccess.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => AppleMusic == true),
 
             // download apple music
             ("Downloading Apple Music", async () => await StoreHelper.Download("AppleInc.AppleMusicWin_nzyj5cx40ttqa"), () => AppleMusic == true),
@@ -392,7 +398,7 @@ public static class ApplicationStage
 
             // log in to apple music
             ("Please log in to your Apple Music account", async () => await Task.Delay(1000), () => AppleMusic == true),
-            ("Please log in to your Apple Music account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\AppleInc.AppleMusicWin_" + appleMusicVersion + "_x64__nzyj5cx40ttqa", "AppleMusic.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => AppleMusic == true),
+            ("Please log in to your Apple Music account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\AppleInc.AppleMusicWin_" + appleMusicVersion + "_x64__nzyj5cx40ttqa", "AppleMusic.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => AppleMusic == true),
 
             // download tidal
             ("Downloading TIDAL", async () => await StoreHelper.Download("WiMPMusic.27241E05630EA_kn85bz84x7te4"), () => Tidal == true),
@@ -405,20 +411,21 @@ public static class ApplicationStage
             ("Pinning TIDAL to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path WiMPMusic.27241E05630EA_kn85bz84x7te4!TIDAL"), () => Tidal == true),
 
             // log in to tidal
-            ("Please log in to your TIDAL account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\WiMPMusic.27241E05630EA_" + tidalVersion + @"_x86__kn85bz84x7te4\app", "TIDAL.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => Tidal == true),
+            ("Please log in to your TIDAL account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\WiMPMusic.27241E05630EA_" + tidalVersion + @"_x86__kn85bz84x7te4\app", "TIDAL.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => Tidal == true),
 
             // download qobuz
             ("Downloading Qobuz", async () => await ProcessActions.RunDownload("https://desktop.qobuz.com/releases/win32/x64/windows7_8_10/8.1.0-b019/Qobuz_Installer.exe", Path.GetTempPath(), "Qobuz_Installer.exe"), () => Qobuz == true),
 
             // install qobuz
-            ("Installing Qobuz", async () => await ProcessActions.RunNsudo("CurrentUser", @"""%TEMP%\Qobuz_Installer.exe"" -s"), () => Qobuz == true),
+            ("Installing Qobuz", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "Qobuz_Installer.exe"), Arguments = "-s" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => Qobuz == true),
 
             // pin qobuz to the taskbar
             ("Pinning Qobuz to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Start Menu\Programs\Qobuz\Qobuz.lnk")}"""), () => Qobuz == true),
 
             // log in to qobuz
             ("Please log in to your Qobuz account", async () => await Task.Delay(1000), () => Qobuz == true),
-            ("Please log in to your Qobuz account", async () => { await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Qobuz", "Qobuz.exe"), WindowStyle = ProcessWindowStyle.Maximized })!.WaitForExitAsync()); while (Process.GetProcessesByName("Qobuz").Length > 2) await Task.Delay(500); }, () => Qobuz == true),
+            ("Please log in to your Qobuz account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Qobuz", "Qobuz.exe"), WindowStyle = ProcessWindowStyle.Maximized })!.WaitForExitAsync(), () => Qobuz == true),
+            ("Please log in to your Qobuz account", async () => { while (Process.GetProcessesByName("Qobuz").Length != 0) await Task.Delay(500); }, () => Qobuz == true),
 
             // download amazon music
             ("Downloading Amazon Music", async () => await StoreHelper.Download("AmazonMobileLLC.AmazonMusic_kc6t79cpj4tp0"), () => AmazonMusic == true),
@@ -431,7 +438,7 @@ public static class ApplicationStage
             ("Pinning Amazon Music to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path AmazonMobileLLC.AmazonMusic_kc6t79cpj4tp0!AmazonMobileLLC.AmazonMusic"), () => AmazonMusic == true),
 
             // log in to amazon music
-            ("Please log in to your Amazon Music account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\AmazonMobileLLC.AmazonMusic_" + amazonMusicVersion + "_x86__kc6t79cpj4tp0", "Amazon Music.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => AmazonMusic == true),
+            ("Please log in to your Amazon Music account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\AmazonMobileLLC.AmazonMusic_" + amazonMusicVersion + "_x86__kc6t79cpj4tp0", "Amazon Music.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => AmazonMusic == true),
 
             // download deezer music
             ("Downloading Deezer Music", async () => await StoreHelper.Download("Deezer.62021768415AF_q7m17pa7q8kj0"), () => DeezerMusic == true),
@@ -444,25 +451,24 @@ public static class ApplicationStage
             ("Pinning Deezer Music to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path Deezer.62021768415AF_q7m17pa7q8kj0!Deezer.Music"), () => DeezerMusic == true),
 
             // log in to deezer music
-            ("Please log in to your Deezer Music account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\Deezer.62021768415AF_" + deezerMusicVersion + @"_x86__q7m17pa7q8kj0\app", "Deezer.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => DeezerMusic == true),
+            ("Please log in to your Deezer Music account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\Deezer.62021768415AF_" + deezerMusicVersion + @"_x86__q7m17pa7q8kj0\app", "Deezer.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => DeezerMusic == true),
 
             // download spotify
             ("Downloading Spotify", async () => await ProcessActions.RunDownload("https://download.scdn.co/SpotifyFullSetupX64.exe", Path.GetTempPath(), "SpotifyFullSetupX64.exe"), () => Spotify == true),
 
             // install spotify
-            ("Installing Spotify", async () => spotifyVersion = await Task.Run(() => FileVersionInfo.GetVersionInfo(Environment.ExpandEnvironmentVariables(@"%TEMP%\SpotifyFullSetupX64.exe")).ProductVersion), () => Spotify == true),
-            ("Installing Spotify", async () => await ProcessActions.RunNsudo("CurrentUser", @"""%TEMP%\SpotifyFullSetupX64.exe"" /extract ""%APPDATA%\Spotify"""), () => Spotify == true),
-            ("Installing Spotify", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify"" /v ""DisplayIcon"" /t REG_SZ /d ""%AppData%\Spotify\Spotify.exe"" /f"), () => Spotify == true),
-            ("Installing Spotify", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify"" /v ""DisplayName"" /t REG_SZ /d ""Spotify"" /f"), () => Spotify == true),
-            ("Installing Spotify", async () => await ProcessActions.RunNsudo("CurrentUser", $@"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify"" /v ""DisplayVersion"" /t REG_SZ /d ""{spotifyVersion}"" /f"), () => Spotify == true),
-            ("Installing Spotify", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify"" /v ""InstallLocation"" /t REG_SZ /d ""%AppData%\Spotify"" /f"), () => Spotify == true),
-            ("Installing Spotify", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify"" /v ""NoModify"" /t REG_DWORD /d 1 /f"), () => Spotify == true),
-            ("Installing Spotify", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify"" /v ""NoRepair"" /t REG_DWORD /d 1 /f"), () => Spotify == true),
-            ("Installing Spotify", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify"" /v ""Publisher"" /t REG_SZ /d ""Spotify AB"" /f"), () => Spotify == true),
-            ("Installing Spotify", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify"" /v ""Publisher"" /t REG_SZ /d ""Spotify AB"" /f"), () => Spotify == true),
-            ("Installing Spotify", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify"" /v ""UninstallString"" /t REG_SZ /d ""%AppData%\Spotify\Spotify.exe /uninstall"" /f"), () => Spotify == true),
-            ("Installing Spotify", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify"" /v ""URLInfoAbout"" /t REG_SZ /d ""https://www.spotify.com"" /f"), () => Spotify == true),
-            ("Installing Spotify", async () => await ProcessActions.RunNsudo("CurrentUser", $@"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify"" /v ""Version"" /t REG_SZ /d ""{spotifyVersion}"" /f"), () => Spotify == true),
+            ("Installing Spotify", async () => spotifyVersion = FileVersionInfo.GetVersionInfo(Environment.ExpandEnvironmentVariables(@"%TEMP%\SpotifyFullSetupX64.exe")).ProductVersion, () => Spotify == true),
+            ("Installing Spotify", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "SpotifyFullSetupX64.exe"), Arguments = $"/extract \"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Spotify")}\"" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => Spotify == true),
+            ("Installing Spotify", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify", "DisplayIcon", @"%AppData%\Spotify\Spotify.exe", RegistryValueKind.String), () => Spotify == true),
+            ("Installing Spotify", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify", "DisplayName", "Spotify", RegistryValueKind.String), () => Spotify == true),
+            ("Installing Spotify", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify", "DisplayVersion", spotifyVersion, RegistryValueKind.String), () => Spotify == true),
+            ("Installing Spotify", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify", "InstallLocation", @"%AppData%\Spotify", RegistryValueKind.String), () => Spotify == true),
+            ("Installing Spotify", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify", "NoModify", 1, RegistryValueKind.DWord), () => Spotify == true),
+            ("Installing Spotify", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify", "NoRepair", 1, RegistryValueKind.DWord), () => Spotify == true),
+            ("Installing Spotify", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify", "Publisher", "Spotify AB", RegistryValueKind.String), () => Spotify == true),
+            ("Installing Spotify", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify", "UninstallString", @"%AppData%\Spotify\Spotify.exe /uninstall", RegistryValueKind.String), () => Spotify == true),
+            ("Installing Spotify", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify", "URLInfoAbout", "https://www.spotify.com", RegistryValueKind.String), () => Spotify == true),
+            ("Installing Spotify", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Spotify", "Version", spotifyVersion, RegistryValueKind.String), () => Spotify == true),
             ("Installing Spotify", async () => await ProcessActions.RunPowerShell(@"$Shell = New-Object -ComObject WScript.Shell; $Shortcut = $Shell.CreateShortcut([System.IO.Path]::Combine($env:APPDATA, 'Microsoft\Windows\Start Menu\Programs\Spotify.lnk')); $Shortcut.TargetPath = [System.IO.Path]::Combine($env:APPDATA, 'Spotify\Spotify.exe'); $Shortcut.Save()"), () => Spotify == true),
 
             // pin spotify to the taskbar
@@ -479,30 +485,30 @@ public static class ApplicationStage
 
             // log in to spotify
             ("Please log in to your Spotify account", async () => await Task.Delay(1000), () => Spotify == true),
-            ("Please log in to your Spotify account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Spotify", "Spotify.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => Spotify == true),
+            ("Please log in to your Spotify account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Spotify", "Spotify.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => Spotify == true),
             
             // remove spotify desktop shortcut
-            ("Removing Spotify desktop shortcut", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c del /f /q ""%HOMEPATH%\Desktop\Spotify.lnk"""), () => Spotify == true),
+            ("Removing Spotify desktop shortcut", async () => File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Spotify.lnk")), () => Spotify == true),
 
             // disable spotify startup entry
-            ("Disabling Spotify startup entry", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"" /v ""Spotify"" /t REG_BINARY /d ""01"" /f"), () => Spotify == true),
+            ("Disabling Spotify startup entry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "Spotify", new byte[] { 0x01 }, RegistryValueKind.Binary), () => Spotify == true),
 
             // download discord
             ("Downloading Discord", async () => await ProcessActions.RunDownload("https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64", Path.GetTempPath(), "DiscordSetup.exe"), () => Discord == true),
 
             // install discord
-            ("Installing Discord", async () => await ProcessActions.RunNsudo("CurrentUser", @"""%TEMP%\DiscordSetup.exe"" /silent"), () => Discord == true),
-            ("Installing Discord", async () => discordVersion = await Task.Run(() => FileVersionInfo.GetVersionInfo(Environment.ExpandEnvironmentVariables(@"%TEMP%\DiscordSetup.exe")).ProductVersion), () => Discord == true),
-            ("Installing Discord", async () => await Task.Run(() => File.Copy(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "installer.db"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "installer.db"), true)), () => Discord == true),
+            ("Installing Discord", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "DiscordSetup.exe"), Arguments = "/silent" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => Discord == true),
+            ("Installing Discord", async () => discordVersion = FileVersionInfo.GetVersionInfo(Environment.ExpandEnvironmentVariables(@"%TEMP%\DiscordSetup.exe")).ProductVersion, () => Discord == true),
+            ("Installing Discord", async () => File.Copy(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "installer.db"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "installer.db"), true), () => Discord == true),
 
             // pin discord to the taskbar
             ("Pinning Discord to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Start Menu\Programs\Discord Inc\Discord.lnk")}"""), () => Discord == true),
 
             // remove discord desktop shortcut 
-            ("Removing Discord desktop shortcut", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c del /f /q ""%HOMEPATH%\Desktop\Discord.lnk"""), () => Discord == true),
+            ("Removing Discord desktop shortcut", async () => File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Discord.lnk")), () => Discord == true),
 
             // disable discord startup entry
-            ("Disabling Discord startup entry", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"" /v ""Discord"" /t REG_BINARY /d ""01"" /f"), () => Discord == true),
+            ("Disabling Discord startup entry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "Discord", new byte[] { 0x01 }, RegistryValueKind.Binary), () => Discord == true),
 
             // optimize discord settings
             ("Optimizing Discord settings", async () => await File.WriteAllTextAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Discord", "settings.json"), "{\"enableHardwareAcceleration\": false, \"OPEN_ON_STARTUP\": false, \"MINIMIZE_TO_TRAY\": false, \"debugLogging\": false}"), () => Discord == true),
@@ -511,28 +517,28 @@ public static class ApplicationStage
             ("Downloading Vencord", async () => await ProcessActions.RunDownload("https://github.com/Vencord/Installer/releases/latest/download/VencordInstallerCli.exe", Path.GetTempPath(), "VencordInstallerCli.exe"), () => Discord == true),
 
             // install vencord
-            ("Installing Vencord", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c ""%TEMP%\VencordInstallerCli.exe"" -install -branch auto"), () => Discord == true),
+            ("Installing Vencord", async () => await Process.Start(new ProcessStartInfo { FileName = "cmd.exe", Arguments = $@"/c """"{Path.Combine(Path.GetTempPath(), "VencordInstallerCli.exe")}"" -install -branch auto""" , CreateNoWindow = true })!.WaitForExitAsync(), () => Discord == true),
 
             // import vencord settings
-            ("Importing Vencord settings", async () => await Task.Run(() => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vencord", "settings"))), () => Discord == true),
-            ("Importing Vencord settings", async () => await Task.Run(() => File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "settings.json"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vencord", "settings", "settings.json"), true)), () => Discord == true),
+            ("Importing Vencord settings", async () => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vencord", "settings")), () => Discord == true),
+            ("Importing Vencord settings", async () => File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "settings.json"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vencord", "settings", "settings.json"), true), () => Discord == true),
             ("Importing Vencord settings", async () => await Task.Delay(500), () => Discord == true),
 
             // log in to discord
-            ("Please log in to your Discord account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "Discord.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => Discord == true),
+            ("Please log in to your Discord account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "Discord.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => Discord == true),
 
             // remove discord desktop shortcut 
-            ("Removing Discord desktop shortcut", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c del /f /q ""%HOMEPATH%\Desktop\Discord.lnk"""), () => Discord == true),
+            ("Removing Discord desktop shortcut", async () => File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Discord.lnk")), () => Discord == true),
 
-            // debloat discord
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_cloudsync-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_dispatch-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_erlpack-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_game_utils-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_overlay2-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_rpc-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_spellcheck-1"), true); } catch { } }), () => Discord == true),
-            ("Debloating Discord", async () => await Task.Run(() => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_zstd-1"), true); } catch { } }), () => Discord == true),
+            // debloating discord
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_cloudsync-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_dispatch-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_erlpack-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_game_utils-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_overlay2-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_rpc-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_spellcheck-1"), true); } catch { } }, () => Discord == true),
+            ("Debloating Discord", async () => { try { Directory.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "modules", "discord_zstd-1"), true); } catch { } }, () => Discord == true),
 
             // download whatsapp
             ("Downloading WhatsApp", async () => await StoreHelper.Download("5319275A.WhatsAppDesktop_cv1g1gvanyjgm"), () => WhatsApp == true),
@@ -549,22 +555,22 @@ public static class ApplicationStage
 
             // log in to whatsapp
             ("Please log in to your WhatsApp account", async () => await Task.Delay(1000), () => WhatsApp == true),
-            ("Please log in to your WhatsApp account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\5319275A.WhatsAppDesktop_" + whatsAppVersion + "_x64__cv1g1gvanyjgm", "WhatsApp.Root.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync()), () => WhatsApp == true),
+            ("Please log in to your WhatsApp account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\WindowsApps\5319275A.WhatsAppDesktop_" + whatsAppVersion + "_x64__cv1g1gvanyjgm", "WhatsApp.Root.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => WhatsApp == true),
 
             // disable whatsapp startup entry
-            ("Disabling WhatsApp startup entry", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\2defd21c-0b9e-4e4e-873a-2a68c47d7da5"" /v State /t REG_DWORD /d 1 /f"), () => WhatsApp == true),
+            ("Disabling WhatsApp startup entry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\5319275A.WhatsAppDesktop_cv1g1gvanyjgm\2defd21c-0b9e-4e4e-873a-2a68c47d7da5", "State", 1, RegistryValueKind.DWord), () => WhatsApp == true),
 
             // download epic games launcher
             ("Downloading Epic Games Launcher", async () => await ProcessActions.RunDownload("https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", Path.GetTempPath(), "EpicGamesLauncherInstaller.msi"), () => EpicGames == true),
 
             // install epic games launcher
-            ("Installing Epic Games Launcher", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c ""%TEMP%\EpicGamesLauncherInstaller.msi"" /qn"), () => EpicGames == true),
+            ("Installing Epic Games Launcher", async () => await Process.Start(new ProcessStartInfo { FileName = "msiexec.exe", Arguments = $@"/i ""{Path.Combine(Path.GetTempPath(), "EpicGamesLauncherInstaller.msi")}"" /qn" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => EpicGames == true),
 
             // remove epic games launcher desktop shortcut
-            ("Removing Epic Games Launcher desktop shortcut", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c del /f /q ""C:\Users\Public\Desktop\Epic Games Launcher.lnk"""), () => EpicGames == true),
+            ("Removing Epic Games Launcher desktop shortcut", async () => File.Delete(@"C:\Users\Public\Desktop\Epic Games Launcher.lnk"), () => EpicGames == true),
 
             // update epic games launcher
-            ("Updating Epic Games Launcher", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe") }) !.WaitForExitAsync()), () => EpicGames == true),
+            ("Updating Epic Games Launcher", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe")}) !.WaitForExitAsync(), () => EpicGames == true),
             ("Updating Epic Games Launcher", async () => { while (true) { foreach (var proc in Process.GetProcessesByName("EpicGamesLauncher")) { if (ProcessesHelper.GetCommandLine(proc).Contains("-AllowSoftwareRendering -SaveToUserDir -Messaging", StringComparison.OrdinalIgnoreCase)) { proc.Kill(); return; } } await Task.Delay(100); } }, () => EpicGames == true),
             
             // import epic games launcher account
@@ -579,19 +585,21 @@ public static class ApplicationStage
             ("Please log in to your Epic Games Launcher account", async () => await EpicGamesHelper.EpicGamesLogin(), () => EpicGames == true && EpicGamesAccount == false),
 
             // disable epic games startup entries
-            ("Disabling Epic Games startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\EpicOnlineServices"" /v ""Start"" /t REG_DWORD /d 4 /f & sc stop EpicOnlineServices"), () => EpicGames == true),
-            ("Disabling Epic Games startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\EpicGamesUpdater"" /v ""Start"" /t REG_DWORD /d 4 /f & sc stop EpicGamesUpdater"), () => EpicGames == true),
-            ("Disabling Epic Games startup entries", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"" /v ""EpicGamesLauncher"" /t REG_BINARY /d ""01"" /f"), () => EpicGames == true),
+            ("Disabling Epic Games startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\EpicOnlineServices", "Start", 4, RegistryValueKind.DWord), () => EpicGames == true),
+            ("Disabling Epic Games startup entries", async () => ServicesHelper.StopService("EpicOnlineServices"), () => EpicGames == true),
+            ("Disabling Epic Games startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\EpicGamesUpdater", "Start", 4, RegistryValueKind.DWord), () => EpicGames == true),
+            ("Disabling Epic Games startup entries", async () => ServicesHelper.StopService("EpicGamesUpdater"), () => EpicGames == true),
+            ("Disabling Epic Games startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "EpicGamesLauncher", new byte[] { 0x01 }, RegistryValueKind.Binary), () => EpicGames == true),
         
             // download steam
             ("Downloading Steam", async () => await ProcessActions.RunDownload("https://cdn.cloudflare.steamstatic.com/client/installer/SteamSetup.exe", Path.GetTempPath(), "SteamSetup.exe"), () => Steam == true),
 
             // install steam
-            ("Installing Steam", async () => await ProcessActions.RunNsudo("CurrentUser", @"""%TEMP%\SteamSetup.exe"" /S"), () => Steam == true),
+            ("Installing Steam", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "SteamSetup.exe"), Arguments = "/S" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => Steam == true),
 
             // update steam
-            ("Updating Steam", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files (x86)\Steam\Steam.exe") }) !.WaitForExitAsync()), () => Steam == true),
-            ("Updating Steam", async () => await Task.Run(async () => { while (Process.GetProcessesByName("steamwebhelper").Length == 0) await Task.Delay(500); }), () => Steam == true),
+            ("Updating Steam", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files (x86)\Steam\Steam.exe") , WindowStyle = ProcessWindowStyle.Hidden }) !.WaitForExitAsync(), () => Steam == true),
+            ("Updating Steam", async () => { while (Process.GetProcessesByName("steamwebhelper").Length == 0) await Task.Delay(500); }, () => Steam == true),
 
             // log in to steam
             ("Please log in to your Steam account", async () => await SteamHelper.SteamLogin(), () => Steam == true),
@@ -600,10 +608,10 @@ public static class ApplicationStage
             ("Importing Steam Games", async () => await SteamHelper.RunImportSteamGames(), () => Steam == true && SteamGames == true),
 
             // remove steam desktop shortcut
-            ("Removing Steam desktop shortcut", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c del /f /q ""C:\Users\Public\Desktop\Steam.lnk"""), () => Steam == true),
+            ("Removing Steam desktop shortcut", async () => File.Delete(@"C:\Users\Public\Desktop\Steam.lnk"), () => Steam == true),
 
             // disable steam startup entry
-            ("Disabling Steam startup entry", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"" /v ""Steam"" /t REG_BINARY /d ""01"" /f"), () => Steam == true),
+            ("Disabling Steam startup entry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "Steam", new byte[] { 0x01 }, RegistryValueKind.Binary), () => Steam == true),
 
             // download riot client
             ("Downloading Riot Client", async () => await ProcessActions.RunDownload("https://www.dl.dropboxusercontent.com/scl/fi/lhjc10gc9i31bptzw6ism/Riot-Games.zip?rlkey=07n3ek47oaus1olu86u08yw04&st=t0vspqv4&dl=0", Path.GetTempPath(), "Riot Games.zip"), () => RiotClient == true),
@@ -612,206 +620,208 @@ public static class ApplicationStage
             ("Installing Riot Client", async () => await ProcessActions.RunExtract(Path.Combine(Path.GetTempPath(), "Riot Games.zip"), @"C:\"), () => RiotClient == true),
 
             // log in to riot client
-            ("Please log in to your Riot account", async () => await Task.Run(async () => { Process.Start(new ProcessStartInfo { FileName = @"C:\Riot Games\Riot Client\RiotClientServices.exe", WindowStyle = ProcessWindowStyle.Maximized }); while (Process.GetProcessesByName("RiotClientCrashHandler").Length == 0 || Process.GetProcessesByName("Riot Client").Length == 0) await Task.Delay(500); while (Process.GetProcessesByName("Riot Client").Length > 0) await Task.Delay(500); }), () => RiotClient == true),
+            ("Please log in to your Riot account", async () => { Process.Start(new ProcessStartInfo { FileName = @"C:\Riot Games\Riot Client\RiotClientServices.exe", WindowStyle = ProcessWindowStyle.Maximized }); while (Process.GetProcessesByName("RiotClientCrashHandler").Length == 0 || Process.GetProcessesByName("Riot Client").Length == 0) await Task.Delay(500); while (Process.GetProcessesByName("Riot Client").Length > 0) await Task.Delay(500); }, () => RiotClient == true),
 
             // disable riot client startup entry
-            ("Disabling Riot Client startup entry", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"" /v ""RiotClient"" /t REG_BINARY /d ""01"" /f"), () => RiotClient == true),
+            ("Disabling Riot Client startup entry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "RiotClient", new byte[] { 0x01 }, RegistryValueKind.Binary), () => RiotClient == true),
 
             // download ea
             ("Downloading EA", async () => await ProcessActions.RunDownload("https://origin-a.akamaihd.net/EA-Desktop-Client-Download/installer-releases/EAappInstaller.exe", Path.GetTempPath(), "EAappInstaller.exe"), () => EA == true),
 
             // install ea
-            ("Installing EA", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c ""%TEMP%\EAappInstaller.exe"" /s"), () => EA == true),
+            ("Installing EA", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "EAappInstaller.exe"), Arguments = "/s", WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => EA == true),
 
             // log in to ea
-            ("Please log in to your EA account", async () => await Task.Run(async () => { Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\Electronic Arts\EA Desktop\EA Desktop\EADesktop.exe", WindowStyle = ProcessWindowStyle.Maximized }); while (Process.GetProcessesByName("EADesktop").Length > 0) await Task.Delay(500); }), () => EA == true),
+            ("Please log in to your EA account", async () => { Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\Electronic Arts\EA Desktop\EA Desktop\EADesktop.exe", WindowStyle = ProcessWindowStyle.Maximized }); while (Process.GetProcessesByName("EADesktop").Length > 0) await Task.Delay(500); }, () => EA == true),
 
             // remove ea desktop shortcut
-            ("Removing EA desktop shortcut", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c del /f /q ""C:\Users\Public\Desktop\EA.lnk"""), () => EA == true),
+            ("Removing EA desktop shortcut", async () => File.Delete(@"C:\Users\Public\Desktop\EA.lnk"), () => EA == true),
 
             // download ubisoft connect
             ("Downloading Ubisoft Connect", async () => await ProcessActions.RunDownload("https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectInstaller.exe", Path.GetTempPath(), "UbisoftConnectInstaller.exe"), () => UbisoftConnect == true),
 
             // install ubisoft connect
-            ("Installing Ubisoft Connect", async () => await ProcessActions.RunNsudo("CurrentUser", @"""%TEMP%\UbisoftConnectInstaller.exe"" /S"), () => UbisoftConnect == true),
+            ("Installing Ubisoft Connect", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "UbisoftConnectInstaller.exe"), Arguments = "/S" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => UbisoftConnect == true),
 
             // log in to ubisoft connect
-            ("Please log in to your Ubisoft Connect account", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\upc.exe") }) !.WaitForExitAsync()), () => UbisoftConnect == true),
+            ("Please log in to your Ubisoft Connect account", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\upc.exe") , WindowStyle = ProcessWindowStyle.Hidden }) !.WaitForExitAsync(), () => UbisoftConnect == true),
 
             // remove ubisoft connect desktop shortcut 
-            ("Removing Ubisoft Connect desktop shortcut", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c del /f /q ""%HOMEPATH%\Desktop\Ubisoft Connect.lnk"""), () => UbisoftConnect == true),
+            ("Removing Ubisoft Connect desktop shortcut", async () => File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Ubisoft Connect.lnk")), () => UbisoftConnect == true),
 
             // disable ubisoft connect startup entries
-            ("Disabling Ubisoft Connect startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"schtasks /change /tn ""\Ubisoft\Ubisoft Connect Background Update"" /disable"), () => UbisoftConnect == true),
-            ("Disabling Ubisoft Connect startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\UpcElevationService"" /v ""Start"" /t REG_DWORD /d 4 /f & sc stop UpcElevationService"), () => UbisoftConnect == true),
+            ("Disabling Ubisoft Connect startup entries", async () => TaskSchedulerHelper.Toggle(@"\Ubisoft\Ubisoft Connect Background Update", false), () => UbisoftConnect == true),
+            ("Disabling Ubisoft Connect startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\UpcElevationService", "Start", 4, RegistryValueKind.DWord), () => UbisoftConnect == true),
+            ("Disabling Ubisoft Connect startup entries", async () => ServicesHelper.StopService("UpcElevationService"), () => UbisoftConnect == true),
 
             // download battle.net
             ("Downloading Battle.Net", async () => await ProcessActions.RunDownload("https://downloader.battle.net//download/getInstallerForGame?os=win&gameProgram=BATTLENET_APP&version=Live", Path.GetTempPath(), "Battle.net-Setup.exe"), () => BattleNet == true),
 
             // install battle.net
-            ("Installing Battle.Net", async () => await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "Battle.net-Setup.exe"), Arguments = @"--lang=enUS --installpath=""C:\Program Files (x86)\Battle.net""" })!.WaitForExit()), () => BattleNet == true),
+            ("Installing Battle.Net", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "Battle.net-Setup.exe"), Arguments = @"--lang=enUS --installpath=""C:\Program Files (x86)\Battle.net""" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => BattleNet == true),
 
             // log in to battle.net
-            ("Please log in to your Battle.Net account", async () => await Task.Run(async () => { while (Process.GetProcessesByName("Battle.net").Length >= 1) await Task.Delay(500); }), () => BattleNet == true),
+            ("Please log in to your Battle.Net account", async () => { while (Process.GetProcessesByName("Battle.net").Length >= 1) await Task.Delay(500); }, () => BattleNet == true),
 
             // disable battle.net startup entries
-            ("Disabling Battle.Net startup entries", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"cmd /c reg add ""HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\battlenet_helpersvc"" /v ""Start"" /t REG_DWORD /d 4 /f & sc stop battlenet_helpersvc"), () => BattleNet == true),
-            ("Disabling Battle.Net startup entries", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"" /v ""Battle.Net"" /t REG_BINARY /d ""01"" /f"), () => BattleNet == true),
+            ("Disabling Battle.Net startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\battlenet_helpersvc", "Start", 4, RegistryValueKind.DWord), () => BattleNet == true),
+            ("Disabling Battle.Net startup entries", async () => ServicesHelper.StopService("battlenet_helpersvc"), () => BattleNet == true),
+            ("Disabling Battle.Net startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "Battle.Net", new byte[] { 0x01 }, RegistryValueKind.Binary), () => BattleNet == true),
 
             // remove battle.net desktop shortcut
-            ("Removing Battle.Net desktop shortcut", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c del /f /q ""C:\Users\Public\Desktop\Battle.net.lnk"""), () => BattleNet == true),
+            ("Removing Battle.Net desktop shortcut", async () => File.Delete(@"C:\Users\Public\Desktop\Battle.net.lnk"), () => BattleNet == true),
 
             // download minecraft launcher
             ("Downloading Minecraft Launcher", async () => await ProcessActions.RunDownload("https://launcher.mojang.com/download/MinecraftInstaller.msi", Path.GetTempPath(), "MinecraftInstaller.msi"), () => MinecraftLauncher == true),
 
             // install minecraft launcher
-            ("Installing Minecraft Launcher", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c ""%TEMP%\MinecraftInstaller.msi"" /qn"), () => MinecraftLauncher == true),
+            ("Installing Minecraft Launcher", async () => await Process.Start(new ProcessStartInfo { FileName = "msiexec.exe", Arguments = $@"/i ""{Path.Combine(Path.GetTempPath(), "MinecraftInstaller.msi")}"" /qn" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => MinecraftLauncher == true),
 
             // update minecraft launcher
-            ("Updating Minecraft Launcher", async () => await Task.Run(async () => { Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files (x86)\Minecraft Launcher\MinecraftLauncher.exe" }); while (Process.GetProcessesByName("MinecraftLauncher").Length == 1) await Task.Delay(500); while (Process.GetProcessesByName("MinecraftLauncher").Length == 0) await Task.Delay(500); while (Process.GetProcessesByName("MinecraftLauncher").Length == 1) await Task.Delay(100); }), () => MinecraftLauncher == true),
+            ("Updating Minecraft Launcher", async () => { Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files (x86)\Minecraft Launcher\MinecraftLauncher.exe" , WindowStyle = ProcessWindowStyle.Hidden }); while (Process.GetProcessesByName("MinecraftLauncher").Length == 1) await Task.Delay(500); while (Process.GetProcessesByName("MinecraftLauncher").Length == 0) await Task.Delay(500); while (Process.GetProcessesByName("MinecraftLauncher").Length == 1) await Task.Delay(100); }, () => MinecraftLauncher == true),
 
             // log in to minecraft launcher
-            ("Please log in to your Minecraft Launcher account", async () => await Task.Run(async () => { while (Process.GetProcessesByName("MinecraftLauncher").Length > 1) await Task.Delay(500); }), () => MinecraftLauncher == true),
+            ("Please log in to your Minecraft Launcher account", async () => { while (Process.GetProcessesByName("MinecraftLauncher").Length > 1) await Task.Delay(500); }, () => MinecraftLauncher == true),
 
             // remove minecraft launcher desktop shortcut
-            ("Removing Minecraft Launcher desktop shortcut", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c del /f /q ""C:\Users\Public\Desktop\Minecraft Launcher.lnk"""), () => MinecraftLauncher == true),
+            ("Removing Minecraft Launcher desktop shortcut", async () => File.Delete(@"C:\Users\Public\Desktop\Minecraft Launcher.lnk"), () => MinecraftLauncher == true),
 
             // download rockstar games launcher
             ("Downloading Rockstar Games Launcher", async () => await ProcessActions.RunDownload("https://gamedownloads.rockstargames.com/public/installer/Rockstar-Games-Launcher.exe", Path.GetTempPath(), "Rockstar-Games-Launcher.exe"), () => RockstarGamesLauncher == true),
             
             // extract rockstar games launcher
-            ("Extracting Rockstar Games Launcher", async () => rockstarGamesLauncherVersion = await Task.Run(() => FileVersionInfo.GetVersionInfo(Environment.ExpandEnvironmentVariables(@"%TEMP%\Rockstar-Games-Launcher.exe")).ProductVersion), () => RockstarGamesLauncher == true),
-            ("Extracting Rockstar Games Launcher", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "7-Zip", "7z.exe"), Arguments = @$"x ""{Path.Combine(Path.GetTempPath(), "Rockstar-Games-Launcher.exe")}"" -t# -aoa -bd -bb1 -o""{Path.Combine(Path.GetTempPath(), "Rockstar-Games-Launcher")}"" -y", CreateNoWindow = true })!.WaitForExitAsync(), () => RockstarGamesLauncher == true),
-            ("Extracting Rockstar Games Launcher", async () => await Task.Run(() => { Directory.CreateDirectory(@"C:\Program Files\Rockstar Games\Launcher"); Directory.CreateDirectory(@"C:\Program Files\Rockstar Games\Launcher\Redistributables\VCRed"); Directory.CreateDirectory(@"C:\Program Files\Rockstar Games\Launcher\ThirdParty\Steam"); Directory.CreateDirectory(@"C:\Program Files\Rockstar Games\Launcher\ThirdParty\Epic"); }), () => RockstarGamesLauncher == true),
+            ("Extracting Rockstar Games Launcher", async () => rockstarGamesLauncherVersion = FileVersionInfo.GetVersionInfo(Environment.ExpandEnvironmentVariables(@"%TEMP%\Rockstar-Games-Launcher.exe")).ProductVersion, () => RockstarGamesLauncher == true),
+            ("Extracting Rockstar Games Launcher", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "7-Zip", "7z.exe"), Arguments = @$"x ""{Path.Combine(Path.GetTempPath(), "Rockstar-Games-Launcher.exe")}"" -t# -aoa -bd -bb1 -o""{Path.Combine(Path.GetTempPath(), "Rockstar-Games-Launcher")}"" -y"  , CreateNoWindow = true })!.WaitForExitAsync(), () => RockstarGamesLauncher == true),
+            ("Extracting Rockstar Games Launcher", async () => { Directory.CreateDirectory(@"C:\Program Files\Rockstar Games\Launcher"); Directory.CreateDirectory(@"C:\Program Files\Rockstar Games\Launcher\Redistributables\VCRed"); Directory.CreateDirectory(@"C:\Program Files\Rockstar Games\Launcher\ThirdParty\Steam"); Directory.CreateDirectory(@"C:\Program Files\Rockstar Games\Launcher\ThirdParty\Epic"); }, () => RockstarGamesLauncher == true),
 
             // install rockstar games launcher
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\2.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-console-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\3.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-datetime-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\4.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-debug-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\5.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-errorhandling-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\6.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-file-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\7.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-file-l1-2-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\8.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-file-l2-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\9.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-handle-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\10.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-heap-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\11.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-interlocked-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\12.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-libraryloader-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\13.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-localization-l1-2-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\14.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-memory-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\15.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-namedpipe-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\16.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-processenvironment-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\17.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-processthreads-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\18.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-processthreads-l1-1-1.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\19.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-profile-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\20.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-rtlsupport-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\21.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-string-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\22.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-synch-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\23.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-synch-l1-2-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\24.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-sysinfo-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\25.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-timezone-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\26.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-util-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\27.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-conio-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\28.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-convert-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\29.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-environment-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\30.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-filesystem-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\31.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-heap-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\32.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-locale-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\33.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-math-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\34.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-multibyte-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\35.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-private-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\36.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-process-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\37.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-runtime-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\38.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-stdio-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\39.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-string-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\40.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-time-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\41.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-utility-l1-1-0.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\42.Launcher.exe"), @"C:\Program Files\Rockstar Games\Launcher\Launcher.exe", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\43"), @"C:\Program Files\Rockstar Games\Launcher\Launcher.rpf", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\44.LauncherPatcher.exe"), @"C:\Program Files\Rockstar Games\Launcher\LauncherPatcher.exe", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\45.dll"), @"C:\Program Files\Rockstar Games\Launcher\libovr.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\46.zip"), @"C:\Program Files\Rockstar Games\Launcher\offline.pak", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\48.RockstarService.exe"), @"C:\Program Files\Rockstar Games\Launcher\RockstarService.exe", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\49.RockstarSteamHelper.exe"), @"C:\Program Files\Rockstar Games\Launcher\RockstarSteamHelper.exe", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\50.ucrtbase.dll"), @"C:\Program Files\Rockstar Games\Launcher\ucrtbase.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\51.Rockstar-Games-Launcher.exe"), @"C:\Program Files\Rockstar Games\Launcher\uninstall.exe", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\52.exe"), @"C:\Program Files\Rockstar Games\Launcher\Redistributables\VCRed\vc_redist.x64.exe", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\53.exe"), @"C:\Program Files\Rockstar Games\Launcher\Redistributables\VCRed\vc_redist.x86.exe", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\54.steam_api.dll"), @"C:\Program Files\Rockstar Games\Launcher\ThirdParty\Steam\steam_api64.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\55.EOSSDK-Win64-Shipping.dll"), @"C:\Program Files\Rockstar Games\Launcher\ThirdParty\Epic\EOSSDK-Win64-Shipping.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\56.EOSSDK-Win64-Shipping.dll"), @"C:\Program Files\Rockstar Games\Launcher\ThirdParty\Epic\EOSSDK-Win64-Shipping-1.14.2.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await Task.Run(() => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\57.XboxHelper.dll"), @"C:\Program Files\Rockstar Games\Launcher\RockstarXboxHelper.dll", true)), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v DisplayName /t REG_SZ /d ""Rockstar Games Launcher"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v Comments /t REG_SZ /d ""Rockstar Games Launcher"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v UninstallString /t REG_SZ /d ""\""C:\Program Files\Rockstar Games\Launcher\uninstall.exe\"""" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v QuietUninstallString /t REG_SZ /d ""\""C:\Program Files\Rockstar Games\Launcher\uninstall.exe\"" /S"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v InstallLocation /t REG_SZ /d ""\""C:\Program Files\Rockstar Games\Launcher\"""" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v DisplayIcon /t REG_SZ /d ""C:\Program Files\Rockstar Games\Launcher\Launcher.exe, 0"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v Publisher /t REG_SZ /d ""Rockstar Games"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v HelpLink /t REG_SZ /d ""https://www.rockstargames.com/support"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v Readme /t REG_SZ /d ""https://www.rockstargames.com/support"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v URLUpdateInfo /t REG_SZ /d ""https://www.rockstargames.com"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v URLInfoAbout /t REG_SZ /d ""https://www.rockstargames.com/support"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v DisplayVersion /t REG_SZ /d ""{rockstarGamesLauncherVersion}"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v NoModify /t REG_DWORD /d 1 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v NoRepair /t REG_DWORD /d 1 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher"" /v EstimatedSize /t REG_DWORD /d 0x927c0 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher"" /v Version /t REG_SZ /d ""{rockstarGamesLauncherVersion}"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher"" /v InstallFolder /t REG_SZ /d ""C:\Program Files\Rockstar Games\Launcher"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher"" /v Language /t REG_SZ /d ""en-US"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher"" /v Shortcut /t REG_DWORD /d 1 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher"" /v Silent /t REG_DWORD /d 0 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher"" /v RGL /t REG_DWORD /d 2552918 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add"" /v AUTO /t REG_DWORD /d 1 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add"" /v BOOT /t REG_DWORD /d 0 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add"" /v DEFDIR /t REG_DWORD /d 1 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add"" /v DPI /t REG_DWORD /d 100 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", $@"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add"" /v INSTVER /t REG_SZ /d ""{rockstarGamesLauncherVersion}"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add"" /v LANG /t REG_SZ /d ""en-US"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add"" /v REDIST /t REG_DWORD /d 0 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add"" /v SHRT /t REG_DWORD /d 1 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add"" /v SIL /t REG_DWORD /d 0 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add"" /v UPVER /t REG_DWORD /d 0 /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add"" /v PARPRO /t REG_SZ /d ""C:\Windows\explorer.exe"" /f"), () => RockstarGamesLauncher == true),
-            ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunNsudo("TrustedInstaller", @"reg add ""HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add"" /v INSTPATH /t REG_SZ /d ""C:\Program Files\Rockstar Games\Launcher"" /f"), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\2.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-console-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\3.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-datetime-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\4.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-debug-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\5.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-errorhandling-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\6.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-file-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\7.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-file-l1-2-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\8.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-file-l2-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\9.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-handle-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\10.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-heap-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\11.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-interlocked-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\12.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-libraryloader-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\13.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-localization-l1-2-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\14.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-memory-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\15.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-namedpipe-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\16.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-processenvironment-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\17.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-processthreads-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\18.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-processthreads-l1-1-1.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\19.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-profile-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\20.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-rtlsupport-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\21.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-string-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\22.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-synch-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\23.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-synch-l1-2-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\24.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-sysinfo-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\25.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-timezone-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\26.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-core-util-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\27.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-conio-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\28.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-convert-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\29.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-environment-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\30.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-filesystem-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\31.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-heap-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\32.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-locale-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\33.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-math-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\34.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-multibyte-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\35.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-private-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\36.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-process-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\37.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-runtime-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\38.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-stdio-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\39.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-string-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\40.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-time-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\41.apisetstub"), @"C:\Program Files\Rockstar Games\Launcher\api-ms-win-crt-utility-l1-1-0.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\42.Launcher.exe"), @"C:\Program Files\Rockstar Games\Launcher\Launcher.exe", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\43"), @"C:\Program Files\Rockstar Games\Launcher\Launcher.rpf", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\44.LauncherPatcher.exe"), @"C:\Program Files\Rockstar Games\Launcher\LauncherPatcher.exe", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\45.dll"), @"C:\Program Files\Rockstar Games\Launcher\libovr.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\46.zip"), @"C:\Program Files\Rockstar Games\Launcher\offline.pak", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\48.RockstarService.exe"), @"C:\Program Files\Rockstar Games\Launcher\RockstarService.exe", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\49.RockstarSteamHelper.exe"), @"C:\Program Files\Rockstar Games\Launcher\RockstarSteamHelper.exe", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\50.ucrtbase.dll"), @"C:\Program Files\Rockstar Games\Launcher\ucrtbase.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\51.Rockstar-Games-Launcher.exe"), @"C:\Program Files\Rockstar Games\Launcher\uninstall.exe", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\52.exe"), @"C:\Program Files\Rockstar Games\Launcher\Redistributables\VCRed\vc_redist.x64.exe", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\53.exe"), @"C:\Program Files\Rockstar Games\Launcher\Redistributables\VCRed\vc_redist.x86.exe", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\54.steam_api.dll"), @"C:\Program Files\Rockstar Games\Launcher\ThirdParty\Steam\steam_api64.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\55.EOSSDK-Win64-Shipping.dll"), @"C:\Program Files\Rockstar Games\Launcher\ThirdParty\Epic\EOSSDK-Win64-Shipping.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\56.EOSSDK-Win64-Shipping.dll"), @"C:\Program Files\Rockstar Games\Launcher\ThirdParty\Epic\EOSSDK-Win64-Shipping-1.14.2.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => File.Copy(Path.Combine(Path.GetTempPath(), @"Rockstar-Games-Launcher\57.XboxHelper.dll"), @"C:\Program Files\Rockstar Games\Launcher\RockstarXboxHelper.dll", true), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "DisplayName", "Rockstar Games Launcher", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "Comments", "Rockstar Games Launcher", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "UninstallString", "\"C:\\Program Files\\Rockstar Games\\Launcher\\uninstall.exe\"", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "QuietUninstallString", "\"C:\\Program Files\\Rockstar Games\\Launcher\\uninstall.exe\" /S", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "InstallLocation", "\"C:\\Program Files\\Rockstar Games\\Launcher\"", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "DisplayIcon", "C:\\Program Files\\Rockstar Games\\Launcher\\Launcher.exe, 0", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "Publisher", "Rockstar Games", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "HelpLink", "https://www.rockstargames.com/support", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "Readme", "https://www.rockstargames.com/support", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "URLUpdateInfo", "https://www.rockstargames.com", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "URLInfoAbout", "https://www.rockstargames.com/support", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "DisplayVersion", rockstarGamesLauncherVersion, RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "NoModify", 1, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "NoRepair", 1, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Rockstar Games Launcher", "EstimatedSize", 0x927c0, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher", "Version", rockstarGamesLauncherVersion, RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher", "InstallFolder", "C:\\Program Files\\Rockstar Games\\Launcher", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher", "Language", "en-US", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher", "Shortcut", 1, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher", "Silent", 0, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher", "RGL", 2552918, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add", "AUTO", 1, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add", "BOOT", 0, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add", "DEFDIR", 1, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add", "DPI", 100, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add", "INSTVER", rockstarGamesLauncherVersion, RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add", "LANG", "en-US", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add", "REDIST", 0, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add", "SHRT", 1, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add", "SIL", 0, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add", "UPVER", 0, RegistryValueKind.DWord), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add", "PARPRO", "C:\\Windows\\explorer.exe", RegistryValueKind.String), () => RockstarGamesLauncher == true),
+            ("Installing Rockstar Games Launcher", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Rockstar Games\Launcher\Add", "INSTPATH", "C:\\Program Files\\Rockstar Games\\Launcher", RegistryValueKind.String), () => RockstarGamesLauncher == true),
             ("Installing Rockstar Games Launcher", async () => await ProcessActions.RunPowerShell(@"$Shell = New-Object -ComObject WScript.Shell; New-Item -Path ([System.IO.Path]::Combine($env:APPDATA, 'Microsoft\Windows\Start Menu\Programs\Rockstar Games')) -ItemType Directory -Force | Out-Null; $Shortcut = $Shell.CreateShortcut([System.IO.Path]::Combine($env:APPDATA, 'Microsoft\Windows\Start Menu\Programs\Rockstar Games\Rockstar Games Launcher.lnk')); $Shortcut.TargetPath = 'C:\Program Files\Rockstar Games\Launcher\LauncherPatcher.exe'; $Shortcut.Save()"), () => RockstarGamesLauncher == true),
 
             // update rock star games launcher
-            ("Updating Rockstar Games Launcher", async () => await Task.Run(async () => { await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\Rockstar Games\Launcher\LauncherPatcher.exe") })!.WaitForExitAsync(); while (Process.GetProcessesByName("dxdiag").Length > 1) await Task.Delay(500); while (Process.GetProcessesByName("SocialClubHelper").Length == 0) await Task.Delay(500); }), () => RockstarGamesLauncher == true),
+            ("Updating Rockstar Games Launcher", async () => { await Process.Start(new ProcessStartInfo { FileName = Path.Combine(@"C:\Program Files\Rockstar Games\Launcher\LauncherPatcher.exe") , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(); while (Process.GetProcessesByName("dxdiag").Length > 1) await Task.Delay(500); while (Process.GetProcessesByName("SocialClubHelper").Length == 0) await Task.Delay(500); }, () => RockstarGamesLauncher == true),
 
             // log in to rockstar games launcher
-            ("Please log in to your Rockstar Games Launcher account", async () => await Task.Run(async () => { while (Process.GetProcessesByName("Launcher").Length == 1) await Task.Delay(500); }), () => RockstarGamesLauncher == true),
+            ("Please log in to your Rockstar Games Launcher account", async () => { while (Process.GetProcessesByName("Launcher").Length == 1) await Task.Delay(500); }, () => RockstarGamesLauncher == true),
         
             // download fivem
             ("Downloading FiveM", async () => await ProcessActions.RunDownload("https://www.dl.dropboxusercontent.com/scl/fi/tn48g2m1qisdsir80ixu8/FiveM.zip?rlkey=c54qzh36fr3p8yb09q4zlt0gi&st=ca6wjcgx&dl=0", Path.GetTempPath(), "FiveM.zip"), () => FiveM == true),
 
             // install fivem
             ("Installing FiveM", async () => await ProcessActions.RunExtract(Path.Combine(Path.GetTempPath(), "FiveM.zip"), Path.Combine(Path.GetTempPath(), "FiveM")), () => FiveM == true),
-            ("Installing FiveM", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c move ""%TEMP%\FiveM"" ""%LOCALAPPDATA%\FiveM"""), () => FiveM == true),
-            ("Installing FiveM", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM"" /v DisplayName /t REG_SZ /d ""FiveM"" /f"), () => FiveM == true),
-            ("Installing FiveM", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM"" /v DisplayIcon /t REG_SZ /d ""C:\Users\user\AppData\Local\FiveM\FiveM.exe,0"" /f"), () => FiveM == true),
-            ("Installing FiveM", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM"" /v HelpLink /t REG_SZ /d ""https://cfx.re/"" /f"), () => FiveM == true),
-            ("Installing FiveM", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM"" /v InstallLocation /t REG_SZ /d ""C:\Users\user\AppData\Local\FiveM"" /f"), () => FiveM == true),
-            ("Installing FiveM", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM"" /v Publisher /t REG_SZ /d ""Cfx.re"" /f"), () => FiveM == true),
-            ("Installing FiveM", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM"" /v UninstallString /t REG_SZ /d ""\""C:\Users\user\AppData\Local\FiveM\FiveM.exe\"" -uninstall app"" /f"), () => FiveM == true),
-            ("Installing FiveM", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM"" /v URLInfoAbout /t REG_SZ /d ""https://cfx.re/"" /f"), () => FiveM == true),
-            ("Installing FiveM", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM"" /v NoModify /t REG_DWORD /d 1 /f"), () => FiveM == true),
-            ("Installing FiveM", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM"" /v NoRepair /t REG_DWORD /d 1 /f"), () => FiveM == true),
+            ("Installing FiveM", async () => Directory.Move(Path.Combine(Path.GetTempPath(), "FiveM"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FiveM")), () => FiveM == true),
+            ("Installing FiveM", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM", "DisplayName", "FiveM", RegistryValueKind.String), () => FiveM == true),
+            ("Installing FiveM", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM", "DisplayIcon", "C:\\Users\\user\\AppData\\Local\\FiveM\\FiveM.exe,0", RegistryValueKind.String), () => FiveM == true),
+            ("Installing FiveM", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM", "HelpLink", "https://cfx.re/", RegistryValueKind.String), () => FiveM == true),
+            ("Installing FiveM", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM", "InstallLocation", "C:\\Users\\user\\AppData\\Local\\FiveM", RegistryValueKind.String), () => FiveM == true),
+            ("Installing FiveM", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM", "Publisher", "Cfx.re", RegistryValueKind.String), () => FiveM == true),
+            ("Installing FiveM", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM", "UninstallString", "\"C:\\Users\\user\\AppData\\Local\\FiveM\\FiveM.exe\" -uninstall app", RegistryValueKind.String), () => FiveM == true),
+            ("Installing FiveM", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM", "URLInfoAbout", "https://cfx.re/", RegistryValueKind.String), () => FiveM == true),
+            ("Installing FiveM", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM", "NoModify", 1, RegistryValueKind.DWord), () => FiveM == true),
+            ("Installing FiveM", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\CitizenFX_FiveM", "NoRepair", 1, RegistryValueKind.DWord), () => FiveM == true),
             ("Installing FiveM", async () => await ProcessActions.RunPowerShell(@"$s=New-Object -ComObject WScript.Shell; $p=[System.IO.Path]::Combine($env:APPDATA,'Microsoft\Windows\Start Menu\Programs'); $sc1=$s.CreateShortcut([System.IO.Path]::Combine($p,'FiveM.lnk')); $sc1.TargetPath=[System.IO.Path]::Combine($env:LOCALAPPDATA,'FiveM\FiveM.exe'); $sc1.Description='FiveM is a modification framework based on the Cfx.re platform'; $sc1.Save(); $sc2=$s.CreateShortcut([System.IO.Path]::Combine($p,'FiveM - Cfx.re Development Kit (FxDK).lnk')); $sc2.TargetPath=[System.IO.Path]::Combine($env:LOCALAPPDATA,'FiveM\FiveM - Cfx.re Development Kit (FxDK).lnk'); $sc2.Save()"), () => FiveM == true),
         
             // download faceit
             ("Downloading FACEIT", async () => await ProcessActions.RunDownload("https://faceit-client.faceit-cdn.net/release/FACEIT-setup-latest.exe", Path.GetTempPath(), "FACEIT-setup-latest.exe"), () => FACEIT == true),
 
             // install faceit
-            ("Installing FACEIT", async () => await ProcessActions.RunNsudo("CurrentUser", @"""%TEMP%\FACEIT-setup-latest.exe"" /S"), () => FACEIT == true),
+            ("Installing FACEIT", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "FACEIT-setup-latest.exe"), Arguments = "/S", WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => FACEIT == true),
 
             // log in to faceit
-            ("Please log in to your FACEIT account", async () => await Task.Run(async () => { while (Process.GetProcessesByName("FACEIT").Length > 1) await Task.Delay(500); }), () => FACEIT == true),
+            ("Please log in to your FACEIT account", async () => { while (Process.GetProcessesByName("FACEIT").Length > 1) await Task.Delay(500); }, () => FACEIT == true),
 
             // remove faceit desktop shortcut 
-            ("Removing FACEIT desktop shortcut", async () => await ProcessActions.RunNsudo("CurrentUser", @"cmd /c del /f /q ""%HOMEPATH%\Desktop\FACEIT.lnk"""), () => FACEIT == true),
+            ("Removing FACEIT desktop shortcut", async () => File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "FACEIT.lnk")), () => FACEIT == true),
 
             // disable faceit startup entry
-            ("Disabling FACEIT startup entry", async () => await ProcessActions.RunNsudo("CurrentUser", @"reg add ""HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"" /v ""FACEIT"" /t REG_BINARY /d ""01"" /f"), () => FACEIT == true),
+            ("Disabling FACEIT startup entry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "FACEIT", new byte[] { 0x01 }, RegistryValueKind.Binary), () => FACEIT == true),
         };
 
         var filteredActions = actions.Where(a => a.Condition == null || a.Condition.Invoke()).ToList();
@@ -841,28 +851,31 @@ public static class ApplicationStage
                     }
                     catch (Exception ex)
                     {
-                        InstallPage.Info.Title += ": " + ex.Message;
+                        await ProcessActions.LogError(ex);
+
+                        InstallPage.Info.Title = $"{previousTitle}: {ex.Message}";
                         InstallPage.Info.Severity = InfoBarSeverity.Error;
                         InstallPage.Progress.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Error);
-                        InstallPage.ProgressRingControl.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
                         InstallPage.ProgressRingControl.Visibility = Visibility.Collapsed;
                         InstallPage.ResumeButton.Visibility = Visibility.Visible;
-                        await ProcessActions.LogError(ex);
 
                         var tcs = new TaskCompletionSource<bool>();
 
-                        InstallPage.ResumeButton.Click += (sender, e) =>
+                        RoutedEventHandler resumeHandler = null;
+                        resumeHandler = (sender, e) =>
                         {
-                            tcs.TrySetResult(true);
+                            InstallPage.ResumeButton.Click -= resumeHandler;
                             InstallPage.Info.Severity = InfoBarSeverity.Informational;
                             InstallPage.Progress.ClearValue(ProgressBar.ForegroundProperty);
                             Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Normal);
-                            InstallPage.ProgressRingControl.Foreground = null;
                             InstallPage.ProgressRingControl.Visibility = Visibility.Visible;
                             InstallPage.ResumeButton.Visibility = Visibility.Collapsed;
+
+                            tcs.TrySetResult(true);
                         };
 
+                        InstallPage.ResumeButton.Click += resumeHandler;
                         await tcs.Task;
                     }
                 }
