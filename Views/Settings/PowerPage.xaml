@@ -10,9 +10,9 @@
       mc:Ignorable="d">
     <Page.Resources>
         <DataTemplate x:Key="SubgroupTemplate"
-                      x:DataType="local:PowerSubgroup">
+                      x:DataType="local:PowerModelItem">
             <TreeViewItem IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"
-                          ItemsSource="{x:Bind SubItems}"
+                          ItemsSource="{x:Bind Settings}"
                           Visibility="{x:Bind IsVisible, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                 <controls:DataRow>
                     <TextBlock />
@@ -25,7 +25,7 @@
             </TreeViewItem>
         </DataTemplate>
         <DataTemplate x:Key="SettingTemplate"
-                      x:DataType="local:PowerSetting">
+                      x:DataType="local:PowerModelItem">
             <TreeViewItem Visibility="{x:Bind IsVisible, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                 <controls:DataRow>
                     <TextBlock />
@@ -52,15 +52,15 @@
             </TextBlock>
         </DataTemplate>
         <DataTemplate x:Key="CompareSubgroupTemplate"
-                      x:DataType="local:PowerCompareSubgroup">
+                      x:DataType="local:PowerCompareModelItem">
             <TreeViewItem IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"
-                          ItemsSource="{x:Bind SubItems}"
+                          ItemsSource="{x:Bind Settings}"
                           Visibility="{x:Bind IsVisible, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                 <controls:DataRow>
                     <TextBlock />
                     <TextBlock Margin="-24,0,0,0"
-                               FontWeight="{x:Bind FontWeight}"
-                               Text="{x:Bind Name}" />
+                               FontWeight="{x:Bind FontWeight, Mode=OneWay}"
+                               Text="{x:Bind Name, Mode=OneWay}" />
                     <TextBlock />
                     <TextBlock />
                     <TextBlock />
@@ -69,12 +69,12 @@
             </TreeViewItem>
         </DataTemplate>
         <DataTemplate x:Key="CompareSettingTemplate"
-                      x:DataType="local:PowerCompareSetting">
+                      x:DataType="local:PowerCompareModelItem">
             <TreeViewItem Visibility="{x:Bind IsVisible, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                 <controls:DataRow>
                     <TextBlock />
-                    <TextBlock Text="{x:Bind Name}"
-                               ToolTipService.ToolTip="{x:Bind Description}" />
+                    <TextBlock Text="{x:Bind Name, Mode=OneWay}"
+                               ToolTipService.ToolTip="{x:Bind Description, Mode=OneWay}" />
                     <Grid CornerRadius="4">
                         <Border Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
                                 CornerRadius="4"

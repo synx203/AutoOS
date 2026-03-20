@@ -7,22 +7,10 @@ using WinRT;
 namespace AutoOS.Views.Settings.Power
 {
     [GeneratedBindableCustomProperty]
-    public sealed partial class PowerCompareSubgroup : INotifyPropertyChanged
+    public abstract partial class PowerCompareModelItem : INotifyPropertyChanged
     {
         public Guid Guid { get; set; }
         public string Name { get; set; }
-
-        public Windows.UI.Text.FontWeight FontWeight { get; set; } = FontWeights.SemiBold;
-
-        public ObservableCollection<PowerCompareSetting> Settings { get; set; } = [];
-        public ObservableCollection<object> SubItems => new(Settings.Cast<object>());
-
-        private bool _isExpanded = true;
-        public bool IsExpanded
-        {
-            get => _isExpanded;
-            set { if (_isExpanded != value) { _isExpanded = value; OnPropertyChanged(); } }
-        }
 
         private bool _isVisible = true;
         public bool IsVisible
@@ -31,19 +19,47 @@ namespace AutoOS.Views.Settings.Power
             set { if (_isVisible != value) { _isVisible = value; OnPropertyChanged(); } }
         }
 
+        public virtual bool IsExpanded { get; set; }
+        public virtual Windows.UI.Text.FontWeight FontWeight { get; set; }
+        public virtual ObservableCollection<PowerCompareSetting> Settings { get; set; }
+
+        public virtual string Description { get; set; }
+        public virtual bool IsAcDifferent { get; set; }
+        public virtual bool IsDcDifferent { get; set; }
+        public virtual uint Plan1AcValue { get; set; }
+        public virtual uint Plan1DcValue { get; set; }
+        public virtual uint Plan2AcValue { get; set; }
+        public virtual uint Plan2DcValue { get; set; }
+        public virtual string Plan1AcFriendlyValue { get; set; }
+        public virtual string Plan1DcFriendlyValue { get; set; }
+        public virtual string Plan2AcFriendlyValue { get; set; }
+        public virtual string Plan2DcFriendlyValue { get; set; }
+
         public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     [GeneratedBindableCustomProperty]
-    public sealed partial class PowerCompareSetting : INotifyPropertyChanged
+    public sealed partial class PowerCompareSubgroup : PowerCompareModelItem
+    {
+        public override Windows.UI.Text.FontWeight FontWeight { get; set; } = FontWeights.SemiBold;
+        public override ObservableCollection<PowerCompareSetting> Settings { get; set; } = [];
+
+        private bool _isExpanded = true;
+        public override bool IsExpanded
+        {
+            get => _isExpanded;
+            set { if (_isExpanded != value) { _isExpanded = value; OnPropertyChanged(); } }
+        }
+    }
+
+    [GeneratedBindableCustomProperty]
+    public sealed partial class PowerCompareSetting : PowerCompareModelItem
     {
         public Guid SubgroupGuid { get; set; }
-        public Guid Guid { get; set; }
 
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public override string Description { get; set; }
 
         public uint? Min { get; set; }
         public uint? Max { get; set; }
@@ -53,63 +69,63 @@ namespace AutoOS.Views.Settings.Power
         public bool IsOption => !(Min.HasValue && Max.HasValue && Increment.HasValue && Max.Value > Min.Value && Increment.Value > 0);
 
         private uint _plan1AcValue;
-        public uint Plan1AcValue
+        public override uint Plan1AcValue
         {
             get => _plan1AcValue;
             set { if (_plan1AcValue != value) { _plan1AcValue = value; OnPropertyChanged(); } }
         }
 
         private uint _plan1DcValue;
-        public uint Plan1DcValue
+        public override uint Plan1DcValue
         {
             get => _plan1DcValue;
             set { if (_plan1DcValue != value) { _plan1DcValue = value; OnPropertyChanged(); } }
         }
 
         private uint _plan2AcValue;
-        public uint Plan2AcValue
+        public override uint Plan2AcValue
         {
             get => _plan2AcValue;
             set { if (_plan2AcValue != value) { _plan2AcValue = value; OnPropertyChanged(); } }
         }
 
         private uint _plan2DcValue;
-        public uint Plan2DcValue
+        public override uint Plan2DcValue
         {
             get => _plan2DcValue;
             set { if (_plan2DcValue != value) { _plan2DcValue = value; OnPropertyChanged(); } }
         }
 
         private string _plan1AcFriendlyValue;
-        public string Plan1AcFriendlyValue
+        public override string Plan1AcFriendlyValue
         {
             get => _plan1AcFriendlyValue;
             set { if (_plan1AcFriendlyValue != value) { _plan1AcFriendlyValue = value; OnPropertyChanged(); } }
         }
 
         private string _plan1DcFriendlyValue;
-        public string Plan1DcFriendlyValue
+        public override string Plan1DcFriendlyValue
         {
             get => _plan1DcFriendlyValue;
             set { if (_plan1DcFriendlyValue != value) { _plan1DcFriendlyValue = value; OnPropertyChanged(); } }
         }
 
         private string _plan2AcFriendlyValue;
-        public string Plan2AcFriendlyValue
+        public override string Plan2AcFriendlyValue
         {
             get => _plan2AcFriendlyValue;
             set { if (_plan2AcFriendlyValue != value) { _plan2AcFriendlyValue = value; OnPropertyChanged(); } }
         }
 
         private string _plan2DcFriendlyValue;
-        public string Plan2DcFriendlyValue
+        public override string Plan2DcFriendlyValue
         {
             get => _plan2DcFriendlyValue;
             set { if (_plan2DcFriendlyValue != value) { _plan2DcFriendlyValue = value; OnPropertyChanged(); } }
         }
 
         private bool _isAcDifferent = false;
-        public bool IsAcDifferent
+        public override bool IsAcDifferent
         {
             get => _isAcDifferent;
             set 
@@ -123,7 +139,7 @@ namespace AutoOS.Views.Settings.Power
         }
 
         private bool _isDcDifferent = false;
-        public bool IsDcDifferent
+        public override bool IsDcDifferent
         {
             get => _isDcDifferent;
             set 
@@ -135,17 +151,6 @@ namespace AutoOS.Views.Settings.Power
                 } 
             }
         }
-
-        private bool _isVisible = true;
-        public bool IsVisible
-        {
-            get => _isVisible;
-            set { if (_isVisible != value) { _isVisible = value; OnPropertyChanged(); } }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     public sealed partial class PowerCompareItemTemplateSelector : DataTemplateSelector

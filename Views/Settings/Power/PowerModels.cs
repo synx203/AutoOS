@@ -7,7 +7,7 @@ using WinRT;
 namespace AutoOS.Views.Settings.Power
 {
     [GeneratedBindableCustomProperty]
-    public sealed partial class PowerPlan : INotifyPropertyChanged
+    public abstract partial class PowerModelItem : INotifyPropertyChanged
     {
         public Guid Guid { get; set; }
 
@@ -25,28 +25,6 @@ namespace AutoOS.Views.Settings.Power
             set { if (_description != value) { _description = value; OnPropertyChanged(); } }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    [GeneratedBindableCustomProperty]
-    public sealed partial class PowerSubgroup : INotifyPropertyChanged
-    {
-        public Guid Guid { get; set; }
-        public string Name { get; set; }
-
-        public Windows.UI.Text.FontWeight FontWeight { get; set; } = FontWeights.SemiBold;
-        public ObservableCollection<PowerSetting> Settings { get; set; } = new ObservableCollection<PowerSetting>();
-        public List<object> SubItems => Settings.Cast<object>().ToList();
-
-        private bool _isExpanded = true;
-        public bool IsExpanded
-        {
-            get => _isExpanded;
-            set { if (_isExpanded != value) { _isExpanded = value; OnPropertyChanged(); } }
-        }
-
         private bool _isVisible = true;
         public bool IsVisible
         {
@@ -54,26 +32,51 @@ namespace AutoOS.Views.Settings.Power
             set { if (_isVisible != value) { _isVisible = value; OnPropertyChanged(); } }
         }
 
+        public virtual bool IsExpanded { get; set; }
+        public virtual Windows.UI.Text.FontWeight FontWeight { get; set; }
+        public virtual ObservableCollection<PowerSetting> Settings { get; set; }
+
+        public virtual uint AcValueIndex { get; set; }
+        public virtual uint DcValueIndex { get; set; }
+        public virtual string FriendlyAcValue { get; set; }
+        public virtual string FriendlyDcValue { get; set; }
+
         public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     [GeneratedBindableCustomProperty]
-    public sealed partial class PowerSetting : INotifyPropertyChanged
+    public sealed partial class PowerPlan : PowerModelItem
+    {
+    }
+
+    [GeneratedBindableCustomProperty]
+    public sealed partial class PowerSubgroup : PowerModelItem
+    {
+        public override Windows.UI.Text.FontWeight FontWeight { get; set; } = FontWeights.SemiBold;
+        public override ObservableCollection<PowerSetting> Settings { get; set; } = new ObservableCollection<PowerSetting>();
+
+        private bool _isExpanded = true;
+        public override bool IsExpanded
+        {
+            get => _isExpanded;
+            set { if (_isExpanded != value) { _isExpanded = value; OnPropertyChanged(); } }
+        }
+    }
+
+    [GeneratedBindableCustomProperty]
+    public sealed partial class PowerSetting : PowerModelItem
     {
         private uint _acValueIndex;
         private uint _dcValueIndex;
 
         public Guid SubgroupGuid { get; set; }
-        public Guid Guid { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
 
         private string _friendlyAcValue;
         private string _friendlyDcValue;
 
-        public string FriendlyAcValue
+        public override string FriendlyAcValue
         {
             get => _friendlyAcValue;
             set
@@ -86,7 +89,7 @@ namespace AutoOS.Views.Settings.Power
             }
         }
 
-        public string FriendlyDcValue
+        public override string FriendlyDcValue
         {
             get => _friendlyDcValue;
             set
@@ -99,7 +102,7 @@ namespace AutoOS.Views.Settings.Power
             }
         }
 
-        public uint AcValueIndex
+        public override uint AcValueIndex
         {
             get => _acValueIndex;
             set
@@ -112,7 +115,7 @@ namespace AutoOS.Views.Settings.Power
             }
         }
 
-        public uint DcValueIndex
+        public override uint DcValueIndex
         {
             get => _dcValueIndex;
             set
@@ -131,17 +134,6 @@ namespace AutoOS.Views.Settings.Power
         public string Unit { get; set; }
 
         public bool IsOption => !(Min.HasValue && Max.HasValue && Increment.HasValue && Max.Value > Min.Value && Increment.Value > 0);
-
-        private bool _isVisible = true;
-        public bool IsVisible
-        {
-            get => _isVisible;
-            set { if (_isVisible != value) { _isVisible = value; OnPropertyChanged(); } }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     public sealed class PowerSettingValueInfo
