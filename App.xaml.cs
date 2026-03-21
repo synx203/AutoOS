@@ -77,7 +77,7 @@ namespace AutoOS
 
                 if (appActivationArguments.Kind is ExtendedActivationKind.StartupTask)
                 {
-                    return;
+                    Application.Current.Exit();
                 }
                 else
                 {
