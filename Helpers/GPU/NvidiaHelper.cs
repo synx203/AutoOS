@@ -315,7 +315,7 @@ namespace AutoOS.Helpers.GPU
                 ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMBlcg", 286331153, RegistryValueKind.DWord), null),
 
                 // disable all second level clock gating settings
-                ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMSlcg", 262131, RegistryValueKind.DWord), null),
+                ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMSlcg", 262143, RegistryValueKind.DWord), null),
 
                 // disable all floorsweep power gating settings
                 ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMFspg", 15, RegistryValueKind.DWord), null),

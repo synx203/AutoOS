@@ -18,7 +18,27 @@
                     <TextBlock />
                     <TextBlock Margin="-24,0,0,0"
                                FontWeight="{x:Bind FontWeight, Mode=OneWay}"
-                               Text="{x:Bind Name, Mode=OneWay}" />
+                               Text="{x:Bind Name, Mode=OneWay}">
+                        <ToolTipService.ToolTip>
+                            <ToolTip>
+                                <TextBlock TextWrapping="Wrap">
+                                    <Run Text="GUID:" />
+                                    <Run Text="{x:Bind Guid}" />
+                                    <LineBreak />
+                                    <Run Text="Name:" />
+                                    <Run Text="{x:Bind Name, Mode=OneWay}" />
+                                </TextBlock>
+                            </ToolTip>
+                        </ToolTipService.ToolTip>
+                        <TextBlock.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Click="CopyGuid_Click"
+                                                Text="Copy GUID" />
+                                <MenuFlyoutItem Click="CopyName_Click"
+                                                Text="Copy Name" />
+                            </MenuFlyout>
+                        </TextBlock.ContextFlyout>
+                    </TextBlock>
                     <TextBlock />
                     <TextBlock />
                 </controls:DataRow>
@@ -29,8 +49,36 @@
             <TreeViewItem Visibility="{x:Bind IsVisible, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                 <controls:DataRow>
                     <TextBlock />
-                    <TextBlock Text="{x:Bind Name, Mode=OneWay}"
-                               ToolTipService.ToolTip="{x:Bind Description, Mode=OneWay}" />
+                    <TextBlock Text="{x:Bind Name, Mode=OneWay}">
+                        <ToolTipService.ToolTip>
+                            <ToolTip>
+                                <TextBlock TextWrapping="Wrap">
+                                    <Run Text="GUID:" />
+                                    <Run Text="{x:Bind Guid}" />
+                                    <LineBreak />
+                                    <Run Text="Name:" />
+                                    <Run Text="{x:Bind Name, Mode=OneWay}" />
+                                    <LineBreak />
+                                    <Run Text="Description:" />
+                                    <Run Text="{x:Bind Description, Mode=OneWay}" />
+                                </TextBlock>
+                            </ToolTip>
+                        </ToolTipService.ToolTip>
+                        <TextBlock.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Click="CopyGuid_Click"
+                                                Text="Copy GUID" />
+                                <MenuFlyoutItem Click="CopyName_Click"
+                                                Text="Copy Name" />
+                                <MenuFlyoutItem Click="CopyDescription_Click"
+                                                Text="Copy Description" />
+                                <MenuFlyoutItem Click="CopyAcValue_Click"
+                                                Text="Copy AC Value" />
+                                <MenuFlyoutItem Click="CopyDcValue_Click"
+                                                Text="Copy DC Value" />
+                            </MenuFlyout>
+                        </TextBlock.ContextFlyout>
+                    </TextBlock>
                     <TextBlock Text="{x:Bind AcValueIndex, Mode=OneWay}"
                                ToolTipService.ToolTip="{x:Bind FriendlyAcValue, Mode=OneWay}" />
                     <TextBlock Text="{x:Bind DcValueIndex, Mode=OneWay}"
@@ -47,8 +95,21 @@
                       x:DataType="local:PowerPlan">
             <TextBlock Text="{x:Bind Name}"
                        TextTrimming="CharacterEllipsis"
-                       TextWrapping="NoWrap"
-                       ToolTipService.ToolTip="{x:Bind Description}">
+                       TextWrapping="NoWrap">
+                <ToolTipService.ToolTip>
+                    <ToolTip>
+                        <TextBlock TextWrapping="Wrap">
+                            <Run Text="GUID:" />
+                            <Run Text="{x:Bind Guid}" />
+                            <LineBreak />
+                            <Run Text="Name:" />
+                            <Run Text="{x:Bind Name}" />
+                            <LineBreak />
+                            <Run Text="Description:" />
+                            <Run Text="{x:Bind Description}" />
+                        </TextBlock>
+                    </ToolTip>
+                </ToolTipService.ToolTip>
             </TextBlock>
         </DataTemplate>
         <DataTemplate x:Key="CompareSubgroupTemplate"
@@ -60,7 +121,27 @@
                     <TextBlock />
                     <TextBlock Margin="-24,0,0,0"
                                FontWeight="{x:Bind FontWeight, Mode=OneWay}"
-                               Text="{x:Bind Name, Mode=OneWay}" />
+                               Text="{x:Bind Name, Mode=OneWay}">
+                        <ToolTipService.ToolTip>
+                            <ToolTip>
+                                <TextBlock TextWrapping="Wrap">
+                                    <Run Text="GUID:" />
+                                    <Run Text="{x:Bind Guid}" />
+                                    <LineBreak />
+                                    <Run Text="Name:" />
+                                    <Run Text="{x:Bind Name, Mode=OneWay}" />
+                                </TextBlock>
+                            </ToolTip>
+                        </ToolTipService.ToolTip>
+                        <TextBlock.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Click="CopyGuid_Click"
+                                                Text="Copy GUID" />
+                                <MenuFlyoutItem Click="CopyName_Click"
+                                                Text="Copy Name" />
+                            </MenuFlyout>
+                        </TextBlock.ContextFlyout>
+                    </TextBlock>
                     <TextBlock />
                     <TextBlock />
                     <TextBlock />
@@ -73,8 +154,36 @@
             <TreeViewItem Visibility="{x:Bind IsVisible, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                 <controls:DataRow>
                     <TextBlock />
-                    <TextBlock Text="{x:Bind Name, Mode=OneWay}"
-                               ToolTipService.ToolTip="{x:Bind Description, Mode=OneWay}" />
+                    <TextBlock Text="{x:Bind Name, Mode=OneWay}">
+                        <ToolTipService.ToolTip>
+                            <ToolTip>
+                                <TextBlock TextWrapping="Wrap">
+                                    <Run Text="GUID:" />
+                                    <Run Text="{x:Bind Guid}" />
+                                    <LineBreak />
+                                    <Run Text="Name:" />
+                                    <Run Text="{x:Bind Name, Mode=OneWay}" />
+                                    <LineBreak />
+                                    <Run Text="Description:" />
+                                    <Run Text="{x:Bind Description, Mode=OneWay}" />
+                                </TextBlock>
+                            </ToolTip>
+                        </ToolTipService.ToolTip>
+                        <TextBlock.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Click="CopyGuid_Click"
+                                                Text="Copy GUID" />
+                                <MenuFlyoutItem Click="CopyName_Click"
+                                                Text="Copy Name" />
+                                <MenuFlyoutItem Click="CopyDescription_Click"
+                                                Text="Copy Description" />
+                                <MenuFlyoutItem Click="CopyAcValue_Click"
+                                                Text="Copy AC Value" />
+                                <MenuFlyoutItem Click="CopyDcValue_Click"
+                                                Text="Copy DC Value" />
+                            </MenuFlyout>
+                        </TextBlock.ContextFlyout>
+                    </TextBlock>
                     <Grid CornerRadius="4">
                         <Border Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
                                 CornerRadius="4"
@@ -132,8 +241,6 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -143,7 +250,7 @@
                 <dev:TextBox x:Name="Search"
                              Grid.Row="0"
                              Grid.Column="0"
-                             Grid.ColumnSpan="6"
+                             Grid.ColumnSpan="4"
                              PlaceholderText="Search..."
                              TextChanged="SearchBox_TextChanged">
                     <dev:TextBox.Content>
@@ -157,7 +264,36 @@
                           Margin="0,0,8,0"
                           HorizontalAlignment="Stretch"
                           ItemTemplate="{StaticResource PowerPlanTemplate}"
-                          SelectionChanged="PowerPlanComboBox_SelectionChanged" />
+                          SelectionChanged="PowerPlanComboBox_SelectionChanged">
+                    <ComboBox.ContextFlyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem Click="Edit_Click"
+                                            Text="Edit">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE70F;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Click="Duplicate_Click"
+                                            Text="Duplicate">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xECCD;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Click="Export_Click"
+                                            Text="Export">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xEDE1;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Click="Delete_Click"
+                                            Text="Delete">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE74D;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                        </MenuFlyout>
+                    </ComboBox.ContextFlyout>
+                </ComboBox>
                 <!--  Compare power plan  -->
                 <ComboBox x:Name="ComparePowerPlanComboBox"
                           Grid.Row="1"
@@ -166,54 +302,24 @@
                           HorizontalAlignment="Stretch"
                           ItemTemplate="{StaticResource PowerPlanTemplate}"
                           SelectionChanged="ComparePowerPlanComboBox_SelectionChanged" />
-                <!--  Edit  -->
-                <Button x:Name="Edit"
+                <Button x:Name="Restore"
                         Grid.Row="1"
                         Grid.Column="2"
                         Margin="0,0,8,0"
                         VerticalAlignment="Stretch"
-                        Click="Edit_Click">
+                        Click="Restore_Click">
                     <StackPanel VerticalAlignment="Center"
                                 Orientation="Horizontal">
                         <FontIcon Margin="0,0,8,0"
                                   FontSize="14"
-                                  Glyph="&#xE70F;" />
-                        <TextBlock Text="Edit" />
-                    </StackPanel>
-                </Button>
-                <!--  Delete  -->
-                <Button x:Name="Delete"
-                        Grid.Row="1"
-                        Grid.Column="3"
-                        Margin="0,0,8,0"
-                        VerticalAlignment="Stretch"
-                        Click="Delete_Click">
-                    <StackPanel VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                        <FontIcon Margin="0,0,8,0"
-                                  FontSize="14"
-                                  Glyph="&#xE74D;" />
-                        <TextBlock Text="Delete" />
-                    </StackPanel>
-                </Button>
-                <!--  Export  -->
-                <Button x:Name="Export"
-                        Grid.Row="1"
-                        Grid.Column="4"
-                        Margin="0,0,8,0"
-                        Click="Export_Click">
-                    <StackPanel VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                        <FontIcon Margin="0,0,8,0"
-                                  FontSize="14"
-                                  Glyph="&#xEDE1;" />
-                        <TextBlock Text="Export" />
+                                  Glyph="&#xE777;" />
+                        <TextBlock Text="Restore" />
                     </StackPanel>
                 </Button>
                 <!--  Import  -->
                 <Button x:Name="Import"
                         Grid.Row="1"
-                        Grid.Column="5"
+                        Grid.Column="3"
                         Click="Import_Click">
                     <StackPanel VerticalAlignment="Center"
                                 Orientation="Horizontal">
@@ -253,10 +359,10 @@
                                                  Content="Name"
                                                  DesiredWidth="*" />
                             <controls:DataColumn MinWidth="85"
-                                                 Content="Ac"
+                                                 Content="AC"
                                                  DesiredWidth="85" />
                             <controls:DataColumn MinWidth="110"
-                                                 Content="Dc"
+                                                 Content="DC"
                                                  DesiredWidth="110" />
                         </controls:DataTable>
                     </controls:HeaderedTreeView.Header>

@@ -25,7 +25,6 @@ namespace AutoOS.Views.Settings
         {
             InitializeComponent();
             LoadPowerPlans();
-            LoadPowerPlanSettings(((PowerPlan)PowerPlanComboBox.SelectedItem).Guid);
             ActiveTreeView.UpdateLayout();
             Loaded += PowerPage_Loaded;
         }
@@ -38,6 +37,10 @@ namespace AutoOS.Views.Settings
 
         private unsafe void LoadPowerPlans()
         {
+            isInitializingPowerPlans = true;
+            _powerPlans.Clear();
+            _comparePlans.Clear();
+
             var plansList = new List<PowerPlan>();
             uint index = 0;
 
@@ -84,6 +87,9 @@ namespace AutoOS.Views.Settings
             ComparePowerPlanComboBox.ItemsSource = _comparePlans;
             ComparePowerPlanComboBox.SelectedItem = selectPlanToCompare;
             isInitializingPowerPlans = false;
+
+            if (PowerPlanComboBox.SelectedItem is PowerPlan active)
+                LoadPowerPlanSettings(active.Guid);
         }
 
         private unsafe void LoadPowerPlanSettings(Guid scheme)
@@ -585,7 +591,7 @@ namespace AutoOS.Views.Settings
                 Content = panel,
                 PrimaryButtonText = "Apply",
                 CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
+                DefaultButton = ContentDialogButton.Close,
                 XamlRoot = XamlRoot
             };
 
@@ -593,31 +599,84 @@ namespace AutoOS.Views.Settings
             if (result != ContentDialogResult.Primary)
                 return;
 
+            var selectedCompare = ComparePowerPlanComboBox.SelectedItem;
+
             PowerApi.WriteSchemeFriendlyName(plan.Guid, nameTextBox.Text);
             PowerApi.WriteSchemeDescription(plan.Guid, descriptionBox.Text);
+
+            _powerPlans.Remove(plan);
+            _comparePlans.Remove(plan);
 
             plan.Name = nameTextBox.Text;
             plan.Description = descriptionBox.Text;
 
-            var sortedPlans = _powerPlans.OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
-            _powerPlans.Clear();
-            foreach (var p in sortedPlans) _powerPlans.Add(p);
+            int powerIndex = _powerPlans.Count(p => string.Compare(p.Name, plan.Name, StringComparison.CurrentCultureIgnoreCase) < 0);
+            _powerPlans.Insert(powerIndex, plan);
 
-            var comparePlaceholder = _comparePlans.FirstOrDefault(p => p.Guid == Guid.Empty);
-            var sortedCompare = _comparePlans.Where(p => p.Guid != Guid.Empty).OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
-            _comparePlans.Clear();
-            if (comparePlaceholder != null) _comparePlans.Add(comparePlaceholder);
-            foreach (var p in sortedCompare) _comparePlans.Add(p);
+            int compareIndex = _comparePlans.Count(p => p.Guid == Guid.Empty || string.Compare(p.Name, plan.Name, StringComparison.CurrentCultureIgnoreCase) < 0);
+            _comparePlans.Insert(compareIndex, plan);
 
-            var selected = PowerPlanComboBox.SelectedItem;
-            PowerPlanComboBox.ItemsSource = null;
-            PowerPlanComboBox.ItemsSource = _powerPlans;
-            PowerPlanComboBox.SelectedItem = selected;
-
-            var selectedCompare = ComparePowerPlanComboBox.SelectedItem;
-            ComparePowerPlanComboBox.ItemsSource = null;
-            ComparePowerPlanComboBox.ItemsSource = _comparePlans;
+            PowerPlanComboBox.SelectedItem = plan;
             ComparePowerPlanComboBox.SelectedItem = selectedCompare;
+        }
+
+        private async void Duplicate_Click(object sender, RoutedEventArgs e)
+        {
+            if (PowerPlanComboBox.SelectedItem is not PowerPlan plan)
+                return;
+
+            var dialog = new ContentDialog
+            {
+                Title = "Duplicate Power Plan",
+                Content = @$"Are you sure you want to duplicate ""{plan.Name}""?",
+                PrimaryButtonText = "Duplicate",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result != ContentDialogResult.Primary)
+                return;
+
+            int i = 1;
+            while (_powerPlans.Any(p => string.Equals(p.Name, i == 1 ? $"{plan.Name} - Copy" : $"{plan.Name} - Copy ({i})", StringComparison.CurrentCultureIgnoreCase))) 
+                i++;
+
+            var newPlan = new PowerPlan
+            {
+                Guid = PowerApi.DuplicateScheme(plan.Guid, i == 1 ? $"{plan.Name} - Copy" : $"{plan.Name} - Copy ({i})", plan.Description),
+                Name = i == 1 ? $"{plan.Name} - Copy" : $"{plan.Name} - Copy ({i})",
+                Description = plan.Description
+            };
+
+            int powerIndex = _powerPlans.Count(p => string.Compare(p.Name, newPlan.Name, StringComparison.CurrentCultureIgnoreCase) < 0);
+            _powerPlans.Insert(powerIndex, newPlan);
+
+            int compareIndex = _comparePlans.Count(p => p.Guid == Guid.Empty || string.Compare(p.Name, newPlan.Name, StringComparison.CurrentCultureIgnoreCase) < 0);
+            _comparePlans.Insert(compareIndex, newPlan);
+
+            PowerPlanComboBox.SelectedItem = newPlan;
+        }
+
+        private async void Restore_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "Restore power plans",
+                Content = "Are you sure you want to restore the default power schemes?.",
+                PrimaryButtonText = "Restore",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result != ContentDialogResult.Primary)
+                return;
+
+            PowerApi.RestoreDefaultPowerSchemes();
+            LoadPowerPlans();
         }
 
         private async void Delete_Click(object sender, RoutedEventArgs e)
@@ -656,10 +715,10 @@ namespace AutoOS.Views.Settings
             int currentIndex = _powerPlans.IndexOf(plan);
 
             PowerPlan nextSelection;
-            if (currentIndex < _powerPlans.Count - 1)
-                nextSelection = _powerPlans[currentIndex + 1];
-            else
+            if (currentIndex > 0)
                 nextSelection = _powerPlans[currentIndex - 1];
+            else
+                nextSelection = _powerPlans[currentIndex + 1];
 
             PowerPlanComboBox.SelectedItem = nextSelection;
 
@@ -705,8 +764,6 @@ namespace AutoOS.Views.Settings
             if (importedGuid == Guid.Empty)
                 return;
 
-            PowerApi.PowerSetActiveScheme(importedGuid);
-
             var plan = new PowerPlan
             {
                 Guid = importedGuid,
@@ -714,35 +771,14 @@ namespace AutoOS.Views.Settings
                 Description = PowerApi.ReadDescription(importedGuid)
             };
 
-            _powerPlans.Add(plan);
+            int powerIndex = _powerPlans.Count(p => string.Compare(p.Name, plan.Name, StringComparison.CurrentCultureIgnoreCase) < 0);
+            _powerPlans.Insert(powerIndex, plan);
 
-            var sortedPlans = _powerPlans.OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
-            _powerPlans.Clear();
-            foreach (var p in sortedPlans) _powerPlans.Add(p);
+            int compareIndex = _comparePlans.Count(p => p.Guid == Guid.Empty || string.Compare(p.Name, plan.Name, StringComparison.CurrentCultureIgnoreCase) < 0);
+            _comparePlans.Insert(compareIndex, plan);
 
-            _comparePlans.Add(plan);
-            var comparePlaceholder = _comparePlans.FirstOrDefault(p => p.Guid == Guid.Empty);
-            var sortedCompare = _comparePlans.Where(p => p.Guid != Guid.Empty).OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
-            _comparePlans.Clear();
-            if (comparePlaceholder != null) _comparePlans.Add(comparePlaceholder);
-            foreach (var p in sortedCompare) _comparePlans.Add(p);
-
-            PowerPlanComboBox.ItemsSource = null;
-            PowerPlanComboBox.ItemsSource = _powerPlans;
-            PowerPlanComboBox.SelectedItem = _powerPlans.First(p => p.Guid == importedGuid);
-
-            ComparePowerPlanComboBox.ItemsSource = null;
-            ComparePowerPlanComboBox.ItemsSource = _comparePlans;
-            ComparePowerPlanComboBox.SelectedItem = _comparePlans.First(p => p.Guid == Guid.Empty);
-
-            foreach (var subgroup in _allSubgroups)
-            {
-                foreach (var setting in subgroup.Settings)
-                {
-                    setting.AcValueIndex = PowerApi.ReadAcValueIndex(importedGuid, subgroup.Guid, setting.Guid);
-                    setting.DcValueIndex = PowerApi.ReadDcValueIndex(importedGuid, subgroup.Guid, setting.Guid);
-                }
-            }
+            PowerPlanComboBox.SelectedItem = plan;
+            ComparePowerPlanComboBox.SelectedItem = _comparePlans.FirstOrDefault(p => p.Guid == Guid.Empty);
         }
 
         private async void Export_Click(object sender, RoutedEventArgs e)
@@ -911,10 +947,93 @@ namespace AutoOS.Views.Settings
                     }
                     else
                     {
-                        if (CompareSubgroups.Contains(_identicalPlansPlaceholder))
-                            CompareSubgroups.Remove(_identicalPlansPlaceholder);
+                        CompareSubgroups.Remove(_identicalPlansPlaceholder);
                     }
                     break;
+            }
+        }
+
+        private void CopyGuid_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement { DataContext: PowerModelItem item })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                dataPackage.SetText(item.Guid.ToString());
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            }
+            else if (sender is FrameworkElement { DataContext: PowerCompareModelItem compareItem })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                dataPackage.SetText(compareItem.Guid.ToString());
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            }
+        }
+
+        private void CopyName_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement { DataContext: PowerModelItem item })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                dataPackage.SetText(item.Name ?? string.Empty);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            }
+            else if (sender is FrameworkElement { DataContext: PowerCompareModelItem compareItem })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                dataPackage.SetText(compareItem.Name ?? string.Empty);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            }
+        }
+
+        private void CopyDescription_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement { DataContext: PowerModelItem item })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                dataPackage.SetText(item.Description ?? string.Empty);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            }
+            else if (sender is FrameworkElement { DataContext: PowerCompareModelItem compareItem })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                dataPackage.SetText(compareItem.Description ?? string.Empty);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            }
+        }
+
+        private void CopyAcValue_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement { DataContext: PowerSetting item })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                string text = !string.IsNullOrWhiteSpace(item.FriendlyAcValue) ? item.FriendlyAcValue : item.AcValueIndex.ToString();
+                dataPackage.SetText(text);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            }
+            else if (sender is FrameworkElement { DataContext: PowerCompareSetting compareItem })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                string text = !string.IsNullOrWhiteSpace(compareItem.Plan1AcFriendlyValue) ? compareItem.Plan1AcFriendlyValue : compareItem.Plan1AcValue.ToString();
+                dataPackage.SetText(text);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            }
+        }
+
+        private void CopyDcValue_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement { DataContext: PowerSetting item })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                string text = !string.IsNullOrWhiteSpace(item.FriendlyDcValue) ? item.FriendlyDcValue : item.DcValueIndex.ToString();
+                dataPackage.SetText(text);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            }
+            else if (sender is FrameworkElement { DataContext: PowerCompareSetting compareItem })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                string text = !string.IsNullOrWhiteSpace(compareItem.Plan1DcFriendlyValue) ? compareItem.Plan1DcFriendlyValue : compareItem.Plan1DcValue.ToString();
+                dataPackage.SetText(text);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
             }
         }
     }
