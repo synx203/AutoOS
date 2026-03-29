@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="#-features">Features</a> •
-  <a href="#-getting-started">Getting Started</a> •
+  <a href="#-installation-guide">Installation Guide</a> •
   <a href="#-screenshots">Screenshots</a> •
   <a href="#️-build-instructions">Build</a> •
   <a href="#-credits">Credits</a> •
@@ -99,7 +99,7 @@ AutoOS is a Native AOT WinUI 3 application that automates Windows setup and opti
 ## ⚠️ Current Issues
 - **Blank screen after installing the Graphics Driver:** You may experience a blank screen in the App after installing the Graphics Driver. To fix this, resize the window, click the navigation pane button a few times or just wait until it rerenders the UI.
 
-## 🚀 Getting Started
+## 🚀 Installation Guide
 
 > [!NOTE]
 > If you want to change the display language of Windows, do so **after** AutoOS is fully set up.
