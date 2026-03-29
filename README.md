@@ -144,11 +144,11 @@ If you want to delete your old Windows partition and merge the unallocated space
 - `Disable` the toggle in `Services & Drivers` tab and restart whenever you are `Gaming`.
 - `Enable` it again and restart if you need functionality back for `Work` etc.
 - Go to the `Games` tab while `Services & Drivers` are disabled and press the `Play` button.
-- Once you are in Game, press the `Stop Processes` button. 
+- Once you are in the `Game`, press the `Stop Processes` button. 
 - Press the `Restart Processes` button to restore the taskbar etc.
 - Check the `BIOS Settings` tab for recommendations.
 - Leave a `review`, share `suggestions`, or report `issues` on the `Discord Server`.
-- If you have experience with C# and WinUI3 and want to become a part of the project, let me know.
+- If you have experience with `C# and WinUI3` and want to become a part of the project, let me know.
 
 ## 📷 Screenshots
 ### AutoOS Installer
