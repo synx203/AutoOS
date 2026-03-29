@@ -64,6 +64,9 @@ jobs:
       with:
         vs-prerelease: true    
 
+    - name: Setup MSVC environment
+      uses: ilammy/msvc-dev-cmd@v1
+
     # Add CommunityToolkit Labs and Main nuget sources
     - run: |
         nuget sources add -name CommunityToolkit-Labs -source https://pkgs.dev.azure.com/dotnet/CommunityToolkit/_packaging/CommunityToolkit-Labs/nuget/v3/index.json
