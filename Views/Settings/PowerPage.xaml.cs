@@ -847,6 +847,8 @@ namespace AutoOS.Views.Settings
 
                     setting.AcValueIndex = newAcValue;
                     setting.DcValueIndex = newDcValue;
+                    setting.FriendlyAcValue = setting.IsOption ? PowerApi.ReadPossibleFriendlyName(setting.SubgroupGuid, setting.Guid, newAcValue) : newAcValue.ToString();
+                    setting.FriendlyDcValue = setting.IsOption ? PowerApi.ReadPossibleFriendlyName(setting.SubgroupGuid, setting.Guid, newDcValue) : newDcValue.ToString();
                     break;
             }
         }
