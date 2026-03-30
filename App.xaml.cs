@@ -118,7 +118,11 @@ namespace AutoOS
 
         internal static async Task ShowErrorMessage(Exception ex)
         {
-            await ProcessActions.LogError(ex);
+            try
+            {
+                await ProcessActions.LogError(ex);
+            }
+            catch { }
 
             if (MainWindow?.DispatcherQueue != null)
             {

@@ -138,39 +138,51 @@ public static partial class SoundHelper
                 if (pAudioClient != null)
                 {
                     IAudioClient3* audioClient = (IAudioClient3*)pAudioClient;
-                    uint[] testRates = [44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000];
+                    uint[] testRates = [8000, 16000, 32000, 44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000];
                     ushort[] testBits = [16, 24, 32];
-                    ushort testChannels = details.CurrentChannels > 0 ? details.CurrentChannels : (ushort)2;
+                    ushort[] testChannels =
+                        details.CurrentChannels > 0
+                            ? [(ushort)1, (ushort)2, details.CurrentChannels]
+                            : [(ushort)1, (ushort)2];
 
                     var formats = new List<AudioFormatOption>();
-                    foreach (var rate in testRates)
+                    foreach (var ch in testChannels.Distinct())
                     {
-                        foreach (var bit in testBits)
+                        foreach (var rate in testRates)
                         {
-                            WAVEFORMATEXTENSIBLE fmt = CreateWaveFormat(rate, bit, testChannels);
-                            HRESULT supportHr = (HRESULT)audioClient->IsFormatSupported(AUDCLNT_SHAREMODE.AUDCLNT_SHAREMODE_EXCLUSIVE, (WAVEFORMATEX*)&fmt, null);
-                            if (supportHr.Value == 0)
+                            foreach (var bit in testBits)
                             {
-                                string quality = (bit, rate) switch
+                                WAVEFORMATEXTENSIBLE fmt = CreateWaveFormat(rate, bit, ch);
+                                HRESULT supportHr = (HRESULT)audioClient->IsFormatSupported(AUDCLNT_SHAREMODE.AUDCLNT_SHAREMODE_EXCLUSIVE, (WAVEFORMATEX*)&fmt, null);
+                                if (supportHr.Value == 0)
                                 {
-                                    (16, 44100) => " (CD Quality)",
-                                    (16, 48000) => " (DVD Quality)",
-                                    (24 or 32, >= 44100) => " (Studio Quality)",
-                                    (16, >= 88200) => " (Studio Quality)",
-                                    _ => ""
-                                };
-                                formats.Add(new AudioFormatOption
-                                {
-                                    SampleRate = rate,
-                                    Bits = bit,
-                                    Channels = testChannels,
-                                    DisplayName = $"{testChannels} channels, {bit} bit, {rate} Hz{quality}",
-                                    IsCurrent = (rate == details.CurrentSampleRate && bit == details.CurrentBitDepth)
-                                });
+                                    string quality = (bit, rate) switch
+                                    {
+                                        (16, 8000) when ch == 1 => " (Telephone Quality)",
+                                        (16, 16000) when ch == 1 => " (Tape Recorder Quality)",
+                                        (16, 32000) when ch == 1 => " (FM Radio Quality)",
+                                        (16, 44100) => " (CD Quality)",
+                                        (16, 48000) => " (DVD Quality)",
+                                        (24 or 32, >= 44100) => " (Studio Quality)",
+                                        (16, >= 88200) => " (Studio Quality)",
+                                        _ => ""
+                                    };
+                                    formats.Add(new AudioFormatOption
+                                    {
+                                        SampleRate = rate,
+                                        Bits = bit,
+                                        Channels = ch,
+                                        DisplayName = $"{ch} channels, {bit} bit, {rate} Hz{quality}",
+                                        IsCurrent = (rate == details.CurrentSampleRate && bit == details.CurrentBitDepth && ch == details.CurrentChannels)
+                                    });
+                                }
                             }
                         }
                     }
-                    details.Formats = [.. formats.OrderBy(f => f.Channels).ThenBy(f => f.Bits).ThenBy(f => f.SampleRate)];
+                    details.Formats = [.. formats
+                        .OrderBy(f => f.Channels)
+                        .ThenBy(f => f.Bits)
+                        .ThenBy(f => f.SampleRate)];
                     audioClient->Release();
                 }
                 endpoint->Release();

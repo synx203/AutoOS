@@ -46,7 +46,6 @@ public static class BrowsersStage
         string cometVersion = "";
         string firefoxVersion = "";
 
-
         return new List<(string Title, Func<Task> Action, Func<bool> Condition)>
         {
             // optimize microsoft edge settings

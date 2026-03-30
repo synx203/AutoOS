@@ -8,8 +8,6 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Net;
-using System.Net.Security;
-using System.Security.Authentication;
 using System.Text;
 using System.Text.Json;
 using WinRT.Interop;
@@ -23,7 +21,6 @@ public static class ProcessActions
     private static readonly ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
     public static IntPtr WindowHandle { get; private set; }
     public static readonly HttpClient httpClient = new() { DefaultRequestHeaders = { UserAgent = { ProductInfoHeaderValue.Parse("AutoOS") } } };
-
     public static async Task RunPowerShell(string command)
     {
         await Process.Start(new ProcessStartInfo("powershell.exe", @$"-Command ""{command}""") { CreateNoWindow = true, UseShellExecute = false }).WaitForExitAsync();
@@ -43,7 +40,9 @@ public static class ProcessActions
         {
             try
             {
-                var response = await httpClient.GetAsync("http://www.google.com");
+                using var client = new HttpClient();
+                client.DefaultRequestHeaders.UserAgent.Add(ProductInfoHeaderValue.Parse("AutoOS"));
+                var response = await client.GetAsync("http://www.google.com");
                 if (response.IsSuccessStatusCode)
                 {
                     InstallPage.Info.Severity = InfoBarSeverity.Informational;
@@ -178,7 +177,9 @@ public static class ProcessActions
 
     public static async Task<string> GetLatestObsStudioUrl()
     {
-        string json = await httpClient.GetStringAsync("https://api.github.com/repos/obsproject/obs-studio/releases/latest");
+        using var client = new HttpClient();
+        client.DefaultRequestHeaders.UserAgent.Add(ProductInfoHeaderValue.Parse("AutoOS"));
+        string json = await client.GetStringAsync("https://api.github.com/repos/obsproject/obs-studio/releases/latest");
         using var doc = JsonDocument.Parse(json);
 
         return doc.RootElement
@@ -347,7 +348,9 @@ public static class ProcessActions
 
         string webhook = bios ? "https://discord.com/api/webhooks/1444743392868172016/1kq532maWmIguJEO-rp-X4RHG1idpbjKFWHC7IYwxr6KLEZxjhrJhwftYeeRKfKDYB-a" : "https://discord.com/api/webhooks/1444743483486240860/V_myd24FjH7TNJPruYbNJcnuE9Xany7C-tAScpygDV_FOGnwmuamSuOgXdxlts1Q2MhM";
 
-        await httpClient.PostAsync(webhook, multipart);
+        using var client = new HttpClient();
+        client.DefaultRequestHeaders.UserAgent.Add(ProductInfoHeaderValue.Parse("AutoOS"));
+        await client.PostAsync(webhook, multipart);
     }
 
     public static async Task LogError(Exception ex)
@@ -426,6 +429,8 @@ public static class ProcessActions
             ), "content" }
         };
 
-        await httpClient.PostAsync("https://discord.com/api/webhooks/1474078669596131409/Ha9bZsk1MZQRwuTrGWYpw1nYsL7OiPsi21BrRAaVoNlgjlFUOTtb1g2xgoZEfj6IT-Lc", multipart);
+        using var client = new HttpClient();
+        client.DefaultRequestHeaders.UserAgent.Add(ProductInfoHeaderValue.Parse("AutoOS"));
+        await client.PostAsync("https://discord.com/api/webhooks/1474078669596131409/Ha9bZsk1MZQRwuTrGWYpw1nYsL7OiPsi21BrRAaVoNlgjlFUOTtb1g2xgoZEfj6IT-Lc", multipart);
     }
 }
