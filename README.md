@@ -291,16 +291,6 @@ reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\S
 
 ## 🙏 Credits
 
-**Imribiy:**  
-Thank you for creating [AMD GPU Tweaks](https://github.com/imribiy/amd-gpu-tweaks).  
-
----
-
-**m417z (Michael Maltsev):**  
-Thank you for creating [Windhawk](https://github.com/ramensoftware/windhawk) and for helping me to publish my mod [Auto Theme Switcher](https://windhawk.net/mods/auto-theme-switcher).
-
----
-
 **ghost1372 (Mahdi Hosseini):**  
 Thank you for creating [DevWinUI](https://github.com/ghost1372/DevWinUI). It inspired me to learn C# and rewrite this project in WinUI 3. I appreciate your quick responses, fixes to issues, and the helpful [workflow file](https://github.com/ghost1372/DevWinUI/blob/main/.github/workflows/publish-release.yml), which I adapted for this project.
 
@@ -313,6 +303,16 @@ Thank you for creating [uup-dump-get-windows-iso](https://github.com/rgl/uup-dum
 
 **cschneegans (Christoph Schneegans):**  
 Thank you for creating [unattend-generator](https://github.com/cschneegans/unattend-generator), which helps AutoOS installation to be seamless.
+
+---
+
+**m417z (Michael Maltsev):**  
+Thank you for creating [Windhawk](https://github.com/ramensoftware/windhawk) and for helping me to publish my mod [Auto Theme Switcher](https://windhawk.net/mods/auto-theme-switcher).
+
+---
+
+**Imribiy:**  
+Thank you for creating [AMD GPU Tweaks](https://github.com/imribiy/amd-gpu-tweaks).  
 
 ## 📜 License
 
