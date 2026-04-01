@@ -12,9 +12,20 @@ Get-NetAdapter | Where-Object { $_.PhysicalMediaType -eq "802.3" } | ForEach-Obj
         Set-NetAdapterAdvancedProperty -Name $adapterName -DisplayName "Idle power down restriction" -DisplayValue "Disabled"
     }
 
-    # Interrupt Moderation
-    if ($adapterProperties | Where-Object { $_.DisplayName -eq "Interrupt Moderation" }) {
-        Set-NetAdapterAdvancedProperty -Name $adapterName -DisplayName "Interrupt Moderation" -DisplayValue "Enabled"
+    if ($adapterProperties | Where-Object { $_.DisplayName -eq "Interrupt Moderation Rate" }) {
+        # Interrupt Moderation
+        if ($adapterProperties | Where-Object { $_.DisplayName -eq "Interrupt Moderation" }) {
+            Set-NetAdapterAdvancedProperty -Name $adapterName -DisplayName "Interrupt Moderation" -DisplayValue "Enabled"
+        }
+        # Interrupt Moderation Rate
+        Set-NetAdapterAdvancedProperty -Name $adapterName -DisplayName "Interrupt Moderation Rate" -DisplayValue "Medium"
+    }
+    else
+    {
+        # Interrupt Moderation
+        if ($adapterProperties | Where-Object { $_.DisplayName -eq "Interrupt Moderation" }) {
+            Set-NetAdapterAdvancedProperty -Name $adapterName -DisplayName "Interrupt Moderation" -DisplayValue "Disabled"
+        }
     }
 
     # IPv4 Checksum Offload
@@ -231,11 +242,6 @@ Get-NetAdapter | Where-Object { $_.PhysicalMediaType -eq "802.3" } | ForEach-Obj
     # Enable PME
     if ($adapterProperties | Where-Object { $_.DisplayName -eq "Enable PME" }) {
         Set-NetAdapterAdvancedProperty -Name $adapterName -DisplayName "Enable PME" -DisplayValue "Disabled"
-    }
-
-    # Interrupt Moderation Rate
-    if ($adapterProperties | Where-Object { $_.DisplayName -eq "Interrupt Moderation Rate" }) {
-        Set-NetAdapterAdvancedProperty -Name $adapterName -DisplayName "Interrupt Moderation Rate" -DisplayValue "Medium"
     }
 
     # Log Link State Event
