@@ -105,70 +105,74 @@ namespace AutoOS.Views.Settings
                 await ProcessActions.Log();
             }
 
-            bool includePrereleases = localSettings.Values["IncludePrerelease"] as bool? ?? false;
+            try
+            {
+                bool includePrereleases = localSettings.Values["IncludePrerelease"] as bool? ?? false;
 
-            var json = await httpClient.GetStringAsync("https://api.github.com/repos/tinodin/AutoOS/releases");
-            using var releasesDoc = JsonDocument.Parse(json);
+                var json = await httpClient.GetStringAsync("https://api.github.com/repos/tinodin/AutoOS/releases");
+                using var releasesDoc = JsonDocument.Parse(json);
 
-            var releases = releasesDoc.RootElement.EnumerateArray()
-                .Select(release =>
-                {
-                    string tag = release.GetProperty("tag_name").GetString();
-                    return new
+                var releases = releasesDoc.RootElement.EnumerateArray()
+                    .Select(release =>
                     {
-                        Version = Version.Parse(tag.TrimStart('v')),
-                        IsPrerelease = release.GetProperty("prerelease").GetBoolean(),
-                        Json = release
-                    };
-                })
-                .Where(x => x.Version.CompareTo(currentVersion) > 0)
-                .Where(x => includePrereleases || (!x.IsPrerelease && x.Version.Revision <= 0))
-                .OrderBy(x => x.Version)
-                .ToList();
+                        string tag = release.GetProperty("tag_name").GetString();
+                        return new
+                        {
+                            Version = Version.Parse(tag.TrimStart('v')),
+                            IsPrerelease = release.GetProperty("prerelease").GetBoolean(),
+                            Json = release
+                        };
+                    })
+                    .Where(x => x.Version.CompareTo(currentVersion) > 0)
+                    .Where(x => includePrereleases || (!x.IsPrerelease && x.Version.Revision <= 0))
+                    .OrderBy(x => x.Version)
+                    .ToList();
 
-            if (releases.Count == 0)
-                return;
+                if (releases.Count == 0)
+                    return;
 
-            var nextRelease = releases.First();
-            var assets = nextRelease.Json.GetProperty("assets");
-            string downloadUrl = assets.EnumerateArray()
-                .First(a => a.GetProperty("name").GetString() == "AutoOS.msix")
-                .GetProperty("browser_download_url")
-                .GetString();
+                var nextRelease = releases.First();
+                var assets = nextRelease.Json.GetProperty("assets");
+                string downloadUrl = assets.EnumerateArray()
+                    .First(a => a.GetProperty("name").GetString() == "AutoOS.msix")
+                    .GetProperty("browser_download_url")
+                    .GetString();
 
-            Version nextVersion = nextRelease.Version;
+                Version nextVersion = nextRelease.Version;
 
-            var confirmDialog = new ContentDialog
-            {
-                Title = "Update Available",
-                Content = $"Do you want to update AutoOS from v{currentVersion} to v{nextVersion}?",
-                PrimaryButtonText = "Yes",
-                CloseButtonText = "No",
-                DefaultButton = ContentDialogButton.Close,
-                XamlRoot = XamlRoot
-            };
-
-            if (await confirmDialog.ShowAsync() != ContentDialogResult.Primary)
-                return;
-
-            var msixDialog = new UpdateDialog();
-
-            var msixUpdater = new ContentDialog
-            {
-                Title = $"Updating to AutoOS v{nextVersion}...",
-                Content = msixDialog,
-                Resources = new ResourceDictionary
+                var confirmDialog = new ContentDialog
                 {
-                    ["ContentDialogMinHeight"] = 0.0,
-                    ["ContentDialogMinWidth"] = 500,
-                    ["ContentDialogMaxWidth"] = 1000
-                },
-                XamlRoot = XamlRoot
-            };
+                    Title = "Update Available",
+                    Content = $"Do you want to update AutoOS from v{currentVersion} to v{nextVersion}?",
+                    PrimaryButtonText = "Yes",
+                    CloseButtonText = "No",
+                    DefaultButton = ContentDialogButton.Close,
+                    XamlRoot = XamlRoot
+                };
 
-            _ = msixUpdater.ShowAsync();
+                if (await confirmDialog.ShowAsync() != ContentDialogResult.Primary)
+                    return;
 
-            await PackageStage.PackageActions(downloadUrl, msixDialog);
+                var msixDialog = new UpdateDialog();
+
+                var msixUpdater = new ContentDialog
+                {
+                    Title = $"Updating to AutoOS v{nextVersion}...",
+                    Content = msixDialog,
+                    Resources = new ResourceDictionary
+                    {
+                        ["ContentDialogMinHeight"] = 0.0,
+                        ["ContentDialogMinWidth"] = 500,
+                        ["ContentDialogMaxWidth"] = 1000
+                    },
+                    XamlRoot = XamlRoot
+                };
+
+                _ = msixUpdater.ShowAsync();
+
+                await PackageStage.PackageActions(downloadUrl, msixDialog);
+            }
+            catch { }
         }
     }
 }
