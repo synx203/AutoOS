@@ -133,6 +133,12 @@ public partial class DeviceInfo : INotifyPropertyChanged
     }
 
     private bool _supportPerChannelVolume = true;
+    public bool SupportPerChannelVolume
+    {
+        get => _supportPerChannelVolume;
+        set { if (_supportPerChannelVolume != value) { _supportPerChannelVolume = value; OnPropertyChanged(); } }
+    }
+
     private object bufferSizes;
     public object BufferSizes
     {
