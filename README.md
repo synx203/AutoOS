@@ -15,7 +15,7 @@
   <a href="#-features">Features</a> •
   <a href="#-installation-guide">Installation Guide</a> •
   <a href="#-screenshots">Screenshots</a> •
-  <a href="#️-build-instructions">Build</a> •
+  <a href="#️-build-instructions">Build Instructions</a> •
   <a href="#-credits">Credits</a> •
   <a href="#-license">License</a>
 </p>
@@ -143,7 +143,7 @@ If you want to delete your old Windows partition and merge the unallocated space
 ### What to do after the installation is finished?
 - `Disable` the toggle in `Services & Drivers` tab and restart whenever you are `Gaming`.
 - `Enable` it again and restart if you need functionality back for `Work` etc.
-- For `Riot Games` titles to show up in the `Games` tab, you will have to install them through the `Epic Games Launcher` as well.
+- For `Riot Games` titles to show up in the `Games` tab, install them through the `Epic Games Launcher` as well.
 - Go to the `Games` tab while `Services & Drivers` are disabled and press the `Play` button.
 - Once you are in the `Game`, press the `Stop Processes` button. 
 - Press the `Restart Processes` button to restore the taskbar etc.
@@ -274,6 +274,7 @@ Ensure that your installation includes the appropriate workloads:
 
 - On the **Workloads** tab of the Visual Studio installer, check:
   - **.NET Desktop Development**
+  - **.Desktop development with C++**
   - **WinUI Application Development**
 
 ### 2. 🔗 Clone the repository
