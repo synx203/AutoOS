@@ -37,10 +37,10 @@ public static class SteamHelper
         return [.. kv.Children
             .Select(c =>
             {
-                string steam64Id = c.Name.ToString();
-                string accountName = c["AccountName"]?.Value.ToString();
-                bool mostRecent = c["MostRecent"]?.Value.ToString() == "1";
-                bool allowAutoLogin = c["AllowAutoLogin"]?.Value.ToString() == "1";
+                string steam64Id = c.Key;
+                string accountName = c.Value["AccountName"]?.ToString();
+                bool mostRecent = c.Value["MostRecent"]?.ToString() == "1";
+                bool allowAutoLogin = c.Value["AllowAutoLogin"]?.ToString() == "1";
 
                 if (string.IsNullOrWhiteSpace(accountName) || string.IsNullOrWhiteSpace(steam64Id))
                     return null;
@@ -63,7 +63,7 @@ public static class SteamHelper
 
         var kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text)
                              .Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(SteamLoginUsersPath))));
-        return kv.Children.FirstOrDefault(c => c["MostRecent"]?.Value.ToString() == "1" && c["AllowAutoLogin"]?.Value.ToString() == "1")?.Name;
+        return kv.Children.FirstOrDefault(c => c.Value["MostRecent"]?.ToString() == "1" && c.Value["AllowAutoLogin"]?.ToString() == "1").Key;
     }
 
     public static void CloseSteam()
@@ -96,7 +96,7 @@ public static class SteamHelper
                     var kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text)
                                          .Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(SteamHelper.SteamLoginUsersPath))));
 
-                    InstallPage.Info.Title = $"Successfully logged in as {kv.Children.Select(c => c["AccountName"]?.Value.ToString()).FirstOrDefault(name => !string.IsNullOrEmpty(name))}...";
+                    InstallPage.Info.Title = $"Successfully logged in as {kv.Children.Select(c => c.Value["AccountName"]?.ToString()).FirstOrDefault(name => !string.IsNullOrEmpty(name))}...";
                     break;
                 }
 
@@ -160,10 +160,10 @@ public static class SteamHelper
 
         List<KVObject> newFolders = [.. libraryFolderData.Children.Select(folder =>
         {
-            var children = folder.Children.ToList();
+            var children = folder.Value.Children.ToList();
 
-            var pathNode = children.FirstOrDefault(c => c.Name == "path");
-            if (pathNode != null)
+            var pathNode = children.FirstOrDefault(c => c.Key == "path");
+            if (pathNode.Value != null)
             {
                 children.Remove(pathNode);
                 children.Insert(0, pathNode);
@@ -175,14 +175,30 @@ public static class SteamHelper
                 string foundPath = drives.FirstOrDefault(drive => Directory.Exists(drive + folderSuffix)) is string fPath ? fPath + folderSuffix : null;
 
                 if (foundPath != null)
-                    children[0] = new KVObject("path", foundPath);
+                {
+                    var newPathKV = new KVObject(foundPath);
+                    var newPathKVP = new KeyValuePair<string, KVObject>("path", newPathKV);
+                    children[0] = newPathKVP;
+                }
             }
 
-            return new KVObject(folder.Name, children);
+            var result = new KVObject();
+            foreach (var child in children)
+            {
+                result[child.Key] = child.Value;
+            }
+            return result;
         })];
 
         using var msOut = new MemoryStream();
-        KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Serialize(msOut, new KVObject(libraryFolderData.Name, newFolders));
+        var rootObj = new KVObject();
+        int folderIndex = 0;
+        foreach (var folder in libraryFolderData.Children)
+        {
+            rootObj[folder.Key] = newFolders[folderIndex];
+            folderIndex++;
+        }
+        KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Serialize(msOut, rootObj);
         msOut.Position = 0;
         File.WriteAllText(SteamHelper.SteamLibraryPath, new StreamReader(msOut).ReadToEnd());
 
@@ -258,16 +274,16 @@ public static class SteamHelper
         // for each steam install path
         await Parallel.ForEachAsync(libraryFolderData.Children, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, async (folder, _) =>
         {
-            string steamAppsDir = Path.Combine(folder["path"]?.Value.ToString().Replace(@"\\", @"\"), "steamapps");
+            string steamAppsDir = Path.Combine(folder.Value["path"]?.ToString().Replace(@"\\", @"\"), "steamapps");
 
             // skip if no steamapps directory
             if (!Directory.Exists(steamAppsDir)) return;
 
             // get installed apps dictionary
-            var appsNode = folder.Children.FirstOrDefault(c => c.Name == "apps");
-            if (appsNode == null) return;
+            var appsNode = folder.Value.Children.FirstOrDefault(c => c.Key == "apps");
+            if (appsNode.Value == null) return;
 
-            foreach (var app in appsNode.Children.ToDictionary(x => int.Parse(x.Name), x => (long)x.Value))
+            foreach (var app in appsNode.Value.Children.ToDictionary(x => int.Parse(x.Key), x => x.Value))
             {
                 string gameId = app.Key.ToString();
 
@@ -330,7 +346,7 @@ public static class SteamHelper
                     string dateStr = gameData.GetProperty("data").GetProperty("release_date").GetProperty("date").GetString();
                     DateTimeOffset.TryParse(dateStr, out var releaseDate);
 
-                    long? sizeBytes = long.TryParse(appManifestData["SizeOnDisk"]?.Value.ToString(), out var result) ? result : null;
+                    long? sizeBytes = long.TryParse(appManifestData["SizeOnDisk"]?.ToString(), out var result) ? result : null;
 
                     GamesPage.Instance.DispatcherQueue.TryEnqueue(() =>
                     {
@@ -339,7 +355,7 @@ public static class SteamHelper
                             Launcher = "Steam",
                             ImageUrl = $"https://cdn.steamstatic.com/steam/apps/{gameId}/library_600x900.jpg",
                             BackgroundImageUrl = $"https://cdn.steamstatic.com/steam/apps/{gameId}/library_hero.jpg",
-                            Title = appManifestData["name"]?.Value.ToString(),
+                            Title = appManifestData["name"]?.ToString(),
                             Developers = string.Join(", ", gameData.GetProperty("data").GetProperty("developers")
                                                        .EnumerateArray().Select(d => d.GetString()).Where(s => !string.IsNullOrWhiteSpace(s))),
                             Genres = [.. gameData.GetProperty("data").GetProperty("genres")
@@ -364,12 +380,12 @@ public static class SteamHelper
                                     .Select(s => s.GetProperty("path_thumbnail").GetString())
                                     .Where(s => !string.IsNullOrWhiteSpace(s))]
                                 : [],
-                            InstallLocation = Path.Combine(steamAppsDir, "common", appManifestData["installdir"]?.Value.ToString()).Replace("/", "\\"),
+                            InstallLocation = Path.Combine(steamAppsDir, "common", appManifestData["installdir"]?.ToString()).Replace("/", "\\"),
                             ReleaseDate = releaseDate != default ? releaseDate.ToString("d") : "Unknown",
                             Size = sizeBytes >= 1024 * 1024 * 1024
                                 ? $"{sizeBytes.Value / (1024d * 1024d * 1024d):F1} GB"
                                 : $"{sizeBytes.Value / (1024d * 1024d):F2} MB",
-                            Version = appManifestData["buildid"]?.Value.ToString(),
+                            Version = appManifestData["buildid"]?.ToString(),
                             GameID = gameId,
                             Width = 240,
                             Height = 320,
@@ -378,7 +394,7 @@ public static class SteamHelper
                 }
                 catch (Exception ex)
                 {
-                    await App.ShowErrorMessage(new Exception($"Failed to load game: {KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")))["name"]?.Value.ToString()}", ex));
+                    await App.ShowErrorMessage(new Exception($"Failed to load game: {KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")))["name"]?.ToString()}", ex));
                 }
             }
         });

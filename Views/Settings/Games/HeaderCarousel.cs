@@ -68,10 +68,6 @@ public partial class HeaderCarousel : ItemsControl
     private TextBlock AgeRatingDescriptionText;
     private TextBlock ElementsText;
 
-    private bool isInitializingPresentationMode = true;
-    private Card PresentationMode;
-    private ComboBox PresentationMode_ComboBox;
-
     private AutoSuggestBox SearchBox;
     private string currentSortKey = "Title";
     private bool ascending = true;
@@ -176,11 +172,6 @@ public partial class HeaderCarousel : ItemsControl
         //Screenshots_Gallery = GetTemplateChild("Screenshots_Gallery") as GameGallery;
         //Videos_ScrollViewer = GetTemplateChild("Videos_ScrollViewer") as ScrollViewer;
 
-        PresentationMode = GetTemplateChild("PresentationMode") as Card;
-
-        PresentationMode_ComboBox = GetTemplateChild("PresentationMode_ComboBox") as ComboBox;
-        PresentationMode_ComboBox.SelectionChanged += PresentationMode_SelectionChanged;
-
         Loaded -= HeaderCarousel_Loaded;
         Loaded += HeaderCarousel_Loaded;
         Unloaded -= HeaderCarousel_Unloaded;
@@ -204,7 +195,7 @@ public partial class HeaderCarousel : ItemsControl
         // load games
         var tasks = new List<Task>();
 
-        if (EpicGamesAccounts.SelectedItem is ComboBoxItem && ((ComboBoxItem)EpicGamesAccounts.SelectedItem).Content?.ToString() != "Not logged in" && EpicGamesButton.Visibility == Visibility.Visible)
+        if (EpicGamesAccounts.SelectedItem is ComboBoxItem item && item.Content?.ToString() != "Not logged in" && EpicGamesButton.Visibility == Visibility.Visible)
         {
             tasks.Add(EpicGamesHelper.LoadGames());
         }
@@ -538,8 +529,6 @@ public partial class HeaderCarousel : ItemsControl
                 IconType = InfoIconType.FontIcon
             });
 
-            PresentationMode.Visibility = selectedTile?.Title == "Fortnite" ? Visibility.Visible : Visibility.Collapsed;
-
             DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, async () =>
             {
                 CheckGameRunning();
@@ -551,11 +540,6 @@ public partial class HeaderCarousel : ItemsControl
 
                 //Videos = selectedTile?.Videos;
                 //Videos_ScrollViewer.Visibility = (Videos?.Count > 0) ? Visibility.Visible : Visibility.Collapsed;
-
-                if (selectedTile?.Title == "Fortnite")
-                {
-                    await GetPresentationMode();
-                }
             });
         }
     }
@@ -1162,16 +1146,16 @@ public partial class HeaderCarousel : ItemsControl
         // make all accounts inactive
         foreach (var user in kv.Children)
         {
-            if (user["AccountName"]?.Value.ToString() == SteamAccounts.SelectedItem.ToString())
+            if (user.Value["AccountName"]?.ToString() == SteamAccounts.SelectedItem.ToString())
             {
-                user["MostRecent"] = "1";
-                user["AllowAutoLogin"] = "1";
-                user["Timestamp"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+                user.Value["MostRecent"] = "1";
+                user.Value["AllowAutoLogin"] = "1";
+                user.Value["Timestamp"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
             }
             else
             {
-                user["MostRecent"] = "0";
-                user["AllowAutoLogin"] = "0";
+                user.Value["MostRecent"] = "0";
+                user.Value["AllowAutoLogin"] = "0";
             }
         }
 
@@ -1244,8 +1228,8 @@ public partial class HeaderCarousel : ItemsControl
                 // make all accounts inactive
                 foreach (var user in kv.Children)
                 {
-                    user["MostRecent"] = "0";
-                    user["AllowAutoLogin"] = "0";
+                    user.Value["MostRecent"] = "0";
+                    user.Value["AllowAutoLogin"] = "0";
                 }
 
                 // write changes
@@ -1326,8 +1310,12 @@ public partial class HeaderCarousel : ItemsControl
             var kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(SteamHelper.SteamLoginUsersPath))));
 
             // remove selected account
-            var newChildren = kv.Children.Where(c => c != kv.Children.First(child => child["AccountName"]?.Value.ToString() == SteamAccounts.SelectedItem.ToString()));
-            var newRoot = new KVObject(kv.Name, newChildren);
+            var newChildren = kv.Children.Where(c => c.Key != kv.Children.First(child => child.Value["AccountName"]?.ToString() == SteamAccounts.SelectedItem.ToString()).Key).ToList();
+            var newRoot = new KVObject();
+            foreach (var child in newChildren)
+            {
+                newRoot[child.Key] = child.Value;
+            }
 
             // write changes
             using var msOut = new MemoryStream();
@@ -1376,81 +1364,6 @@ public partial class HeaderCarousel : ItemsControl
             if (!string.IsNullOrEmpty(item.Hyperlink))
             {
                 await Windows.System.Launcher.LaunchFolderPathAsync(item.Hyperlink.Trim());
-            }
-        }
-    }
-
-    private async Task GetPresentationMode()
-    {
-        isInitializingPresentationMode = true;
-
-        var selectedIndex = await Task.Run(() =>
-        {
-            using var key = Registry.CurrentUser.OpenSubKey(@"System\GameConfigStore\Children");
-            if (key == null) return 0;
-
-            foreach (var subKeyName in key.GetSubKeyNames())
-            {
-                using var subKey = key.OpenSubKey(subKeyName);
-                if (subKey == null) continue;
-
-                if (subKey.GetValueNames()
-                          .Any(valueName => subKey.GetValue(valueName) is string str && str.Contains("Fortnite")))
-                {
-                    var flags = Convert.ToInt32(subKey.GetValue("Flags"));
-                    return flags == 0x211 ? 1 : 0;
-                }
-            }
-
-            return 0;
-        });
-
-        PresentationMode_ComboBox.SelectedIndex = selectedIndex;
-        isInitializingPresentationMode = false;
-    }
-
-
-    private void PresentationMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (isInitializingPresentationMode) return;
-
-        using var key = Registry.CurrentUser.OpenSubKey(@"System\GameConfigStore\Children", writable: true);
-
-        foreach (var subKeyName in key.GetSubKeyNames())
-        {
-            using var subKey = key.OpenSubKey(subKeyName, writable: true);
-
-            if (subKey.GetValueNames().Any(valueName =>
-                subKey.GetValue(valueName) is string strValue && strValue.Contains("Fortnite")))
-            {
-                if (PresentationMode_ComboBox.SelectedIndex == 0)
-                {
-                    using var process = new Process
-                    {
-                        StartInfo = new ProcessStartInfo
-                        {
-                            FileName = "reg.exe",
-                            Arguments = $@"delete ""HKCU\System\GameConfigStore\Children\{subKeyName}"" /v Flags /f",
-                            CreateNoWindow = true,
-                        }
-                    };
-                    process.Start();
-                    process.WaitForExit();
-                }
-                else if (PresentationMode_ComboBox.SelectedIndex == 1)
-                {
-                    using var process = new Process
-                    {
-                        StartInfo = new ProcessStartInfo
-                        {
-                            FileName = "reg.exe",
-                            Arguments = $@"add ""HKCU\System\GameConfigStore\Children\{subKeyName}"" /v Flags /t REG_DWORD /d 0x211 /f",
-                            CreateNoWindow = true,
-                        }
-                    };
-                    process.Start();
-                    process.WaitForExit();
-                }
             }
         }
     }

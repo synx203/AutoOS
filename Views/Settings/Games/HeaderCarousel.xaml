@@ -723,24 +723,6 @@
                                             </ItemsRepeater.ItemTemplate>
                                         </ItemsRepeater>
                                     </dev:Card>
-                                    <dev:Card x:Name="PresentationMode"
-                                              Title="Settings"
-                                              Margin="0,0,0,12"
-                                              Visibility="Collapsed">
-                                        <!--  Presentation Mode  -->
-                                        <StackPanel>
-                                            <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
-                                                       Text="Presentation Mode:" />
-                                            <TextBlock Margin="0,2,0,12"
-                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                                       Text="Use Hardware: Independent Flip if you have issues when tabbing out." />
-                                            <ComboBox x:Name="PresentationMode_ComboBox">
-                                                <ComboBoxItem Content="Hardware: Independent Flip" />
-                                                <ComboBoxItem Content="Hardware: Legacy Flip" />
-                                            </ComboBox>
-                                        </StackPanel>
-                                    </dev:Card>
                                     <Border Height="24"
                                             Background="Transparent" />
                                 </StackPanel>
