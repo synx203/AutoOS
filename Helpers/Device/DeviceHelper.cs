@@ -132,6 +132,7 @@ public partial class DeviceInfo : INotifyPropertyChanged
         set { if (_rightVolume != value) { _rightVolume = value; OnPropertyChanged(); } }
     }
 
+    private bool _supportPerChannelVolume = true;
     private object bufferSizes;
     public object BufferSizes
     {

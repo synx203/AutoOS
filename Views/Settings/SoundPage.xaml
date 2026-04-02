@@ -51,7 +51,8 @@
                         </dev:SettingsGroup.HeaderIcon>
                         <dev:SettingsGroup.Items>
                             <dev:SettingsExpander Margin="0,-2"
-                                                  Header="  Volume">
+                                                  Header="  Volume"
+                                                  Visibility="{x:Bind CurrentOutput.SupportPerChannelVolume, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                                 <dev:SettingsExpander.Content>
                                     <StackPanel Orientation="Horizontal"
                                                 Spacing="8">
@@ -122,7 +123,43 @@
                                     </dev:SettingsCard>
                                 </dev:SettingsExpander.Items>
                             </dev:SettingsExpander>
-
+                            <dev:SettingsCard Margin="0,-2"
+                                              Header="Volume"
+                                              Visibility="{x:Bind CurrentOutput.SupportPerChannelVolume, Mode=OneWay, Converter={StaticResource ActiveIconVisibilityConverter}}">
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="8">
+                                    <Button Width="32"
+                                            Padding="4"
+                                            VerticalAlignment="Center"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Click="Mute_Click"
+                                            DataContext="{x:Bind CurrentOutput, Mode=OneWay}"
+                                            ToolTipService.ToolTip="{x:Bind CurrentOutput.IsMuted, Mode=OneWay, Converter={StaticResource MuteToolTipConverter}}">
+                                        <Grid>
+                                            <FontIcon Width="24"
+                                                      FontSize="20"
+                                                      Glyph="&#xE74F;"
+                                                      Visibility="{x:Bind CurrentOutput.IsMuted, Mode=OneWay, Converter={StaticResource MuteIconVisibilityConverter}}" />
+                                            <FontIcon Width="24"
+                                                      FontSize="20"
+                                                      Glyph="&#xE995;"
+                                                      Visibility="{x:Bind CurrentOutput.IsMuted, Mode=OneWay, Converter={StaticResource ActiveIconVisibilityConverter}}" />
+                                        </Grid>
+                                    </Button>
+                                    <TextBlock Width="32"
+                                               VerticalAlignment="Center"
+                                               Text="{x:Bind CurrentOutput.Volume, Mode=OneWay}"
+                                               TextAlignment="Right" />
+                                    <Slider MinWidth="200"
+                                            DataContext="{x:Bind CurrentOutput, Mode=OneWay}"
+                                            Maximum="100"
+                                            Minimum="0"
+                                            StepFrequency="1"
+                                            ValueChanged="Volume_ValueChanged"
+                                            Value="{x:Bind CurrentOutput.Volume, Mode=TwoWay}" />
+                                </StackPanel>
+                            </dev:SettingsCard>
                             <dev:SettingsCard Header="Format">
                                 <ComboBox MinWidth="310"
                                           DataContext="{x:Bind CurrentOutput, Mode=OneWay}"

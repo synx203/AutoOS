@@ -168,6 +168,7 @@ namespace AutoOS.Views.Settings
             device.IsInputDevice = flow == EDataFlow.eCapture;
 
             var details = SoundHelper.GetAudioDetails(device);
+            device.SupportPerChannelVolume = details.SupportPerChannelVolume;
             device.Volume = details.CurrentVolume;
             device.LeftVolume = details.LeftVolume;
             device.RightVolume = details.RightVolume;

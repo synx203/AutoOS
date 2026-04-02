@@ -35,6 +35,7 @@ public partial class AudioDetails
     public ushort CurrentChannels { get; set; }
     public float LeftVolume { get; set; }
     public float RightVolume { get; set; }
+    public bool SupportPerChannelVolume { get; set; } = true;
     public List<AudioFormatOption> Formats { get; set; } = [];
 }
 
@@ -97,15 +98,25 @@ public static partial class SoundHelper
                     details.CurrentVolume = MathF.Round(vol * 100f);
 
                     endpointVolume->GetChannelCount(out uint channelCount);
+                    float left = 0, right = 0;
                     if (channelCount >= 2)
                     {
-                        endpointVolume->GetChannelVolumeLevelScalar(0, out float left);
-                        endpointVolume->GetChannelVolumeLevelScalar(1, out float right);
+                        try
+                        {
+                            endpointVolume->GetChannelVolumeLevelScalar(0, out left);
+                            endpointVolume->GetChannelVolumeLevelScalar(1, out right);
+                        }
+                        catch (COMException ex) when (ex.HResult == unchecked((int)0x80070057))
+                        {
+                            details.SupportPerChannelVolume = false;
+                        }
+
                         details.LeftVolume = float.IsFinite(left) ? MathF.Round(left * 100f) : 100f;
                         details.RightVolume = float.IsFinite(right) ? MathF.Round(right * 100f) : 100f;
                     }
                     else
                     {
+                        details.SupportPerChannelVolume = false;
                         details.LeftVolume = details.CurrentVolume;
                         details.RightVolume = details.CurrentVolume;
                     }
@@ -318,10 +329,15 @@ public static partial class SoundHelper
                 endpoint->Activate(iid, (CLSCTX)7, null, out void* pVolume);
                 if (pVolume != null)
                 {
-                    var ev = (IAudioEndpointVolume*)pVolume;
-                    ev->SetMasterVolumeLevelScalar(safeVol, null);
-                    ev->GetMasterVolumeLevelScalar(out actualVol);
-                    ev->Release();
+                    try
+                    {
+                        var ev = (IAudioEndpointVolume*)pVolume;
+                        ev->SetMasterVolumeLevelScalar(safeVol, null);
+                        ev->GetMasterVolumeLevelScalar(out actualVol);
+                        ev->Release();
+                    }
+                    catch (Exception ex) when (ex.HResult == unchecked((int)0x80070057))
+                    {   }
                 }
                 endpoint->Release();
             }
