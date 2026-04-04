@@ -1,11 +1,14 @@
 using AutoOS.Helpers.Device;
-using AutoOS.Views.Installer.Actions;
 using AutoOS.Views.Settings.Power;
+using System.Net.Http.Headers;
+using WinRT.Interop;
 
 namespace AutoOS.Views.Updater.Stages;
 
 public static class UpdateStage
 {
+    public static IntPtr WindowHandle { get; private set; }
+
     public static List<(string Title, Func<Task> Action, Func<bool> Condition)> UpdateActions(UpdateDialog dialog)
     {
         Guid guid = Guid.Empty;
@@ -26,9 +29,41 @@ public static class UpdateStage
             actions.Add((@"Restarting " + adapter.FriendlyName, async () => await Task.Run(() => DeviceHelper.RestartDevice(adapter)), null));
 
             if (adapter.IsActive)
-                actions.Add(("Waiting for internet connection to reestablish", async () => await ProcessActions.RunConnectionCheck(), null));
+                actions.Add(("Waiting for internet connection to reestablish", async () => await RunConnectionCheck(dialog), null));
         }
 
         return actions;
+    }
+
+    public static async Task RunConnectionCheck(UpdateDialog dialog)
+    {
+        WindowHandle = WindowNative.GetWindowHandle(App.MainWindow);
+        dialog.SetCaution();
+        Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Paused);
+
+        await Task.Delay(1000);
+
+        while (true)
+        {
+            try
+            {
+                using var client = new HttpClient();
+                client.DefaultRequestHeaders.UserAgent.Add(ProductInfoHeaderValue.Parse("AutoOS"));
+                var response = await client.GetAsync("http://www.google.com");
+                if (response.IsSuccessStatusCode)
+                {
+                    dialog.ResetProgressColor();
+                    Helpers.Taskbar.TaskbarHelper.SetProgressState(WindowHandle, Helpers.Taskbar.TaskbarStates.Normal);
+                    dialog.SetStatus("Internet connection successfully established...");
+                    await Task.Delay(500);
+                    break;
+                }
+            }
+            catch
+            {
+
+            }
+            await Task.Delay(1000);
+        }
     }
 }

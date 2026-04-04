@@ -34,6 +34,16 @@ public sealed partial class UpdateDialog : UserControl
         ProgressBar.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
     }
 
+    public void SetCaution()
+    {
+        ProgressBar.Foreground = (Brush)Application.Current.Resources["SystemFillColorCautionBrush"];
+    }
+
+    public void ResetProgressColor()
+    {
+        ProgressBar.ClearValue(ProgressBar.ForegroundProperty);
+    }
+
     public async Task RunActions(List<(string Title, Func<Task> Action, Func<bool> Condition)> actions)
     {
         var filteredActions = actions.Where(a => a.Condition == null || a.Condition.Invoke()).ToList();
