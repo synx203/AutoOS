@@ -147,7 +147,7 @@ If you want to delete your old Windows partition and merge the unallocated space
 - Press the `Restart Processes` button to restore the taskbar etc.
 - Check the `BIOS Settings` tab for recommendations.
 - Leave a `review`, share `suggestions`, or report `issues` on the `Discord Server`.
-- [Donate](https://www.paypal.com/donate/?hosted_button_id=GVEVUSHUWXEAG) if you appreciate the immense time and effort I have put into creating this project for free.
+- [Donate](https://www.paypal.com/donate/?hosted_button_id=GVEVUSHUWXEAG) if you appreciate the immense time and effort I have put into creating and providing this project for free.
 - If you have experience with `C# and WinUI3` and want to become a part of the project, let me know.
 
 ### What **NOT** to do after the installation is finished?

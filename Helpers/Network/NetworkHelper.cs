@@ -161,6 +161,7 @@ public static class NetworkHelper
             anyChanged |= ApplySetting(device, settings, "802.11n channel width for 2.4GHz", "Auto");
             anyChanged |= ApplySetting(device, settings, "802.11n channel width for 5.2GHz", "Auto");
             anyChanged |= ApplySetting(device, settings, "802.11n/ac Wireless Mode", "802.11ac");
+            anyChanged |= ApplySetting(device, settings, "802.11n/ac/ax Wireless Mode", "4. 802.11ax");
             anyChanged |= ApplySetting(device, settings, "ARP offload for WoWLAN", "Enabled");
             anyChanged |= ApplySetting(device, settings, "Band Selection", "1. All Band");
             anyChanged |= ApplySetting(device, settings, "Beacon Interval", "100");

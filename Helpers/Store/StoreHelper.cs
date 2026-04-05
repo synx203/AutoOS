@@ -119,6 +119,7 @@ public static partial class StoreHelper
     {
 		try
 		{
+            await KillProcesses(packageFamilyName);
             var manager = new PackageManager();
 
             foreach (var package in manager.FindPackagesForUser(string.Empty, packageFamilyName))
