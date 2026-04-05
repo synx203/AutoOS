@@ -260,7 +260,7 @@ try {
 
 Write-Host "`n===== Step 3: Check Partitions =====`n"
 $Partitions = Get-Partition -DiskNumber $DiskNumber | Where-Object { $_.Type -eq 'Basic' -and $_.Size -gt 0 }
-$ShrinkTargetsMB = @(524288, 262144, 131072, 65536)
+$ShrinkTargetsMB = @(1048576, 524288, 262144, 131072, 65536)
 
 $ShrinkablePartition = $null
 $ShrinkAmountMB = 0
