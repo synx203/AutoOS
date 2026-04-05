@@ -1038,5 +1038,80 @@ namespace AutoOS.Views.Settings
                 Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
             }
         }
+        private void CopyAcValueDescription_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement { DataContext: PowerSetting item })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                string text;
+                if (item.IsOption)
+                {
+                    text = PowerApi.ReadPossibleDescription(item.SubgroupGuid, item.Guid, item.AcValueIndex);
+                }
+                else
+                {
+                    string unit = !string.IsNullOrWhiteSpace(item.Unit) ? char.ToUpper(item.Unit[0]) + item.Unit[1..] : string.Empty;
+                    text = $"Range: {item.Min} - {item.Max}\nIncrement: {item.Increment}\nUnit: {unit}";
+                }
+
+                dataPackage.SetText(text ?? string.Empty);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            }
+            else if (sender is FrameworkElement { DataContext: PowerCompareSetting compareItem })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                string text;
+                if (compareItem.IsOption)
+                {
+                    text = PowerApi.ReadPossibleDescription(compareItem.SubgroupGuid, compareItem.Guid, compareItem.Plan1AcValue);
+                }
+                else
+                {
+                    string unit = !string.IsNullOrWhiteSpace(compareItem.Unit) ? char.ToUpper(compareItem.Unit[0]) + compareItem.Unit[1..] : string.Empty;
+                    text = $"Range: {compareItem.Min} - {compareItem.Max}\nIncrement: {compareItem.Increment}\nUnit: {unit}";
+                }
+
+                dataPackage.SetText(text ?? string.Empty);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            }
+        }
+
+        private void CopyDcValueDescription_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement { DataContext: PowerSetting item })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                string text;
+                if (item.IsOption)
+                {
+                    text = PowerApi.ReadPossibleDescription(item.SubgroupGuid, item.Guid, item.DcValueIndex);
+                }
+                else
+                {
+                    string unit = !string.IsNullOrWhiteSpace(item.Unit) ? char.ToUpper(item.Unit[0]) + item.Unit[1..] : string.Empty;
+                    text = $"Range: {item.Min} - {item.Max}\nIncrement: {item.Increment}\nUnit: {unit}";
+                }
+
+                dataPackage.SetText(text ?? string.Empty);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            }
+            else if (sender is FrameworkElement { DataContext: PowerCompareSetting compareItem })
+            {
+                var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                string text;
+                if (compareItem.IsOption)
+                {
+                    text = PowerApi.ReadPossibleDescription(compareItem.SubgroupGuid, compareItem.Guid, compareItem.Plan1DcValue);
+                }
+                else
+                {
+                    string unit = !string.IsNullOrWhiteSpace(compareItem.Unit) ? char.ToUpper(compareItem.Unit[0]) + compareItem.Unit[1..] : string.Empty;
+                    text = $"Range: {compareItem.Min} - {compareItem.Max}\nIncrement: {compareItem.Increment}\nUnit: {unit}";
+                }
+
+                dataPackage.SetText(text ?? string.Empty);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            }
+        }
     }
 }

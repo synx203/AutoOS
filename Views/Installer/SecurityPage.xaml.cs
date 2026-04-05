@@ -62,11 +62,8 @@ public sealed partial class SecurityPage : Page
         panel.Children.Add(dialogProgressBar);
 
         var dialogInfoText = new TextBlock { };
+        var dialogHyperlink = new Hyperlink{ };
 
-        var dialogHyperlink = new Hyperlink
-        {
-            UnderlineStyle = UnderlineStyle.None
-        };
         dialogHyperlink.Inlines.Add(new Run
         {
             Text = "Windows Security"

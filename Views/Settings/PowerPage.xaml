@@ -74,8 +74,12 @@
                                                 Text="Copy Description" />
                                 <MenuFlyoutItem Click="CopyAcValue_Click"
                                                 Text="Copy AC Value" />
+                                <MenuFlyoutItem Click="CopyAcValueDescription_Click"
+                                                Text="Copy AC Value Description" />
                                 <MenuFlyoutItem Click="CopyDcValue_Click"
                                                 Text="Copy DC Value" />
+                                <MenuFlyoutItem Click="CopyDcValueDescription_Click"
+                                                Text="Copy DC Value Description" />
                             </MenuFlyout>
                         </TextBlock.ContextFlyout>
                     </TextBlock>
@@ -179,8 +183,12 @@
                                                 Text="Copy Description" />
                                 <MenuFlyoutItem Click="CopyAcValue_Click"
                                                 Text="Copy AC Value" />
+                                <MenuFlyoutItem Click="CopyAcValueDescription_Click"
+                                                Text="Copy AC Value Description" />
                                 <MenuFlyoutItem Click="CopyDcValue_Click"
                                                 Text="Copy DC Value" />
+                                <MenuFlyoutItem Click="CopyDcValueDescription_Click"
+                                                Text="Copy DC Value Description" />
                             </MenuFlyout>
                         </TextBlock.ContextFlyout>
                     </TextBlock>
