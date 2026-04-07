@@ -55,7 +55,7 @@ In **AutoOS Installer** you can:
 - Select your Browsers and Browser Extensions.
 - Select your Applications.
 - Import a pre-configured Custom Resolution Utility (CRU) profile.
-- Select which Graphics Card drivers are installed. The Graphic Cards are detected using SetupAPI and [pciids](https://github.com/pciutils/pciids) and the drivers are queried using official API endpoints to ensure compability with all NVIDIA, AMD and recent Intel GPUs.
+- Select which Graphics Card drivers are installed.
 - Import a pre-configured MSI Afterburner profile.
 - Select your Windows Security settings.
 
