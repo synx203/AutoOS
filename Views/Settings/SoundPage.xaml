@@ -44,10 +44,7 @@
                     <dev:SettingsGroup Description="{x:Bind CurrentOutput.Description, Mode=OneWay}"
                                        Header="{x:Bind CurrentOutput.FriendlyName, Mode=OneWay}">
                         <dev:SettingsGroup.HeaderIcon>
-                            <BitmapIcon MinWidth="32"
-                                        MinHeight="32"
-                                        ShowAsMonochrome="False"
-                                        UriSource="{x:Bind CurrentOutput.DevObjName, Mode=OneWay}" />
+                            <ImageIcon Source="{x:Bind CurrentOutput.DevObjName, Mode=OneWay}" />
                         </dev:SettingsGroup.HeaderIcon>
                         <dev:SettingsGroup.Items>
                             <dev:SettingsExpander Margin="0,-2"
@@ -183,10 +180,7 @@
                     <dev:SettingsGroup Description="{x:Bind CurrentInput.Description, Mode=OneWay}"
                                        Header="{x:Bind CurrentInput.FriendlyName, Mode=OneWay}">
                         <dev:SettingsGroup.HeaderIcon>
-                            <BitmapIcon MinWidth="32"
-                                        MinHeight="32"
-                                        ShowAsMonochrome="False"
-                                        UriSource="{x:Bind CurrentInput.DevObjName, Mode=OneWay}" />
+                            <ImageIcon Source="{x:Bind CurrentInput.DevObjName, Mode=OneWay}" />
                         </dev:SettingsGroup.HeaderIcon>
                         <dev:SettingsGroup.Items>
                             <dev:SettingsCard Header="Input volume">

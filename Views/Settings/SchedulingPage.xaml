@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page x:Class="AutoOS.Views.Settings.SchedulingPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -70,8 +70,10 @@
                         Spacing="8">
                 <dev:SettingsGroup Margin="0,0,0,32"
                                    Description="Manage your Audio Controller, Graphics Card, XHCI Controller and Network Interface Controller Affinities."
-                                   Header="Per-CPU Scheduling"
-                                   HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Cpu.png}">
+                                   Header="Per-CPU Scheduling">
+                    <dev:SettingsGroup.HeaderIcon>
+                        <ImageIcon Source="/Assets/Fluent/Cpu.png" />
+                    </dev:SettingsGroup.HeaderIcon>
                     <dev:SettingsGroup.Content>
                         <dev:ProgressButton x:Name="Optimize"
                                             HorizontalAlignment="Left"

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Window x:Class="AutoOS.Views.Startup.StartupWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -14,10 +14,17 @@
         </Grid.RowDefinitions>
         <TitleBar x:Name="AppTitleBar"
                   Title="{x:Bind TitleBarName}"
-                  IconSource="{dev:BitmapIconSource Source=ms-appx:///Assets/AppIcon.png}"
                   IsBackButtonVisible="False"
                   IsPaneToggleButtonVisible="False"
-                  Subtitle="{x:Bind dev:ProcessInfoHelper.VersionWithPrefix}" />
+                  Subtitle="{x:Bind dev:ProcessInfoHelper.VersionWithPrefix}">
+            <TitleBar.LeftHeader>
+                <ImageIcon Width="16"
+                           Height="16"
+                           Margin="14,0,2,0"
+                           PointerPressed="AppIcon_PointerPressed"
+                           Source="/Assets/AppIcon.png" />
+            </TitleBar.LeftHeader>
+        </TitleBar>
         <StackPanel Grid.Row="1"
                     Margin="14,0,14,0"
                     Spacing="12">

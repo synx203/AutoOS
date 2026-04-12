@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media.Imaging;
 using System.ComponentModel;
 using System.Net.Security;
 using System.Runtime.CompilerServices;
@@ -68,7 +69,7 @@ public partial class GpuInfo : INotifyPropertyChanged
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
 
-public partial class VendorIdToBitmapIconConverter : IValueConverter
+public partial class VendorIdToImageIconConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
@@ -81,10 +82,11 @@ public partial class VendorIdToBitmapIconConverter : IValueConverter
             _ => null
         };
 
-        return new BitmapIcon
+        if (string.IsNullOrEmpty(icon)) return null;
+
+        return new ImageIcon
         {
-            UriSource = new Uri($"ms-appx:///Assets/Fluent/{icon}"),
-            ShowAsMonochrome = false
+            Source = new BitmapImage(new Uri($"ms-appx:///Assets/Fluent/{icon}"))
         };
     }
 

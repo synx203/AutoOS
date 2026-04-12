@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page x:Class="AutoOS.Views.Settings.SettingsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -27,8 +27,10 @@
                                          Header="About">
                     <dev:SettingsExpander Description="tinodin"
                                           Header="AutoOS"
-                                          HeaderIcon="{dev:BitmapIcon Source=Assets/AppIcon.png}"
                                           IsExpanded="False">
+                        <dev:SettingsExpander.HeaderIcon>
+                            <ImageIcon Source="/Assets/AppIcon.png" />
+                        </dev:SettingsExpander.HeaderIcon>
                         <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                    IsTextSelectionEnabled="True"
                                    Text="{x:Bind dev:ProcessInfoHelper.Version}" />
@@ -80,8 +82,10 @@
                 </dev:SimpleSettingsGroup>
                 <dev:SimpleSettingsGroup Header="Appearance &amp; behavior">
                     <dev:SettingsCard Description="Select the theme that suits your mood and preference. You can choose from dark, light, or system themes."
-                                      Header="App theme"
-                                      HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Theme.png}">
+                                      Header="App theme">
+                        <dev:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="/Assets/Fluent/Theme.png" />
+                        </dev:SettingsCard.HeaderIcon>
                         <ComboBox dev:ThemeServiceAttach.ThemeService="{x:Bind local:App.Current.ThemeService}">
                             <ComboBoxItem Content="Light"
                                           Tag="Light" />
@@ -92,8 +96,10 @@
                         </ComboBox>
                     </dev:SettingsCard>
                     <dev:SettingsCard Description="Change the appearance of the backdrop material behind your app. You can choose from mica, acrylic, or transparent options."
-                                      Header="Material"
-                                      HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Backdrop.png}">
+                                      Header="Material">
+                        <dev:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="/Assets/Fluent/Backdrop.png" />
+                        </dev:SettingsCard.HeaderIcon>
                         <ComboBox dev:ThemeServiceAttach.ThemeService="{x:Bind local:App.Current.ThemeService}">
                             <ComboBoxItem Content="Mica"
                                           Tag="Mica" />
@@ -103,12 +109,17 @@
                                           Tag="Acrylic" />
                         </ComboBox>
                     </dev:SettingsCard>
-                    <dev:SettingsCard ActionIcon="{dev:BitmapIcon Source=Assets/Fluent/External.png}"
-                                      Description="Sync your app’s color with your Windows accent color. You can open the Windows accent color setting by clicking this card."
+                    <dev:SettingsCard Description="Sync your app’s color with your Windows accent color. You can open the Windows accent color setting by clicking this card."
                                       Header="Accent color"
-                                      HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Color.png}"
                                       IsClickEnabled="True"
-                                      LaunchUri="ms-settings:colors" />
+                                      LaunchUri="ms-settings:colors">
+                        <dev:SettingsCard.HeaderIcon>
+                            <ImageIcon Source="/Assets/Fluent/Color.png" />
+                        </dev:SettingsCard.HeaderIcon>
+                        <dev:SettingsCard.ActionIcon>
+                            <ImageIcon Source="/Assets/Fluent/External.png" />
+                        </dev:SettingsCard.ActionIcon>
+                    </dev:SettingsCard>
                 </dev:SimpleSettingsGroup>
                 <dev:SimpleSettingsGroup Margin="0,0,0,36"
                                          Header="Games">

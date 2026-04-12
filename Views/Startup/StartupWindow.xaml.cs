@@ -1,5 +1,6 @@
 ﻿using AutoOS.Views.Startup.Stages;
 using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml.Input;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using WinRT.Interop;
@@ -41,6 +42,11 @@ namespace AutoOS.Views.Startup
             TitleBarName = "AutoOS Startup";
             
             await StartupStage.Run();
+        }
+
+        private void AppIcon_PointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            PInvoke.PostMessage((HWND)WindowNative.GetWindowHandle(App.MainWindow), PInvoke.WM_SYSCOMMAND, 0xF090, 0);
         }
     }
 }
