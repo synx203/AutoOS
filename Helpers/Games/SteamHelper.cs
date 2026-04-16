@@ -32,7 +32,12 @@ public static class SteamHelper
         if (string.IsNullOrWhiteSpace(content))
             return [];
 
-        var kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(content)));
+        var options = new KVSerializerOptions
+        {
+            HasEscapeSequences = true,
+        };
+
+        var kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(content)), options);
 
         return [.. kv.Root.Children
             .Select(c =>
@@ -61,8 +66,12 @@ public static class SteamHelper
         if (!File.Exists(SteamLoginUsersPath))
             return null;
 
-        var kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text)
-                             .Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(SteamLoginUsersPath))));
+        var options = new KVSerializerOptions
+        {
+            HasEscapeSequences = true,
+        };
+
+        var kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(SteamLoginUsersPath))), options);
         return kv.Root.Children.FirstOrDefault(c => c.Value["MostRecent"]?.ToString() == "1" && c.Value["AllowAutoLogin"]?.ToString() == "1").Key;
     }
 
@@ -88,13 +97,17 @@ public static class SteamHelper
         {
             if (File.Exists(SteamHelper.SteamLoginUsersPath))
             {
-                if (KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(File.ReadAllText(SteamHelper.SteamLoginUsersPath)))).Root.Children.Any())
+                var options = new KVSerializerOptions
+                {
+                    HasEscapeSequences = true,
+                };
+
+                if (KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(SteamLoginUsersPath))), options).Root.Children.Any())
                 {
                     // close steam
                     SteamHelper.CloseSteam();
 
-                    var kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text)
-                                         .Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(SteamHelper.SteamLoginUsersPath))));
+                    var kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(SteamLoginUsersPath))), options);
 
                     InstallPage.Info.Title = $"Successfully logged in as {kv.Root.Children.Select(c => c.Value["AccountName"]?.ToString()).FirstOrDefault(name => !string.IsNullOrEmpty(name))}...";
                     break;
@@ -151,7 +164,12 @@ public static class SteamHelper
 
         Directory.CreateDirectory(Path.GetDirectoryName(SteamHelper.SteamLibraryPath));
 
-        var libraryFolderData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(newestFile.FullName));
+        var options = new KVSerializerOptions
+        {
+            HasEscapeSequences = true,
+        };
+
+        var libraryFolderData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(newestFile.FullName), options);
 
         var drives = DriveInfo.GetDrives()
             .Where(d => d.DriveType == DriveType.Fixed && d.Name != @"C:\")
@@ -268,8 +286,13 @@ public static class SteamHelper
             _ => new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         };
 
+        var options = new KVSerializerOptions
+        {
+            HasEscapeSequences = true,
+        };
+
         // read libraryfolders.vdf
-        var libraryFolderData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(SteamLibraryPath));
+        var libraryFolderData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(SteamLibraryPath), options);
 
         // for each steam install path
         await Parallel.ForEachAsync(libraryFolderData.Root.Children, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, async (folder, _) =>
@@ -292,8 +315,13 @@ public static class SteamHelper
 
                 try
                 {
+                    var options = new KVSerializerOptions
+                    {
+                        HasEscapeSequences = true,
+                    };
+
                     // read game manifest
-                    var appManifestData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")));
+                    var appManifestData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")), options);
 
                     var gameData = JsonDocument.Parse(await httpClient.GetStringAsync($"https://store.steampowered.com/api/appdetails?appids={gameId}&l=english", _)).RootElement.GetProperty(gameId);
                     if (!gameData.TryGetProperty("success", out var success) || !success.GetBoolean()) continue;
@@ -394,7 +422,12 @@ public static class SteamHelper
                 }
                 catch (Exception ex)
                 {
-                    await App.ShowErrorMessage(new Exception($"Failed to load game: {KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")))["name"]?.ToString()}", ex));
+                    var options = new KVSerializerOptions
+                    {
+                        HasEscapeSequences = true,
+                    };
+
+                    await App.ShowErrorMessage(new Exception($"Failed to load game: {KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")), options)["name"]?.ToString()}", ex));
                 }
             }
         });

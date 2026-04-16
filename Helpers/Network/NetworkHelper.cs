@@ -271,7 +271,7 @@ public static class NetworkHelper
             anyChanged |= ApplySetting(device, settings, "PTP Hardware Timestamp", "Disabled");
             anyChanged |= ApplySetting(device, settings, "Recv Segment Coalescing (IPv4)", "Enabled");
             anyChanged |= ApplySetting(device, settings, "Recv Segment Coalescing (IPv6)", "Enabled");
-            anyChanged |= ApplySetting(device, settings, "Receive Side Scaling", "Disabled");
+            anyChanged |= ApplySetting(device, settings, "Receive Side Scaling", "Enabled");
             anyChanged |= ApplySetting(device, settings, "Reduce Speed On Power Down", "Disabled");
             anyChanged |= ApplySetting(device, settings, "Selective Suspend", "Disabled");
             anyChanged |= ApplySetting(device, settings, "SelectiveSuspend", "Disabled");

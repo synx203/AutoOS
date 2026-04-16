@@ -1,4 +1,4 @@
-﻿using AutoOS.Views.Installer.Actions;
+using AutoOS.Views.Installer.Actions;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -117,8 +117,8 @@ public static partial class StoreHelper
 
     public static async Task Remove(string packageFamilyName)
     {
-		try
-		{
+        try
+        {
             await KillProcesses(packageFamilyName);
             var manager = new PackageManager();
 
@@ -127,13 +127,13 @@ public static partial class StoreHelper
                 await manager.RemovePackageAsync(package.Id.FullName);
             }
         }
-		catch { }
+        catch { }
     }
 
     public static async Task Deprovision(string packageFamilyName)
     {
-		try
-		{
+        try
+        {
             await new PackageManager().DeprovisionPackageForAllUsersAsync(packageFamilyName);
         }
         catch { }
@@ -166,58 +166,49 @@ public static partial class StoreHelper
 
         var installManager = new AppInstallManager();
 
-        try
+        await KillProcesses(identifier);
+        AppInstallItem updateItem = await installManager.UpdateAppByPackageFamilyNameAsync(identifier);
+        if (updateItem == null)
+            return;
+
+        var tcs = new TaskCompletionSource<bool>();
+
+        void OnItemStatusChanged(AppInstallManager sender, AppInstallManagerItemEventArgs args)
         {
-            await KillProcesses(identifier);
-            AppInstallItem updateItem = await installManager.UpdateAppByPackageFamilyNameAsync(identifier);
-            if (updateItem == null)
-                return;
-
-            var tcs = new TaskCompletionSource<bool>();
-
-            void OnItemStatusChanged(AppInstallManager sender, AppInstallManagerItemEventArgs args)
+            if (args.Item.PackageFamilyName == identifier)
             {
-                if (args.Item.PackageFamilyName == identifier)
+                var status = args.Item.GetCurrentStatus();
+
+                uiContext?.Post(_ =>
                 {
-                    var status = args.Item.GetCurrentStatus();
+                    InstallPage.Info.Title = $"{title} ({status.BytesDownloaded / (1024.0 * 1024.0):F2} MB of {status.DownloadSizeInBytes / (1024.0 * 1024.0):F2} MB)";
+                    InstallPage.ProgressRingControl.Value = status.PercentComplete;
+                    InstallPage.ProgressRingControl.IsIndeterminate = false;
+                }, null);
 
-                    uiContext?.Post(_ =>
-                    {
-                        InstallPage.Info.Title = $"{title} ({status.BytesDownloaded / (1024.0 * 1024.0):F2} MB of {status.DownloadSizeInBytes / (1024.0 * 1024.0):F2} MB)";
-                        InstallPage.ProgressRingControl.Value = status.PercentComplete;
-                        InstallPage.ProgressRingControl.IsIndeterminate = false;
-                    }, null);
-
-                    if (status.InstallState == AppInstallState.Completed || status.InstallState == AppInstallState.Canceled || status.InstallState == AppInstallState.Error)
-                    {
-                        tcs.TrySetResult(true);
-                    }
+                if (status.InstallState == AppInstallState.Completed || status.InstallState == AppInstallState.Canceled || status.InstallState == AppInstallState.Error)
+                {
+                    tcs.TrySetResult(true);
                 }
             }
+        }
 
-            installManager.ItemStatusChanged += OnItemStatusChanged;
+        installManager.ItemStatusChanged += OnItemStatusChanged;
 
-            var initialStatus = updateItem.GetCurrentStatus();
-            if (initialStatus.InstallState == AppInstallState.Completed)
-            {
-                installManager.ItemStatusChanged -= OnItemStatusChanged;
-                return;
-            }
-
-            await tcs.Task;
+        var initialStatus = updateItem.GetCurrentStatus();
+        if (initialStatus.InstallState == AppInstallState.Completed || initialStatus.InstallState == AppInstallState.Canceled || initialStatus.InstallState == AppInstallState.Error)
+        {
             installManager.ItemStatusChanged -= OnItemStatusChanged;
+            return;
         }
-        catch (Exception ex)
+
+        await tcs.Task;
+        installManager.ItemStatusChanged -= OnItemStatusChanged;
+
+        uiContext?.Post(_ =>
         {
-            Debug.WriteLine($"[StoreHelper] Update failed: {ex.Message}");
-        }
-        finally
-        {
-            uiContext?.Post(_ =>
-            {
-                InstallPage.ProgressRingControl.IsIndeterminate = true;
-            }, null);
-        }
+            InstallPage.ProgressRingControl.IsIndeterminate = true;
+        }, null);
     }
 
     public static string GetVersion(string packageFamilyName)
@@ -442,34 +433,38 @@ public static partial class StoreHelper
 
     private static async Task KillProcesses(string packageFamilyName)
     {
-		var manager = new PackageManager();
-		var package = manager.FindPackagesForUser(string.Empty, packageFamilyName).FirstOrDefault();
-		if (package == null) return;
+        try
+        {
+            var manager = new PackageManager();
+            var package = manager.FindPackagesForUser(string.Empty, packageFamilyName).FirstOrDefault();
+            if (package == null) return;
 
-		string manifestPath = Path.Combine(package.InstalledLocation.Path, "AppxManifest.xml");
-		if (!File.Exists(manifestPath)) return;
+            string manifestPath = Path.Combine(package.InstalledLocation.Path, "AppxManifest.xml");
+            if (!File.Exists(manifestPath)) return;
 
-		var doc = XDocument.Load(manifestPath);
-		var ns = doc.Root.Name.Namespace;
-		var applications = doc.Descendants(ns + "Application");
+            var doc = XDocument.Load(manifestPath);
+            var ns = doc.Root.Name.Namespace;
+            var applications = doc.Descendants(ns + "Application");
 
-		foreach (var app in applications)
-		{
-			var exe = app.Attribute("Executable")?.Value;
-			if (!string.IsNullOrEmpty(exe))
-			{
-				var processName = Path.GetFileNameWithoutExtension(exe);
-				foreach (var process in Process.GetProcessesByName(processName))
-				{
-					try
-					{
-						process.Kill();
-						await process.WaitForExitAsync();
-					}
-					catch { }
-				}
-			}
-		}
+            foreach (var app in applications)
+            {
+                var exe = app.Attribute("Executable")?.Value;
+                if (!string.IsNullOrEmpty(exe))
+                {
+                    var processName = Path.GetFileNameWithoutExtension(exe);
+                    foreach (var process in Process.GetProcessesByName(processName))
+                    {
+                        try
+                        {
+                            process.Kill();
+                            await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+                        }
+                        catch { }
+                    }
+                }
+            }
+        }
+        catch { }
     }
 }
 
