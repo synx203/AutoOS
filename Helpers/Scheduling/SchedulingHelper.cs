@@ -98,7 +98,7 @@ internal static class SchedulingHelper
                     changedDevices.Add(device);
             }
 
-            if (deviceType == DeviceType.NIC && assignmentSetOverride != 0)
+            if (deviceType == DeviceType.NIC && device.DriverType == NicDriverType.NDIS && assignmentSetOverride != 0)
                 DeviceHelper.SetRSS(device, assignmentSetOverride);
         }
 

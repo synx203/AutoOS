@@ -525,7 +525,7 @@ internal static class DeviceHelper
 
             if (changed)
             {
-                if (deviceType == DeviceType.NIC && assignmentSetOverride != 0)
+                if (deviceType == DeviceType.NIC && device.DriverType == NicDriverType.NDIS && assignmentSetOverride != 0)
                     SetRSS(device, assignmentSetOverride);
 
                 result.ChangedDevices.Add(device);
