@@ -390,7 +390,7 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/tinodin/AutoOS/master/
 
 Write-Host "`n===== Step 8: Create Boot Entry =====`n"
 Write-Host "Creating boot entry..."
-bcdedit /set "{default}" bootmenupolicy legacy
+bcdedit /set "{current}" bootmenupolicy legacy
 bcdboot $TargetDrive\Windows
 bcdedit /set "{default}" description "AutoOS"
 bcdedit /set "{default}" bootmenupolicy legacy

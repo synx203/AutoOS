@@ -673,11 +673,12 @@ $WM_INPUTLANGCHANGEREQUEST = 0x0050
 $hwndBroadcast = [IntPtr]0xffff
 
 while ($true) {
-    try {
+    if (-not (Get-Process -Name "FirstLogonAnim" -ErrorAction SilentlyContinue)) {
         $currentHKL = [Win32Input]::GetKeyboardLayout(0)
         $targetHKL = [Win32Input]::LoadKeyboardLayout($list[1].Split(':')[1], 0x00000001)
 
         if ($currentHKL -eq $targetHKL) {
+            New-Item -Path "C:\test.txt" -ItemType "File"
             break
         }
 
@@ -686,6 +687,5 @@ while ($true) {
         [Win32Input]::PostMessage($hwndBroadcast, $WM_INPUTLANGCHANGEREQUEST, [IntPtr]0, $targetHKL)
         [Win32Input]::PostMessage($foregroundHWnd, $WM_INPUTLANGCHANGEREQUEST, [IntPtr]0, $targetHKL)
     }
-    catch { }
-    Start-Sleep -Milliseconds 1000
+    Start-Sleep -Milliseconds 500
 }
