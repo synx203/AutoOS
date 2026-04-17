@@ -889,6 +889,10 @@ public static class EpicGamesHelper
                     if (itemJson?["bIsApplication"]?.GetValue<bool>() != true) return;
                     string catalogItemId = itemJson["CatalogItemId"]?.GetValue<string>();
                     string catalogNamespace = itemJson["CatalogNamespace"]?.GetValue<string>();
+                    string appName = itemJson["AppName"]?.GetValue<string>();
+
+                    if (catalogItemId == "1e8bda5cfbb641b9a9aea8bd62285f73")
+                        appName = itemJson["MainGameAppName"]?.GetValue<string>();
 
                     // return if not in library
                     if (!libraryData.Any(x => x?["catalogItemId"]?.ToString() == catalogItemId))
@@ -899,7 +903,13 @@ public static class EpicGamesHelper
                         return;
 
                     // get offer id
-                    var itemOfferData = JsonNode.Parse(await httpClient.GetStringAsync($"https://api.egdata.app/items/{catalogItemId}/offer", token).ConfigureAwait(false));
+                    JsonNode itemOfferData = null;
+                    try
+                    {
+                        itemOfferData = JsonNode.Parse(await httpClient.GetStringAsync($"https://api.egdata.app/items/{catalogItemId}/offer", token).ConfigureAwait(false));
+                    }
+                    catch { }
+
                     var offerId = itemOfferData?["id"]?.GetValue<string>();
 
                     if (catalogItemId == "4fe75bbc5a674f4f9b356b5c90567da5")
@@ -941,9 +951,9 @@ public static class EpicGamesHelper
                     var genresTask = httpClient.GetStringAsync($"https://api.egdata.app/offers/{(offerId == "6e02cab6e82243858462ba7f93c82e9d" ? "d546d9a3e9fe4ba093d3a3fdae020760" : offerId)}/genres", token);
                     var featuresTask = httpClient.GetStringAsync($"https://api.egdata.app/offers/{(offerId == "6e02cab6e82243858462ba7f93c82e9d" ? "d546d9a3e9fe4ba093d3a3fdae020760" : offerId)}/features", token);
                     var ageRatingTask = httpClient.GetStringAsync($"https://api.egdata.app/offers/{offerId}/age-rating", token);
-                    var mediaTask = httpClient.GetStringAsync($"https://api.egdata.app/offers/{offerId}/media", token);
+                    var mediaTask = httpClient.GetAsync($"https://api.egdata.app/offers/{offerId}/media", token);
 
-                    await Task.WhenAll(manifestTask, offerTask, ratingTask, genresTask, featuresTask, ageRatingTask, mediaTask).ConfigureAwait(false);
+                    //await Task.WhenAll(manifestTask, offerTask, ratingTask, genresTask, featuresTask, ageRatingTask, mediaTask).ConfigureAwait(false);
 
                     //var itemData = JsonNode.Parse(await itemTask.ConfigureAwait(false));
                     //var offerData = JsonNode.Parse(await offerTask.ConfigureAwait(false));
@@ -953,7 +963,9 @@ public static class EpicGamesHelper
                     var genresData = JsonNode.Parse(await genresTask.ConfigureAwait(false));
                     var featuresData = JsonNode.Parse(await featuresTask.ConfigureAwait(false));
                     var ageRatingData = JsonNode.Parse(await ageRatingTask.ConfigureAwait(false));
-                    var mediaData = JsonNode.Parse(await mediaTask.ConfigureAwait(false));
+
+                    var mediaResponse = await mediaTask.ConfigureAwait(false);
+                    var mediaData = mediaResponse.IsSuccessStatusCode ? JsonNode.Parse(await mediaResponse.Content.ReadAsStringAsync(token).ConfigureAwait(false)) : JsonNode.Parse("{}");
 
                     // get images
                     //var itemModified = DateTime.TryParse(itemData["lastModifiedDate"]?.GetValue<string>(), out var itemDate) ? itemDate : DateTime.MinValue;
@@ -1018,7 +1030,7 @@ public static class EpicGamesHelper
                             Launcher = itemJson["Provider"]?.GetValue<string>() ?? "Epic Games",
                             CatalogNamespace = catalogNamespace,
                             CatalogItemId = catalogItemId,
-                            AppName = itemJson["AppName"]?.GetValue<string>(),
+                            AppName = appName,
                             InstallLocation = installLocation,
                             LaunchCommand = itemJson["LaunchCommand"]?.GetValue<string>(),
                             LaunchExecutable = itemJson["LaunchExecutable"]?.GetValue<string>()?.Replace("/", "\\"),
@@ -1042,10 +1054,10 @@ public static class EpicGamesHelper
                             Elements = ageRatingData[ratingKey]?["element"]?.ToString()?.Replace(",", ", "),
                             //Description = offerData["description"]?.GetValue<string>(),
                             Description = description,
-                            Screenshots = [.. mediaData["images"]
+                            Screenshots = [.. (mediaData["images"]?
                                     .AsArray()
                                     .Select(img => img["src"]?.ToString())
-                                    .Where(src => !string.IsNullOrWhiteSpace(src))],
+                                    .Where(src => !string.IsNullOrWhiteSpace(src)) ?? [])],
                             //Videos = [.. mediaData["videos"]
                             //            .AsArray()
                             //            .SelectMany(video => video["outputs"].AsArray())
