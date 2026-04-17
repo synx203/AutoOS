@@ -166,10 +166,9 @@ public static partial class StoreHelper
 
         var installManager = new AppInstallManager();
 
+        var productId = await GetProductID(identifier);
+
         await KillProcesses(identifier);
-        AppInstallItem updateItem = await installManager.UpdateAppByPackageFamilyNameAsync(identifier);
-        if (updateItem == null)
-            return;
 
         var tcs = new TaskCompletionSource<bool>();
 
@@ -194,6 +193,14 @@ public static partial class StoreHelper
         }
 
         installManager.ItemStatusChanged += OnItemStatusChanged;
+
+        AppInstallItem updateItem = await installManager.SearchForUpdatesAsync(productId, string.Empty, string.Empty, string.Empty, new AppUpdateOptions { AutomaticallyDownloadAndInstallUpdateIfFound = true });
+
+        if (updateItem == null)
+        {
+            installManager.ItemStatusChanged -= OnItemStatusChanged;
+            return;
+        }
 
         var initialStatus = updateItem.GetCurrentStatus();
         if (initialStatus.InstallState == AppInstallState.Completed || initialStatus.InstallState == AppInstallState.Canceled || initialStatus.InstallState == AppInstallState.Error)

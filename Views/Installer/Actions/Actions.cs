@@ -82,11 +82,12 @@ public static class ProcessActions
 
     public static async Task RunDownload(string url, string path, string file = null, ProgressButton progressButton = null)
     {
-        string dest = string.IsNullOrWhiteSpace(file) ? path : Path.Combine(path, file);
+        bool hasFileName = !string.IsNullOrWhiteSpace(file);
+        string dest = hasFileName ? Path.Combine(path, file) : path;
 
         for (int i = 0; i < 5; i++)
         {
-            if (File.Exists(dest)) return;
+            if (hasFileName ? File.Exists(dest) : Directory.Exists(dest) && Directory.EnumerateFiles(dest).Any()) return;
 
             var uiContext = SynchronizationContext.Current;
             string title = progressButton == null ? InstallPage.Info?.Title ?? string.Empty : string.Empty;
@@ -196,7 +197,7 @@ public static class ProcessActions
                 }
                 catch { }
 
-                if (File.Exists(dest)) return;
+                if (hasFileName ? File.Exists(dest) : Directory.Exists(dest) && Directory.EnumerateFiles(dest).Any()) return;
             }
 
             await Task.Delay(1000);
