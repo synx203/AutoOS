@@ -8,9 +8,6 @@ using Windows.Storage;
 using AutoOS.Views.Installer.Actions;
 using Windows.Win32.System.Services;
 using AutoOS.Helpers.Sound;
-using Windows.Win32;
-using Windows.Win32.Media.Audio;
-using Windows.Win32.Foundation;
 
 namespace AutoOS.Views.Startup.Stages;
 

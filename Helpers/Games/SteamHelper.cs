@@ -150,16 +150,19 @@ public static class SteamHelper
 
         Directory.CreateDirectory(targetCacheDir);
 
-        foreach (var dir in Directory.GetDirectories(sourceCacheDir, "*", SearchOption.AllDirectories))
+        if (Directory.Exists(sourceCacheDir))
         {
-            var targetDir = dir.Replace(sourceCacheDir, targetCacheDir);
-            Directory.CreateDirectory(targetDir);
-        }
+            foreach (var dir in Directory.GetDirectories(sourceCacheDir, "*", SearchOption.AllDirectories))
+            {
+                var targetDir = dir.Replace(sourceCacheDir, targetCacheDir);
+                Directory.CreateDirectory(targetDir);
+            }
 
-        foreach (var file in Directory.GetFiles(sourceCacheDir, "*.*", SearchOption.AllDirectories))
-        {
-            var targetFile = file.Replace(sourceCacheDir, targetCacheDir);
-            File.Copy(file, targetFile, true);
+            foreach (var file in Directory.GetFiles(sourceCacheDir, "*.*", SearchOption.AllDirectories))
+            {
+                var targetFile = file.Replace(sourceCacheDir, targetCacheDir);
+                File.Copy(file, targetFile, true);
+            }
         }
 
         Directory.CreateDirectory(Path.GetDirectoryName(SteamLibraryPath));
@@ -171,51 +174,57 @@ public static class SteamHelper
 
         var libraryFolderData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(newestFile.FullName), options);
 
-        var drives = DriveInfo.GetDrives()
-            .Where(d => d.DriveType == DriveType.Fixed && d.Name != @"C:\")
-            .Select(d => d.Name.TrimEnd('\\'))
-            .ToList();
+        string cSteamPath = @"C:\Program Files (x86)\Steam";
 
-        List<KVObject> newFolders = [.. libraryFolderData.Root.Children.Select(folder =>
-        {
-            var children = folder.Value.Children.ToList();
-
-            var pathNode = children.FirstOrDefault(c => c.Key == "path");
-            if (pathNode.Value != null)
-            {
-                children.Remove(pathNode);
-                children.Insert(0, pathNode);
-
-                string pathValue = pathNode.Value.ToString() ?? "";
-
-                string folderSuffix = (pathValue.Length > 2 && pathValue[1] == ':') ? pathValue.Substring(2) : "";
-
-                string foundPath = drives.FirstOrDefault(drive => Directory.Exists(drive + folderSuffix)) is string fPath ? fPath + folderSuffix : null;
-
-                if (foundPath != null)
-                {
-                    var newPathKV = new KVObject(foundPath);
-                    var newPathKVP = new KeyValuePair<string, KVObject>("path", newPathKV);
-                    children[0] = newPathKVP;
-                }
-            }
-
-            var result = new KVObject();
-            foreach (var child in children)
-            {
-                result[child.Key] = child.Value;
-            }
-            return result;
-        })];
-
-        using var msOut = new MemoryStream();
-        var rootObj = new KVObject();
-        int folderIndex = 0;
+        var sourceEntries = new List<KVObject>();
         foreach (var folder in libraryFolderData.Root.Children)
         {
-            rootObj[folder.Key] = newFolders[folderIndex];
-            folderIndex++;
+            var children = folder.Value.Children.ToList();
+            var pathNode = children.FirstOrDefault(c => c.Key == "path");
+            string pathValue = pathNode.Value?.ToString() ?? "";
+
+            string resolvedPath;
+            if (string.Equals(pathValue, cSteamPath, StringComparison.OrdinalIgnoreCase))
+            {
+                string suffix = pathValue.Length > 2 && pathValue[1] == ':' ? pathValue.Substring(2) : "";
+                resolvedPath = sourceDrive + suffix;
+            }
+            else
+            {
+                resolvedPath = pathValue;
+            }
+
+            var entry = new KVObject();
+            entry["path"] = new KVObject(resolvedPath);
+
+            foreach (var child in children)
+            {
+                if (child.Key == "path") continue;
+                entry[child.Key] = child.Value;
+            }
+
+            sourceEntries.Add(entry);
         }
+
+        var cDriveEntry = new KVObject();
+        cDriveEntry["path"] = new KVObject(cSteamPath);
+        cDriveEntry["label"] = new KVObject("");
+        cDriveEntry["totalsize"] = new KVObject("0");
+        cDriveEntry["update_clean_bytes_tally"] = new KVObject("0");
+        cDriveEntry["time_last_update_verified"] = new KVObject("0");
+        cDriveEntry["apps"] = new KVObject();
+
+        var rootObj = new KVObject();
+        rootObj["0"] = cDriveEntry;
+
+        int nextIndex = 1;
+        foreach (var entry in sourceEntries)
+        {
+            rootObj[nextIndex.ToString()] = entry;
+            nextIndex++;
+        }
+
+        using var msOut = new MemoryStream();
         KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Serialize(msOut, new KVDocument(null, libraryFolderData.Name, rootObj));
         msOut.Position = 0;
         File.WriteAllText(SteamLibraryPath, new StreamReader(msOut).ReadToEnd());
