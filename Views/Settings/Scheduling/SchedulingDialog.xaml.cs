@@ -1,4 +1,4 @@
-﻿using AutoOS.Views.Settings.Scheduling.ViewModels;
+using AutoOS.Views.Settings.Scheduling.ViewModels;
 using AutoOS.Helpers.CPU;
 
 namespace AutoOS.Views.Settings.Scheduling;
@@ -19,5 +19,26 @@ public sealed partial class SchedulingDialog : Page
         Location = device.Location;
         ViewModel = new DeviceAffinityViewModel(device, cpuSetsInfo);
         InitializeComponent();
+    }
+
+    private void GroupItemsControl_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not ItemsControl itemsControl) return;
+
+        CpuCoreGroup group = itemsControl.DataContext as CpuCoreGroup;
+        if (group == null) return;
+
+        if (itemsControl.ItemsPanelRoot is CommunityToolkit.WinUI.Controls.UniformGrid uniformGrid)
+        {
+            uniformGrid.Columns = group.RecommendedColumns;
+
+            group.PropertyChanged += (s, args) =>
+            {
+                if (args.PropertyName == nameof(CpuCoreGroup.RecommendedColumns))
+                {
+                    uniformGrid.Columns = group.RecommendedColumns;
+                }
+            };
+        }
     }
 }

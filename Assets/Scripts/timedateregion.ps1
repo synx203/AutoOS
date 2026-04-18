@@ -681,7 +681,6 @@ while ($true) {
             $targetHKL = [Win32Input]::LoadKeyboardLayout($list[1].Split(':')[1], 0x00000001)
 
             if ($currentHKL -eq $targetHKL) {
-                New-Item -Path "C:\test.txt" -ItemType "File"
                 break
             }
 

@@ -105,15 +105,16 @@
                               Title="{x:Bind ViewModel.Group0.Name, Mode=OneWay}"
                               HorizontalAlignment="Stretch"
                               VerticalAlignment="Stretch">
-                        <ItemsControl HorizontalAlignment="Stretch"
+                        <ItemsControl x:Name="Group0ItemsControl"
+                                      HorizontalAlignment="Stretch"
                                       VerticalAlignment="Top"
                                       DataContext="{x:Bind ViewModel.Group0, Mode=OneWay}"
-                                      ItemsSource="{x:Bind ViewModel.Group0.Cores, Mode=OneWay}">
+                                      ItemsSource="{x:Bind ViewModel.Group0.Cores, Mode=OneWay}"
+                                      Loaded="GroupItemsControl_Loaded">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <controls:UniformGrid HorizontalAlignment="Stretch"
-                                                          VerticalAlignment="Top"
-                                                          Columns="{Binding RecommendedColumns}" />
+                                                          VerticalAlignment="Top" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
@@ -144,15 +145,16 @@
                               Visibility="{x:Bind ViewModel.Group1Visibility, Mode=OneWay}"
                               HorizontalAlignment="Stretch"
                               VerticalAlignment="Stretch">
-                        <ItemsControl HorizontalAlignment="Stretch"
+                        <ItemsControl x:Name="Group1ItemsControl"
+                                      HorizontalAlignment="Stretch"
                                       VerticalAlignment="Top"
                                       DataContext="{x:Bind ViewModel.Group1, Mode=OneWay}"
-                                      ItemsSource="{x:Bind ViewModel.Group1.Cores, Mode=OneWay}">
+                                      ItemsSource="{x:Bind ViewModel.Group1.Cores, Mode=OneWay}"
+                                      Loaded="GroupItemsControl_Loaded">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <controls:UniformGrid HorizontalAlignment="Stretch"
-                                                          VerticalAlignment="Top"
-                                                          Columns="{Binding RecommendedColumns}" />
+                                                          VerticalAlignment="Top" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
@@ -183,15 +185,16 @@
                               Visibility="{x:Bind ViewModel.Group2Visibility, Mode=OneWay}"
                               HorizontalAlignment="Stretch"
                               VerticalAlignment="Stretch">
-                        <ItemsControl HorizontalAlignment="Stretch"
+                        <ItemsControl x:Name="Group2ItemsControl"
+                                      HorizontalAlignment="Stretch"
                                       VerticalAlignment="Top"
                                       DataContext="{x:Bind ViewModel.Group2, Mode=OneWay}"
-                                      ItemsSource="{x:Bind ViewModel.Group2.Cores, Mode=OneWay}">
+                                      ItemsSource="{x:Bind ViewModel.Group2.Cores, Mode=OneWay}"
+                                      Loaded="GroupItemsControl_Loaded">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <controls:UniformGrid HorizontalAlignment="Stretch"
-                                                          VerticalAlignment="Top"
-                                                          Columns="{Binding RecommendedColumns}" />
+                                                          VerticalAlignment="Top" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>

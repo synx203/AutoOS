@@ -94,6 +94,10 @@ public partial class DeviceAffinityViewModel : INotifyPropertyChanged
     public CpuCoreGroup Group1 => CpuGroups.Count > 1 ? CpuGroups[1] : null;
     public CpuCoreGroup Group2 => CpuGroups.Count > 2 ? CpuGroups[2] : null;
 
+    public int Group0Columns => CpuGroups.Count > 0 ? CpuGroups[0].RecommendedColumns : 1;
+    public int Group1Columns => CpuGroups.Count > 1 ? CpuGroups[1].RecommendedColumns : 1;
+    public int Group2Columns => CpuGroups.Count > 2 ? CpuGroups[2].RecommendedColumns : 1;
+
     public Visibility Group1Visibility => CpuGroups.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
     public Visibility Group2Visibility => CpuGroups.Count > 2 ? Visibility.Visible : Visibility.Collapsed;
 
@@ -205,6 +209,9 @@ public partial class DeviceAffinityViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(Group0));
         OnPropertyChanged(nameof(Group1));
         OnPropertyChanged(nameof(Group2));
+        OnPropertyChanged(nameof(Group0Columns));
+        OnPropertyChanged(nameof(Group1Columns));
+        OnPropertyChanged(nameof(Group2Columns));
         OnPropertyChanged(nameof(Group1Visibility));
         OnPropertyChanged(nameof(Group2Visibility));
         OnPropertyChanged(nameof(Group0Margin));
