@@ -29,7 +29,8 @@
                         Grid.Row="1"
                         IsBackButtonVisible="Collapsed"
                         IsPaneToggleButtonVisible="False"
-                        IsSettingsVisible="False">
+                        IsSettingsVisible="False"
+                        OpenPaneLength="300">
             <NavigationView.Header>
                 <dev:BreadcrumbNavigator x:Name="BreadCrumbNav" />
             </NavigationView.Header>
