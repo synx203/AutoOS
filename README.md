@@ -179,10 +179,10 @@ If you get any errors during the script, it’s most likely because your current
 - Go to the `Games` tab while `Services & Drivers` are disabled and press the `Play` button.
 - Once you are in the `Game`, press the `Stop Processes` button. 
 - Press the `Restart Processes` button to restore the taskbar etc.
-- Cap your Game's `frame rate limit` to `a multiple` of your monitor's `refresh rate` (e.g. 144hz, set to 72fps, 144fps or 288fps).
-- Use `NVIDIA Reflex Low Latency` set to `Off` in all competetive games unless you are GPU bound with a low end GPU.
+- Cap your Game's `frame rate limit` to `a multiple` of your monitor's `refresh rate` (144hz, 72fps, 144fps or 288fps).
+- Use `NVIDIA Reflex Low Latency` set to `Off` in competetive games unless you are GPU bound with a low end GPU.
 - Check the `BIOS Settings` tab for recommendations, click `Merge All` then `Import to NVRAM`.
-- If you get `freezes` or `crashes` after on `Intel`, lower your `Max Turbo Ratios` or disable `E-Cores` and make sure `Hyper-Threading` is enabled.
+- If you are `unstable` on `Intel`, lower your `Max Turbo Ratios`, disable `E-Cores` and enable `Hyper-Threading`.
 - If your output supports a lower buffer size in the `Sound` tab, you may lower it in exchange for higher CPU usage.
 - Leave a `review`, share `suggestions`, or report `issues` on the `Discord Server`.
 - [Donate](https://www.paypal.com/donate/?hosted_button_id=GVEVUSHUWXEAG) if you appreciate the immense time and effort I have put into creating and providing this project for free.
