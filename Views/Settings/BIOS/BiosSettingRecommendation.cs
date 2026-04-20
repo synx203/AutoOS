@@ -333,6 +333,7 @@ public static class BiosSettingRecommendationsList
         new BiosSettingRecommendation { SetupQuestion = "NPU Device (B0:D11:F0)", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Native PCIE Enable", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Network Stack Driver Support", Type = "Option", RecommendedOption = "Disable Link" },
+        new BiosSettingRecommendation { SetupQuestion = "Next Boot Recovery Action", Type = "Option", RecommendedOption = "Recovery" },
         new BiosSettingRecommendation { SetupQuestion = "Non Snoop Latency Multiplier", Type = "Option", RecommendedOption = "1 ns" },
         new BiosSettingRecommendation { SetupQuestion = "Non Snoop Latency Override", Type = "Option", RecommendedOption = "Enabled" },
         new BiosSettingRecommendation { SetupQuestion = "Non Snoop Latency Value", Type = "Value", RecommendedOption = "0" },

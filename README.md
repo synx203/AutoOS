@@ -222,6 +222,13 @@ bcdedit /delete {identifier}
 - Use the `Extend` function on the AutoOS partition, select the old Windows partition and max out the slider. 
 - Click `Apply` and then `Restart Now`. After its done, delete `Minitool Partition Wizard Free`.
 
+If you are on ASUS Motherboard and get `GPT header corruption has been detected` message:
+- Press `F1` to get into `BIOS`.
+- Press `F7` to get into `advanced mode`.
+- Go to `Boot` tab, then select `Boot Configuration`.
+- Change `Next Boot Recovery Action` to `Recovery`.
+- Change `Boot Sector (MBR/GPT) Recovery Policy` to `Auto Recovery` if it exists.
+
 ## 📷 Screenshots
 ### AutoOS Installer
 
