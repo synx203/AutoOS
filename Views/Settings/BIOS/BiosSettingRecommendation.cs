@@ -586,6 +586,7 @@ public static class BiosSettingRecommendationsList
         //new BiosSettingRecommendation { SetupQuestion = "Active E-Cores", Type = "Option", RecommendedOption = "0" },
         //new BiosSettingRecommendation { SetupQuestion = "Active Efficient Cores", Type = "Option", RecommendedOption = "0" },
         //new BiosSettingRecommendation { SetupQuestion = "Active Efficient-cores", Type = "Option", RecommendedOption = "0" },
+        //new BiosSettingRecommendation { SetupQuestion = "No. of CPU E-Cores Enabled", Type = "Option", RecommendedOption = "0" },
         //new BiosSettingRecommendation { SetupQuestion = "CPU EIST Function", Type = "Option", RecommendedOption = "Disabled" },
         //new BiosSettingRecommendation { SetupQuestion = "EIST", Type = "Option", RecommendedOption = "Disabled" },
         //new BiosSettingRecommendation { SetupQuestion = "CPU Core Ratio", Type = "Option", RecommendedOption = "Sync All Cores" },
