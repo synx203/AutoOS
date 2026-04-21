@@ -510,9 +510,6 @@ namespace AutoOS.Helpers.GPU
                 // enable d3 pc latency
                 ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "D3PCLatency", 1, RegistryValueKind.DWord), null),
 
-                // disable ms hybrid
-                ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableMsHybrid", 0, RegistryValueKind.DWord), null),
-
                 // ignore hulk errors
                 ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RmIgnoreHulkErrors", 1, RegistryValueKind.DWord), null),
 
