@@ -167,12 +167,7 @@ public static class SteamHelper
 
         Directory.CreateDirectory(Path.GetDirectoryName(SteamLibraryPath));
 
-        var options = new KVSerializerOptions
-        {
-            HasEscapeSequences = true,
-        };
-
-        var libraryFolderData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(newestFile.FullName), options);
+        var libraryFolderData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(newestFile.FullName));
 
         string cSteamPath = @"C:\Program Files (x86)\Steam";
 
@@ -295,13 +290,8 @@ public static class SteamHelper
             _ => new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         };
 
-        var options = new KVSerializerOptions
-        {
-            HasEscapeSequences = true,
-        };
-
         // read libraryfolders.vdf
-        var libraryFolderData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(SteamLibraryPath), options);
+        var libraryFolderData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(SteamLibraryPath));
 
         // for each steam install path
         await Parallel.ForEachAsync(libraryFolderData.Root.Children, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 }, async (folder, _) =>
@@ -324,13 +314,8 @@ public static class SteamHelper
 
                 try
                 {
-                    var options = new KVSerializerOptions
-                    {
-                        HasEscapeSequences = true,
-                    };
-
                     // read game manifest
-                    var appManifestData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")), options);
+                    var appManifestData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")));
 
                     var gameData = JsonDocument.Parse(await httpClient.GetStringAsync($"https://store.steampowered.com/api/appdetails?appids={gameId}&l=english", _)).RootElement.GetProperty(gameId);
                     if (!gameData.TryGetProperty("success", out var success) || !success.GetBoolean()) continue;
@@ -431,12 +416,7 @@ public static class SteamHelper
                 }
                 catch (Exception ex)
                 {
-                    var options = new KVSerializerOptions
-                    {
-                        HasEscapeSequences = true,
-                    };
-
-                    await App.ShowErrorMessage(new Exception($"Failed to load game: {KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")), options)["name"]?.ToString()}", ex));
+                    await App.ShowErrorMessage(new Exception($"Failed to load game: {KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")))["name"]?.ToString()}", ex));
                 }
             }
         });

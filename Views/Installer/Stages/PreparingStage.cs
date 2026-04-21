@@ -311,13 +311,8 @@ public static class PreparingStage
                 .OrderByDescending(f => f.LastWriteTime)
                 .Select(file =>
                 {
-                    var options = new KVSerializerOptions
-                    {
-                        HasEscapeSequences = true,
-                    };
-
                     using var stream = File.OpenRead(file.FullName);
-                    var kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(stream, options);
+                    var kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(stream);
                     return kv?.Root.Children.Any() == true;
                 })
                 .FirstOrDefault(false);
