@@ -871,7 +871,7 @@ public static class BiosSettingRecommendationsList
         new BiosSettingRecommendation { SetupQuestion = "Precision Boost Overdrive Scalar", Type = "Option", RecommendedOption = "Manual" },
         new BiosSettingRecommendation { SetupQuestion = "Precision Boost Overdrive Scalar", Type = "Option", RecommendedOption = "2X" },
         new BiosSettingRecommendation { SetupQuestion = "Precision Boost Overdrive Scalar Ctrl", Type = "Option", RecommendedOption = "Manual" },
-        new BiosSettingRecommendation { SetupQuestion = "Precision Boost Overdrive(PBO) Enhancement", Type = "Option", RecommendedOption = "90 Level 1" },
+        new BiosSettingRecommendation { SetupQuestion = "Precision Boost Overdrive(PBO) Enhancement", Type = "Option", RecommendedOption = "90 Level 2" },
         new BiosSettingRecommendation { SetupQuestion = "Preferred Operating Mode", Type = "Option", RecommendedOption = "Advanced Mode" },
         new BiosSettingRecommendation { SetupQuestion = "Prochot VRM Throttling", Type = "Option", RecommendedOption = "Disable" },
         new BiosSettingRecommendation { SetupQuestion = "Prochot VRM Throttling", Type = "Option", RecommendedOption = "Disabled" },
