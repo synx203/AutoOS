@@ -51,32 +51,29 @@ namespace AutoOS.Helpers.GPU
             string json = await httpClient.GetStringAsync("https://raw.githubusercontent.com/ZenitH-AT/nvidia-data/main/gpu-data.json");
             using var gpuDoc = JsonDocument.Parse(json);
 
-            if (gpuDoc.RootElement.TryGetProperty(isNotebook ? "notebook" : "desktop", out JsonElement section))
+            string[] sections = isNotebook ? ["notebook", "desktop"] : ["desktop", "notebook"];
+            double bestScore = -1;
+
+            foreach (var sectionName in sections)
             {
-                string deviceNameLower = deviceName.ToLower();
-                string bestMatchKey = null;
-                double bestScore = -1;
+                if (!gpuDoc.RootElement.TryGetProperty(sectionName, out JsonElement section)) continue;
 
                 foreach (var prop in section.EnumerateObject())
                 {
-                    string keyLower = prop.Name.ToLower();
-                    var deviceWords = new HashSet<string>(deviceNameLower.Split(' ', '/', '-', '+'));
-                    var keyWords = new HashSet<string>(keyLower.Split(' ', '/', '-', '+'));
+                    var deviceWords = new HashSet<string>(deviceName.Split(' ', '/', '-', '+'), StringComparer.OrdinalIgnoreCase);
+                    var keyWords = new HashSet<string>(prop.Name.Split(' ', '/', '-', '+'), StringComparer.OrdinalIgnoreCase);
 
-                    int common = deviceWords.Intersect(keyWords).Count();
+                    int common = deviceWords.Intersect(keyWords, StringComparer.OrdinalIgnoreCase).Count();
                     double score = (double)common / keyWords.Count;
 
                     if (score > bestScore)
                     {
                         bestScore = score;
-                        bestMatchKey = prop.Name;
+                        gpuId = prop.Value.GetString();
                     }
                 }
 
-                if (bestMatchKey != null)
-                {
-                    gpuId = section.GetProperty(bestMatchKey).GetString();
-                }
+                if (bestScore == 1.0) break;
             }
 
             if (!string.IsNullOrEmpty(gpuId))
