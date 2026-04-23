@@ -9,11 +9,6 @@ using System.Text.RegularExpressions;
 using ValveKeyValue;
 using Windows.Storage;
 using WinRT.Interop;
-using Windows.Win32;
-using Windows.Win32.Media.Audio;
-using Windows.Win32.System.Com;
-using Windows.Win32.Foundation;
-using System.Runtime.InteropServices;
 
 namespace AutoOS.Views.Installer.Stages;
 

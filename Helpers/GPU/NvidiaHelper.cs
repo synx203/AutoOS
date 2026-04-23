@@ -519,6 +519,10 @@ namespace AutoOS.Helpers.GPU
                 // disable non-contiguous allocation
                 ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMDisableNoncontigAlloc", 1, RegistryValueKind.DWord), null),
 
+                // enable gsp firmware
+                ("Enabling GSP Firmware", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableGpuFirmware", 1, RegistryValueKind.DWord), () => gpu.DeviceName.Contains("RTX")),
+                ("Enabling GSP Firmware", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableGpuFirmwareLogs", 0, RegistryValueKind.DWord), () => gpu.DeviceName.Contains("RTX")),
+
                 // force "hardware composed: independent flip"
                 (@"Forcing ""Hardware Composed: Independent Flip""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "enableRS2FlipCollapse", 1, RegistryValueKind.DWord), null),
                 (@"Forcing ""Hardware Composed: Independent Flip""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "enableRS2ImmediateFlipCompletionReporting", 1, RegistryValueKind.DWord), null),
