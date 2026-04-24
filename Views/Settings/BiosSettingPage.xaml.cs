@@ -220,7 +220,7 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
 
                         var matchingRules = BiosSettingRecommendationsList.Rules
                             .Where(r => string.Equals(r.SetupQuestion?.Trim(), setting.SetupQuestion?.Trim(), StringComparison.OrdinalIgnoreCase))
-                            .Where(r => r.Condition == null || r.Condition())
+                            .Where(r => r.Condition == null || r.Condition(settings))
                             .OrderByDescending(r => r.Condition != null)
                             .ToList();
 
