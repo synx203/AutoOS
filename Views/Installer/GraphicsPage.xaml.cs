@@ -1,4 +1,4 @@
-﻿using AutoOS.Helpers.GPU;
+using AutoOS.Helpers.GPU;
 using System.Collections.ObjectModel;
 using System.Text.Json.Nodes;
 using Windows.Storage;
@@ -45,6 +45,7 @@ public sealed partial class GraphicsPage : Page
                 ["Location"] = gpu.Location,
                 ["PStates"] = gpu.PStates,
                 ["HDCP"] = gpu.HDCP,
+                ["GspFirmware"] = gpu.GspFirmware,
                 ["HDMIDPAudio"] = gpu.HDMIDPAudio,
                 ["CurrentVersion"] = gpu.CurrentVersion
             });
@@ -83,6 +84,7 @@ public sealed partial class GraphicsPage : Page
                             Location = obj["Location"]?.ToString(),
                             PStates = obj["PStates"]?.GetValue<bool>() ?? false,
                             HDCP = obj["HDCP"]?.GetValue<bool>() ?? false,
+                            GspFirmware = obj["GspFirmware"]?.GetValue<bool>() ?? false,
                             HDMIDPAudio = obj["HDMIDPAudio"]?.GetValue<bool>() ?? false,
                             CurrentVersion = obj["CurrentVersion"]?.ToString()
                         });
@@ -104,6 +106,7 @@ public sealed partial class GraphicsPage : Page
                 gpu.Install = saved.Install;
                 gpu.PStates = saved.PStates;
                 gpu.HDCP = saved.HDCP;
+                gpu.GspFirmware = saved.GspFirmware;
                 gpu.HDMIDPAudio = saved.HDMIDPAudio;
             }
 

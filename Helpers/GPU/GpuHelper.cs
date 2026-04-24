@@ -48,6 +48,13 @@ public partial class GpuInfo : INotifyPropertyChanged
         set { if (hdcp != value) { hdcp = value; OnPropertyChanged(); } }
     }
 
+    private bool gspFirmware = false;
+    public bool GspFirmware
+    {
+        get => gspFirmware;
+        set { if (gspFirmware != value) { gspFirmware = value; OnPropertyChanged(); } }
+    }
+
     private bool hdmidpaudio = true;
     public bool HDMIDPAudio
     {
@@ -62,6 +69,7 @@ public partial class GpuInfo : INotifyPropertyChanged
     public string Location { get; set; }
     public string RegistryPath { get; set; }
     public bool NVIDIA => VendorId == "10de";
+    public bool RTX => NVIDIA && DeviceName.Contains("RTX");
     public bool Install { get; set; } = true;
 
     public event PropertyChangedEventHandler PropertyChanged;
@@ -155,6 +163,7 @@ public static class GpuHelper
                 string codename = string.Empty;
                 bool pstates = false;
                 bool hdcp = false;
+                bool gspFirmware = false;
                 bool hdmidpaudio = true;
 
                 string gpuLocation = GetLocationInfo(hDevInfo, devInfo);
@@ -174,6 +183,7 @@ public static class GpuHelper
                         }
                         pstates = Microsoft.Win32.Registry.GetValue(registryPath, "DisableDynamicPstate", null) is not int pstateValue || pstateValue == 0;
                         hdcp = Microsoft.Win32.Registry.GetValue(registryPath, "RMHdcpKeyglobZero", null) is int intValue && intValue == 0;
+                        gspFirmware = Microsoft.Win32.Registry.GetValue(registryPath, "EnableGpuFirmware", null) is int firmwareValue && firmwareValue == 1;
                     }
                     else if (vendorId == "1002")
                     {
@@ -258,6 +268,7 @@ public static class GpuHelper
                     RegistryPath = registryPath,
                     PStates = pstates,
                     HDCP = hdcp,
+                    GspFirmware = gspFirmware,
                     HDMIDPAudio = hdmidpaudio,
                     Location = gpuBusDev
                 });
