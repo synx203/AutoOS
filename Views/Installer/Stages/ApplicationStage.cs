@@ -183,7 +183,7 @@ public static class ApplicationStage
             //("Downloading Files", async () => await ProcessActions.RunDownload("https://files.community/appinstallers/Files.stable.appinstaller", ApplicationData.Current.TemporaryFolder.Path, "Files.stable.appinstaller"), null),
 
             //// install files
-            //("Installing Files", async () => await ProcessActions.RunPowerShell(@"Add-AppxPackage -AppInstallerFile ""$env:TEMP\Files.stable.appinstaller"""), null),
+            //("Installing Files", async () => await ProcessActions.RunPowerShell($@"Add-AppxPackage -AppInstallerFile ""{Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "Files.stable.appinstaller")}"""), null),
             //("Installing Files", async () => await ProcessActions.RunDownload("https://www.dl.dropboxusercontent.com/scl/fi/u2hcpijo21p8i0u6lj6qm/Files.zip?rlkey=e5pq2cbj4sevh5lf5jfmvv5hc&st=8o8frer3&dl=0", ApplicationData.Current.TemporaryFolder.Path, "Files.zip"), null),
             //("Installing Files", async () => await ProcessActions.RunExtract(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "Files.zip"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "Files_1y0xx7n9077q4", "LocalState")), null),
             //("Installing Files", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Classes\Folder\shell\open\command", "", @"""%LOCALAPPDATA%\Files\Files.App.Launcher.exe"" ""%1""", RegistryValueKind.ExpandString), null),
@@ -493,7 +493,7 @@ public static class ApplicationStage
             ("Downloading SpotX", async () => await ProcessActions.RunDownload("https://raw.githubusercontent.com/SpotX-Official/SpotX/main/run.ps1", ApplicationData.Current.TemporaryFolder.Path, "run.ps1"), () => Spotify == true),
 
             // install spotx
-            ("Installing SpotX", async () => await ProcessActions.RunPowerShell($@"& $env:TEMP\run.ps1 -new_theme -adsections_off -podcasts_off -block_update_off -version {spotifyVersion}-1234"), () => Spotify == true),
+            ("Installing SpotX", async () => await ProcessActions.RunPowerShell($@"& ""{Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "run.ps1")}"" -new_theme -adsections_off -podcasts_off -block_update_off -version {spotifyVersion}-1234"), () => Spotify == true),
 
             // log in to spotify
             ("Please log in to your Spotify account (Close to continue)", async () => await Task.Delay(1000), () => Spotify == true),
