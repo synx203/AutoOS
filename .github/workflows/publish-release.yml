@@ -125,7 +125,7 @@ jobs:
       shell: pwsh
 
     # Zipping folder and all files
-    - uses: vimtor/action-zip@v1.2
+    - uses: vimtor/action-zip@v1.3
       with:
         files: ${{ env.PUBLISH_OUTPUT_FOLDER }}/${{ matrix.platform }}
         recursive: true

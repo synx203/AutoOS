@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+#nullable enable
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Storage;
 using WinRT.Interop;
 using Windows.Win32.System.Com;
@@ -23,11 +19,11 @@ public partial class FolderPicker
     public FolderPicker(Window window) : this(WindowNative.GetWindowHandle(window)) { }
     public PickerOptions Options { get; set; } = PickerOptions.None;
 
-    public string CommitButtonText { get; set; }
-    public string SuggestedFileName { get; set; }
-    public string InitialDirectory { get; set; }
+    public string? CommitButtonText { get; set; }
+    public string? SuggestedFileName { get; set; }
+    public string? InitialDirectory { get; set; }
     public Microsoft.Windows.Storage.Pickers.PickerLocationId SuggestedStartLocation { get; set; } = Microsoft.Windows.Storage.Pickers.PickerLocationId.Unspecified;
-    public string Title { get; set; }
+    public string? Title { get; set; }
 
     /// <summary>
     /// Picks a single folder.
@@ -43,7 +39,7 @@ public partial class FolderPicker
     /// Asynchronously picks a single folder.
     /// </summary>
     /// <returns>Returns the selected folder as a StorageFolder or null if no folder was selected.</returns>
-    public async Task<StorageFolder> PickSingleFolderAsync()
+    public async Task<StorageFolder?> PickSingleFolderAsync()
     {
         var folderPaths = OpenFolderDialog(false);
         return folderPaths.Count > 0 ? await StorageFolder.GetFolderFromPathAsync(folderPaths[0]) : null;
@@ -102,7 +98,7 @@ public partial class FolderPicker
 
             if (SuggestedStartLocation != Microsoft.Windows.Storage.Pickers.PickerLocationId.Unspecified)
             {
-                InitialDirectory = PickerHelper.GetKnownFolderPath(SuggestedStartLocation);
+                InitialDirectory = PathHelper.GetKnownFolderPath(SuggestedStartLocation);
             }
 
             if (!string.IsNullOrEmpty(InitialDirectory))

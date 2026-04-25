@@ -1,11 +1,12 @@
-﻿using System.Runtime.InteropServices;
-using Windows.Storage;
-using WinRT.Interop;
+#nullable enable
 using Windows.Win32.System.Com;
 using Windows.Win32.UI.Shell;
 using Windows.Win32.UI.Shell.Common;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using WinRT.Interop;
+using System.Runtime.InteropServices;
+using Windows.Storage;
 
 namespace AutoOS.Helpers.Picker;
 
@@ -20,12 +21,12 @@ public partial class SavePicker
     public PickerOptions Options { get; set; } = PickerOptions.None;
 
     public bool ShowDetailedExtension { get; set; } = true;
-    public string CommitButtonText { get; set; }
-    public string SuggestedFileName { get; set; }
-    public string DefaultFileExtension { get; set; }
-    public string InitialDirectory { get; set; }
+    public string? CommitButtonText { get; set; }
+    public string? SuggestedFileName { get; set; }
+    public string? DefaultFileExtension { get; set; }
+    public string? InitialDirectory { get; set; }
     public Microsoft.Windows.Storage.Pickers.PickerLocationId SuggestedStartLocation { get; set; } = Microsoft.Windows.Storage.Pickers.PickerLocationId.Unspecified;
-    public string Title { get; set; }
+    public string? Title { get; set; }
     public Dictionary<string, IList<string>> FileTypeChoices { get; set; } = new();
     public bool ShowAllFilesOption { get; set; } = true;
 
@@ -33,7 +34,7 @@ public partial class SavePicker
     /// Prompts the user to select a file to save and returns the selected file path as a string.
     /// </summary>
     /// <returns>Returns the path of the selected file or null if no file was selected.</returns>
-    public string PickSaveFile()
+    public string? PickSaveFile()
     {
         return SaveFileDialog();
     }
@@ -65,7 +66,7 @@ public partial class SavePicker
         }
     }
 
-    private unsafe string SaveFileDialog()
+    private unsafe string? SaveFileDialog()
     {
         int hr = PInvoke.CoCreateInstance<IFileSaveDialog>(
                                     typeof(FileSaveDialog).GUID,
@@ -94,7 +95,7 @@ public partial class SavePicker
 
             if (SuggestedStartLocation != Microsoft.Windows.Storage.Pickers.PickerLocationId.Unspecified)
             {
-                InitialDirectory = PickerHelper.GetKnownFolderPath(SuggestedStartLocation);
+                InitialDirectory = PathHelper.GetKnownFolderPath(SuggestedStartLocation);
             }
 
             if (!string.IsNullOrEmpty(InitialDirectory))

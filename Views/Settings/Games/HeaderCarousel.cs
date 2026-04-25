@@ -2067,8 +2067,7 @@ public partial class HeaderCarousel : ItemsControl
                 ServicesHelper.KillServiceProcess(serviceName);
             }
 
-            try { new ServiceController("KeyIso").Stop(); } catch { }
-            //try { new ServiceController("Winmgmt").Stop(); } catch { }
+            try { ServicesHelper.StopService("KeyIso"); } catch { }
 
             if (Process.GetProcessesByName("ClassicWindowSwitcher").Length == 0)
                 Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "ClassicWindowSwitcher", "ClassicWindowSwitcher.exe")) { CreateNoWindow = true });
@@ -2093,11 +2092,7 @@ public partial class HeaderCarousel : ItemsControl
             Process.Start("explorer.exe");
 
             // start windhawk service
-            using var windhawkService = new ServiceController("Windhawk");
-            if (windhawkService.Status == ServiceControllerStatus.Stopped)
-            {
-                windhawkService.Start();
-            }
+            try { ServicesHelper.StartService("Windhawk"); } catch { }
 
             // restart services
             var serviceNames = new[]
@@ -2142,12 +2137,11 @@ public partial class HeaderCarousel : ItemsControl
 
             foreach (var serviceName in serviceNames)
             {
-                using var sc = new ServiceController(serviceName);
-
-                if (sc.Status == ServiceControllerStatus.Stopped)
+                try
                 {
-                    sc.Start();
+                    ServicesHelper.StartService(serviceName);
                 }
+                catch { }
             }
 
             string filePath = @"C:\Program Files\Everything 1.5a\Everything.exe";

@@ -124,20 +124,82 @@ public static class ServicesHelper
         return 0;
     }
 
-    public static void StartService(string serviceName)
+    public unsafe static void StartService(string serviceName)
     {
-        using var scmHandle = PInvoke.OpenSCManager(null, null, (uint)PInvoke.SC_MANAGER_CONNECT);
+        using var scmHandle = PInvoke.OpenSCManager(null, null, (uint)(PInvoke.SC_MANAGER_CONNECT | PInvoke.SC_MANAGER_ENUMERATE_SERVICE));
         if (scmHandle.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error(), "OpenSCManager failed");
 
-        using var serviceHandle = PInvoke.OpenService(scmHandle, serviceName, (uint)PInvoke.SERVICE_START);
-        if (serviceHandle.IsInvalid)
+        SC_HANDLE rawScmHandle = (SC_HANDLE)scmHandle.DangerousGetHandle();
+        uint bytesNeeded = 0;
+        uint servicesReturned = 0;
+        uint resumeHandle = 0;
+
+        PInvoke.EnumServicesStatusEx(
+            rawScmHandle,
+            SC_ENUM_TYPE.SC_ENUM_PROCESS_INFO,
+            ENUM_SERVICE_TYPE.SERVICE_WIN32,
+            ENUM_SERVICE_STATE.SERVICE_STATE_ALL,
+            null,
+            0,
+            &bytesNeeded,
+            &servicesReturned,
+            &resumeHandle,
+            null);
+
+        if (bytesNeeded > 0)
+        {
+            byte[] buffer = new byte[bytesNeeded];
+            fixed (byte* pBuffer = buffer)
+            {
+                if (PInvoke.EnumServicesStatusEx(
+                    rawScmHandle,
+                    SC_ENUM_TYPE.SC_ENUM_PROCESS_INFO,
+                    ENUM_SERVICE_TYPE.SERVICE_WIN32,
+                    ENUM_SERVICE_STATE.SERVICE_STATE_ALL,
+                    pBuffer,
+                    (uint)buffer.Length,
+                    &bytesNeeded,
+                    &servicesReturned,
+                    &resumeHandle,
+                    null))
+                {
+                    var services = (ENUM_SERVICE_STATUS_PROCESSW*)pBuffer;
+                    bool startedAny = false;
+                    for (int i = 0; i < servicesReturned; i++)
+                    {
+                        string currentName = services[i].lpServiceName.ToString();
+                        if (currentName.Equals(serviceName, StringComparison.OrdinalIgnoreCase) ||
+                            currentName.StartsWith(serviceName + "_", StringComparison.OrdinalIgnoreCase))
+                        {
+                            using var instanceHandle = PInvoke.OpenService(scmHandle, currentName, (uint)PInvoke.SERVICE_START);
+                            if (!instanceHandle.IsInvalid)
+                            {
+                                if (PInvoke.StartService(instanceHandle, null))
+                                {
+                                    startedAny = true;
+                                }
+                                else
+                                {
+                                    int error = Marshal.GetLastWin32Error();
+                                    if (error == 1056 || error == 1061) startedAny = true;
+                                }
+                            }
+                        }
+                    }
+                    if (startedAny) return;
+                }
+            }
+        }
+
+        using var serviceHandleDirect = PInvoke.OpenService(scmHandle, serviceName, (uint)PInvoke.SERVICE_START);
+        if (serviceHandleDirect.IsInvalid)
         {
             int error = Marshal.GetLastWin32Error();
             if (error == 1060) return;
             throw new Win32Exception(error, "OpenService failed");
         }
 
-        if (!PInvoke.StartService(serviceHandle, null))
+        if (!PInvoke.StartService(serviceHandleDirect, null))
         {
             int error = Marshal.GetLastWin32Error();
             if (error == 1056 || error == 1061) return;
@@ -145,20 +207,82 @@ public static class ServicesHelper
         }
     }
 
-    public static void StopService(string serviceName)
+    public unsafe static void StopService(string baseServiceName)
     {
-        using var scmHandle = PInvoke.OpenSCManager(null, null, (uint)PInvoke.SC_MANAGER_CONNECT);
+        using var scmHandle = PInvoke.OpenSCManager(null, null, (uint)(PInvoke.SC_MANAGER_CONNECT | PInvoke.SC_MANAGER_ENUMERATE_SERVICE));
         if (scmHandle.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error(), "OpenSCManager failed");
 
-        using var serviceHandle = PInvoke.OpenService(scmHandle, serviceName, (uint)PInvoke.SERVICE_STOP);
-        if (serviceHandle.IsInvalid)
+        SC_HANDLE rawScmHandle = (SC_HANDLE)scmHandle.DangerousGetHandle();
+        uint bytesNeeded = 0;
+        uint servicesReturned = 0;
+        uint resumeHandle = 0;
+
+        PInvoke.EnumServicesStatusEx(
+            rawScmHandle,
+            SC_ENUM_TYPE.SC_ENUM_PROCESS_INFO,
+            ENUM_SERVICE_TYPE.SERVICE_WIN32,
+            ENUM_SERVICE_STATE.SERVICE_STATE_ALL,
+            null,
+            0,
+            &bytesNeeded,
+            &servicesReturned,
+            &resumeHandle,
+            null);
+
+        if (bytesNeeded > 0)
+        {
+            byte[] buffer = new byte[bytesNeeded];
+            fixed (byte* pBuffer = buffer)
+            {
+                if (PInvoke.EnumServicesStatusEx(
+                    rawScmHandle,
+                    SC_ENUM_TYPE.SC_ENUM_PROCESS_INFO,
+                    ENUM_SERVICE_TYPE.SERVICE_WIN32,
+                    ENUM_SERVICE_STATE.SERVICE_STATE_ALL,
+                    pBuffer,
+                    (uint)buffer.Length,
+                    &bytesNeeded,
+                    &servicesReturned,
+                    &resumeHandle,
+                    null))
+                {
+                    var services = (ENUM_SERVICE_STATUS_PROCESSW*)pBuffer;
+                    bool stoppedAny = false;
+                    for (int i = 0; i < servicesReturned; i++)
+                    {
+                        string currentName = services[i].lpServiceName.ToString();
+                        if (currentName.Equals(baseServiceName, StringComparison.OrdinalIgnoreCase) ||
+                            currentName.StartsWith(baseServiceName + "_", StringComparison.OrdinalIgnoreCase))
+                        {
+                            using var instanceHandle = PInvoke.OpenService(scmHandle, currentName, (uint)PInvoke.SERVICE_STOP);
+                            if (!instanceHandle.IsInvalid)
+                            {
+                                if (PInvoke.ControlService(instanceHandle, (uint)PInvoke.SERVICE_CONTROL_STOP, out SERVICE_STATUS _))
+                                {
+                                    stoppedAny = true;
+                                }
+                                else
+                                {
+                                    int error = Marshal.GetLastWin32Error();
+                                    if (error == 1062 || error == 1061 || error == 1052) stoppedAny = true;
+                                }
+                            }
+                        }
+                    }
+                    if (stoppedAny) return;
+                }
+            }
+        }
+
+        using var directServiceHandle = PInvoke.OpenService(scmHandle, baseServiceName, (uint)PInvoke.SERVICE_STOP);
+        if (directServiceHandle.IsInvalid)
         {
             int error = Marshal.GetLastWin32Error();
             if (error == 1060) return;
             throw new Win32Exception(error, "OpenService failed");
         }
 
-        if (!PInvoke.ControlService(serviceHandle, (uint)PInvoke.SERVICE_CONTROL_STOP, out SERVICE_STATUS status))
+        if (!PInvoke.ControlService(directServiceHandle, (uint)PInvoke.SERVICE_CONTROL_STOP, out SERVICE_STATUS _))
         {
             int error = Marshal.GetLastWin32Error();
             if (error == 1062 || error == 1061 || error == 1052) return;
