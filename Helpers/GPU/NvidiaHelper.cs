@@ -8,6 +8,7 @@ using Windows.Win32;
 using System.Net.Http.Headers;
 using System.Security.Authentication;
 using Microsoft.Win32;
+using Windows.Storage;
 
 namespace AutoOS.Helpers.GPU
 {
@@ -51,29 +52,32 @@ namespace AutoOS.Helpers.GPU
             string json = await httpClient.GetStringAsync("https://raw.githubusercontent.com/ZenitH-AT/nvidia-data/main/gpu-data.json");
             using var gpuDoc = JsonDocument.Parse(json);
 
-            string[] sections = isNotebook ? ["notebook", "desktop"] : ["desktop", "notebook"];
-            double bestScore = -1;
-
-            foreach (var sectionName in sections)
+            if (gpuDoc.RootElement.TryGetProperty(isNotebook ? "notebook" : "desktop", out JsonElement section))
             {
-                if (!gpuDoc.RootElement.TryGetProperty(sectionName, out JsonElement section)) continue;
+                string deviceNameLower = deviceName.ToLower();
+                string bestMatchKey = null;
+                double bestScore = -1;
 
                 foreach (var prop in section.EnumerateObject())
                 {
-                    var deviceWords = new HashSet<string>(deviceName.Split(' ', '/', '-', '+'), StringComparer.OrdinalIgnoreCase);
-                    var keyWords = new HashSet<string>(prop.Name.Split(' ', '/', '-', '+'), StringComparer.OrdinalIgnoreCase);
+                    string keyLower = prop.Name.ToLower();
+                    var deviceWords = new HashSet<string>(deviceNameLower.Split(' ', '/', '-', '+'));
+                    var keyWords = new HashSet<string>(keyLower.Split(' ', '/', '-', '+'));
 
-                    int common = deviceWords.Intersect(keyWords, StringComparer.OrdinalIgnoreCase).Count();
+                    int common = deviceWords.Intersect(keyWords).Count();
                     double score = (double)common / keyWords.Count;
 
                     if (score > bestScore)
                     {
                         bestScore = score;
-                        gpuId = prop.Value.GetString();
+                        bestMatchKey = prop.Name;
                     }
                 }
 
-                if (bestScore == 1.0) break;
+                if (bestMatchKey != null)
+                {
+                    gpuId = section.GetProperty(bestMatchKey).GetString();
+                }
             }
 
             if (!string.IsNullOrEmpty(gpuId))
@@ -96,7 +100,7 @@ namespace AutoOS.Helpers.GPU
 
         public static async Task StripDriver()
         {
-            foreach (var directory in Directory.GetDirectories(Path.Combine(Path.GetTempPath(), "driver")))
+            foreach (var directory in Directory.GetDirectories(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver")))
             {
                 string folderName = Path.GetFileName(directory);
 
@@ -106,7 +110,7 @@ namespace AutoOS.Helpers.GPU
                 }
             }
 
-            string setupCfgPath = Path.Combine(Path.Combine(Path.GetTempPath(), "driver"), "setup.cfg");
+            string setupCfgPath = Path.Combine(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver"), "setup.cfg");
 
             if (File.Exists(setupCfgPath))
             {
@@ -116,7 +120,7 @@ namespace AutoOS.Helpers.GPU
                 await File.WriteAllLinesAsync(setupCfgPath, newLines);
             }
 
-            string presentationsCfgPath = Path.Combine(Path.Combine(Path.GetTempPath(), "driver"), "NVI2", "presentations.cfg");
+            string presentationsCfgPath = Path.Combine(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver"), "NVI2", "presentations.cfg");
 
             if (File.Exists(presentationsCfgPath))
             {
@@ -143,18 +147,20 @@ namespace AutoOS.Helpers.GPU
             var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
             {
                 // download nvidia driver
-                (@"Downloading NVIDIA driver", async () => await ProcessActions.RunDownload(newestDownloadUrl, Path.GetTempPath(), "driver.exe", progressButton), null),
+                (@"Downloading NVIDIA driver", async () => await ProcessActions.RunDownload(newestDownloadUrl, ApplicationData.Current.TemporaryFolder.Path, "driver.exe", progressButton), null),
 
                 // extract nvidia driver
-                (@"Extracting NVIDIA driver", async () => await ProcessActions.RunExtract(Path.Combine(Path.GetTempPath(), "driver.exe"), Path.Combine(Path.GetTempPath(), "driver")), null),
+                (@"Extracting NVIDIA driver", async () => await ProcessActions.RunExtract(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver.exe"), Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver")), null),
 
                 // strip nvidia driver
                 (@"Stripping NVIDIA driver", async () => await NvidiaHelper.StripDriver(), null),
 
                 // update/install nvidia driver
-                (gpu.IsInstalled ? "Updating NVIDIA driver" : "Installing NVIDIA driver", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "driver", "setup.exe"), Arguments = $"/s{(gpu.IsInstalled ? " /clean" : "")}", CreateNoWindow = true })!.WaitForExitAsync(), null),
+                (gpu.IsInstalled ? "Updating NVIDIA driver" : "Installing NVIDIA driver", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver", "setup.exe"), Arguments = $"/s{(gpu.IsInstalled ? " /clean" : "")}", CreateNoWindow = true })!.WaitForExitAsync(), null),
                 (gpu.IsInstalled ? "Updating NVIDIA driver" : "Installing NVIDIA driver", async () => await Task.Delay(3000), null),
-                (gpu.IsInstalled ? "Updating NVIDIA driver" : "Installing NVIDIA driver", async () => GpuHelper.RefreshGpu(gpu), null)
+                (gpu.IsInstalled ? "Updating NVIDIA driver" : "Installing NVIDIA driver", async () => GpuHelper.RefreshGpu(gpu), null),
+                (gpu.IsInstalled ? "Updating NVIDIA driver" : "Installing NVIDIA driver", async () => await (await ApplicationData.Current.TemporaryFolder.GetFileAsync("driver.exe")).DeleteAsync(), null),
+                (gpu.IsInstalled ? "Updating NVIDIA driver" : "Installing NVIDIA driver", async () => await (await ApplicationData.Current.TemporaryFolder.GetFolderAsync("driver")).DeleteAsync(), null)
             };
 
             return actions;

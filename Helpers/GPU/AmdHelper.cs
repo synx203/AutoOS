@@ -1,9 +1,10 @@
-﻿using AutoOS.Views.Installer.Actions;
+using AutoOS.Views.Installer.Actions;
 using AutoOS.Helpers.Registry;
 using AutoOS.Helpers.Services;
 using System.Text.Json.Nodes;
 using System.Diagnostics;
 using Microsoft.Win32;
+using Windows.Storage;
 
 namespace AutoOS.Helpers.GPU;
 
@@ -72,18 +73,20 @@ public static class AmdHelper
         var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
         {
             // download amd driver
-            ($@"Downloading AMD driver", async () => await ProcessActions.RunDownload(newestDownloadUrl, Path.GetTempPath(), "driver.exe", progressButton), null),
+            ($@"Downloading AMD driver", async () => await ProcessActions.RunDownload(newestDownloadUrl, ApplicationData.Current.TemporaryFolder.Path, "driver.exe", progressButton), null),
 
             // extract amd driver
-            (@"Extracting AMD driver", async () => await ProcessActions.RunExtract(Path.Combine(Path.GetTempPath(), "driver.exe"), Path.Combine(Path.GetTempPath(), "driver")), null),
+            (@"Extracting AMD driver", async () => await ProcessActions.RunExtract(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver.exe"), Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver")), null),
 
             // strip amd driver
-            (@"Stripping AMD driver", async () => await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "RadeonSoftwareSlimmer", "RadeonSoftwareSlimmer.exe"), $@"--extracted-installer ""{Path.Combine(Path.GetTempPath(), "driver")}"" --config ""{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "RadeonSoftwareSlimmer", "config.ini")}""") { CreateNoWindow = true })!.WaitForExitAsync(), null),
+            (@"Stripping AMD driver", async () => await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "RadeonSoftwareSlimmer", "RadeonSoftwareSlimmer.exe"), $@"--extracted-installer ""{Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver")}"" --config ""{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "RadeonSoftwareSlimmer", "config.ini")}""") { CreateNoWindow = true })!.WaitForExitAsync(), null),
 
             // install amd driver
-            (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "driver", "Setup.exe"), Arguments = "-install", UseShellExecute = false, CreateNoWindow = true })!.WaitForExitAsync(), null),
+            (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver", "Setup.exe"), Arguments = "-install", UseShellExecute = false, CreateNoWindow = true })!.WaitForExitAsync(), null),
             (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => await Task.Delay(3000), null),
-            (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => GpuHelper.RefreshGpu(gpu), null)
+            (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => GpuHelper.RefreshGpu(gpu), null),
+            (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => await (await ApplicationData.Current.TemporaryFolder.GetFileAsync("driver.exe")).DeleteAsync(), null),
+            (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => await (await ApplicationData.Current.TemporaryFolder.GetFolderAsync("driver")).DeleteAsync(), null)
         };
 
         return actions;
