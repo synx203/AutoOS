@@ -316,7 +316,10 @@ public static class SteamHelper
                 try
                 {
                     // read game manifest
-                    var appManifestData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")));
+                    string manifestPath = Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf");
+                    if (!File.Exists(manifestPath)) continue;
+
+                    var appManifestData = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(manifestPath));
 
                     var gameData = JsonDocument.Parse(await httpClient.GetStringAsync($"https://store.steampowered.com/api/appdetails?appids={gameId}&l=english", _)).RootElement.GetProperty(gameId);
                     if (!gameData.TryGetProperty("success", out var success) || !success.GetBoolean()) continue;
@@ -417,7 +420,7 @@ public static class SteamHelper
                 }
                 catch (Exception ex)
                 {
-                    await App.ShowErrorMessage(new Exception($"Failed to load game: {KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(File.OpenRead(Path.Combine(steamAppsDir, $"appmanifest_{gameId}.acf")))["name"]?.ToString()}", ex));
+                    Debug.WriteLine($"Failed to load Steam game {gameId}: {ex.Message}");
                 }
             }
         });
