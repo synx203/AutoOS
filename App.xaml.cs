@@ -6,6 +6,7 @@ using Windows.Graphics;
 using Windows.Storage;
 using WinRT.Interop;
 using AutoOS.Views.Startup;
+using DevWinUI;
 
 namespace AutoOS
 {
@@ -128,9 +129,7 @@ namespace AutoOS
             {
                 MainWindow.DispatcherQueue.TryEnqueue(async () =>
                 {
-                    MessageBoxOptions options = MessageBoxOptions.Default;
-                    options.Underlay = UnderlayMode.SmokeLayer;
-                    await MessageBox.ShowAsync(true, MainWindow, ex.Message, "Unexpected Error", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, options);
+                    await MessageBox.ShowErrorAsync(MainWindow, ex.Message, "Unexpected Error");
                 });
             }
         }

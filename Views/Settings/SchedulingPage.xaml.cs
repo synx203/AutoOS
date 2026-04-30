@@ -3,6 +3,7 @@ using AutoOS.Helpers.CPU;
 using AutoOS.Helpers.Device;
 using AutoOS.Helpers.Scheduling;
 using AutoOS.Views.Settings.Scheduling;
+using DevWinUI;
 
 namespace AutoOS.Views.Settings;
 
@@ -156,8 +157,8 @@ public sealed partial class SchedulingPage : Page
         {
             var restartDialog = new ContentDialog
             {
-                Title = "Restart Device?",
-                Content = "Your changes will not take effect until the device is restarted.\nWould you like to attempt to restart the device now?",
+                Title = $"Restart {device.Name}?",
+                Content = "Your changes will not take effect until the device is restarted.\nWould you like to attempt to restart it now?",
                 PrimaryButtonText = "Yes",
                 CloseButtonText = "No",
                 DefaultButton = ContentDialogButton.Close,
@@ -169,19 +170,19 @@ public sealed partial class SchedulingPage : Page
                 var restartDevicesResult = await DeviceHelper.RestartDevicesAsync(applyResult.ChangedDevices);
 
                 var message = restartDevicesResult.SuccessCount > 0 && restartDevicesResult.FailedCount == 0
-                    ? "Device successfully restarted."
+                    ? $"{device.Name} was successfully restarted."
                     : restartDevicesResult.SuccessCount > 0
-                    ? "Device was restarted. A reboot may be required."
-                    : "Device could not be restarted. Changes will take effect the next time you reboot.";
+                    ? $"{device.Name} was restarted. A reboot may be required."
+                    : $"{device.Name} could not be restarted. Changes will take effect the next time you reboot.";
 
-                await new ContentDialog
+                if (restartDevicesResult.SuccessCount > 0)
                 {
-                    Title = "Device Restart",
-                    Content = message,
-                    PrimaryButtonText = "OK",
-                    DefaultButton = ContentDialogButton.Primary,
-                    XamlRoot = XamlRoot
-                }.ShowAsync();
+                    await MessageBox.ShowSuccessAsync(App.MainWindow, message, "Success");
+                }
+                else
+                {
+                    await MessageBox.ShowErrorAsync(App.MainWindow, message, "Failure");
+                }
             }
         }
     }

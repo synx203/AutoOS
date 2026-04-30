@@ -58,7 +58,7 @@
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="ms-appx:///DevWinUI.Controls/Themes/InfoBarInformationalColor.xaml" />
+                <ResourceDictionary Source="ms-appx:///DevWinUI/Themes/InfoBarInformationalColor.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
