@@ -326,6 +326,7 @@ public static class GpuHelper
         gpu.DeviceName = updated.DeviceName;
         gpu.CurrentVersion = updated.CurrentVersion;
         gpu.IsInstalled = updated.IsInstalled;
+        gpu.RegistryPath = updated.RegistryPath;
     }
 
     private unsafe static string GetDeviceName(HDEVINFO hDevInfo, SP_DEVINFO_DATA devInfo)

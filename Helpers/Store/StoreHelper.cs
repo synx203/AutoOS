@@ -56,6 +56,7 @@ public static partial class StoreHelper
             if (files.Count == 0) return;
 
             var main = files.First();
+            Debug.WriteLine($"[StoreHelper] Selected Package: {main.Name}");
 
             await ProcessActions.RunDownload(main.ResourceUri, folder.Path);
         }
@@ -100,10 +101,6 @@ public static partial class StoreHelper
 
             await tcs.Task;
             Debug.WriteLine("[StoreHelper] Installation successful.");
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[StoreHelper] Installation failed: {ex.Message}");
         }
         finally
         {

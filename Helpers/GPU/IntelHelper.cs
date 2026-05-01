@@ -101,19 +101,19 @@ namespace AutoOS.Helpers.GPU
             var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
             {
                 // download intel driver
-                (@"Downloading INTEL driver", async () => await ProcessActions.RunDownload(newestDownloadUrl, ApplicationData.Current.TemporaryFolder.Path, "driver.zip"), () => Intel_6th == true),
+                (@"Downloading INTEL driver", async () => await ProcessActions.RunDownload(newestDownloadUrl, Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "INTEL"), "driver.zip"), () => Intel_6th == true),
 
                  // extract intel driver
-                (@"Extracting INTEL driver", async () => await ProcessActions.RunExtract(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver.zip"), Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver")), () => Intel_6th == true),
+                (@"Extracting INTEL driver", async () => await ProcessActions.RunExtract(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "INTEL", "driver.zip"), Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "INTEL", "driver")), () => Intel_6th == true),
 
                 // download intel driver
-                (@"Downloading INTEL driver", async () => await ProcessActions.RunDownload(newestDownloadUrl, ApplicationData.Current.TemporaryFolder.Path, "driver.exe"), () => Intel_6th == false),
+                (@"Downloading INTEL driver", async () => await ProcessActions.RunDownload(newestDownloadUrl, Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "INTEL"), "driver.exe"), () => Intel_6th == false),
 
                 // extract intel driver
-                (@"Extracting INTEL driver", async () => await ProcessActions.RunExtract(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver.exe"), Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver")), () => Intel_6th == false),
+                (@"Extracting INTEL driver", async () => await ProcessActions.RunExtract(Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "INTEL", "driver.exe"), Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "INTEL", "driver")), () => Intel_6th == false),
 
                 // update/install intel driver
-                (gpu.IsInstalled ?  "Updating INTEL driver" : "Installing INTEL driver", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "driver", "Installer.exe"), Arguments = "/silent", UseShellExecute = false, CreateNoWindow = true })!.WaitForExitAsync(), null),
+                (gpu.IsInstalled ?  "Updating INTEL driver" : "Installing INTEL driver", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "INTEL", "driver", "Installer.exe"), Arguments = "/silent", UseShellExecute = false, CreateNoWindow = true })!.WaitForExitAsync(), null),
                 (gpu.IsInstalled ?  "Updating INTEL driver" : "Installing INTEL driver", async () => await Task.Delay(3000), null),
                 (gpu.IsInstalled ? "Updating INTEL driver" : "Installing INTEL driver", async () => GpuHelper.RefreshGpu(gpu), null),
                 (gpu.IsInstalled ? "Updating INTEL driver" : "Installing INTEL driver", async () => await (await ApplicationData.Current.TemporaryFolder.GetFileAsync("driver.zip")).DeleteAsync(), () => Intel_6th == true),

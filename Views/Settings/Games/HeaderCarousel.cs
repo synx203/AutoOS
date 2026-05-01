@@ -2026,6 +2026,7 @@ public partial class HeaderCarousel : ItemsControl
                 "AudioEndpointBuilder",
                 "AppXSvc",
                 "Appinfo",
+                "BITS",
                 "CaptureService",
                 "cbdhsvc",
                 "ClipSvc",
@@ -2086,13 +2087,16 @@ public partial class HeaderCarousel : ItemsControl
 
         await Task.Run(() =>
         {
-            Process.GetProcessesByName("ClassicWindowSwitcher").FirstOrDefault()?.Kill();
+            try 
+            {
+                Process.GetProcessesByName("ClassicWindowSwitcher").FirstOrDefault()?.Kill();
 
-            // launch explorer
-            Process.Start("explorer.exe");
+                // launch explorer
+                Process.Start("explorer.exe");
 
-            // start windhawk service
-            try { ServicesHelper.StartService("Windhawk"); } catch { }
+                // start windhawk service
+                ServicesHelper.StartService("Windhawk"); 
+            } catch { }
 
             // restart services
             var serviceNames = new[]
