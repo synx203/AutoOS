@@ -165,6 +165,8 @@ public static partial class StoreHelper
 
         var productId = await GetProductID(identifier);
 
+        if (string.IsNullOrEmpty(productId)) throw new Exception($"Failed to get Product ID for {identifier}");
+
         await KillProcesses(identifier);
 
         var tcs = new TaskCompletionSource<bool>();

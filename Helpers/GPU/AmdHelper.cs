@@ -85,7 +85,7 @@ public static class AmdHelper
             (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "AMD", "driver", "Setup.exe"), Arguments = "-install", UseShellExecute = false, CreateNoWindow = true })!.WaitForExitAsync(), null),
             (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => await Task.Delay(3000), null),
             (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => GpuHelper.RefreshGpu(gpu), null),
-            (gpu.IsInstalled ? "Updating AMD driver" : "Installing AMD driver", async () => await (await ApplicationData.Current.TemporaryFolder.GetFolderAsync("AMD")).DeleteAsync(), null)
+            ("Cleaning up AMD files", async () => await (await ApplicationData.Current.TemporaryFolder.GetFolderAsync("AMD")).DeleteAsync(), null)
         };
 
         return actions;

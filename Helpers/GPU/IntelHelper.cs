@@ -116,7 +116,7 @@ namespace AutoOS.Helpers.GPU
                 (gpu.IsInstalled ?  "Updating INTEL driver" : "Installing INTEL driver", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "INTEL", "driver", "Installer.exe"), Arguments = "/silent", UseShellExecute = false, CreateNoWindow = true })!.WaitForExitAsync(), null),
                 (gpu.IsInstalled ?  "Updating INTEL driver" : "Installing INTEL driver", async () => await Task.Delay(3000), null),
                 (gpu.IsInstalled ? "Updating INTEL driver" : "Installing INTEL driver", async () => GpuHelper.RefreshGpu(gpu), null),
-                (gpu.IsInstalled ? "Updating INTEL driver" : "Installing INTEL driver", async () => await (await ApplicationData.Current.TemporaryFolder.GetFolderAsync("INTEL")).DeleteAsync(), null)
+                ("Cleaning up INTEL files", async () => await (await ApplicationData.Current.TemporaryFolder.GetFolderAsync("INTEL")).DeleteAsync(), null)
             };
 
             return actions;

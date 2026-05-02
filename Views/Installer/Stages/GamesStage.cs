@@ -17,7 +17,7 @@ public static partial class GamesStage
         string fortnitePath = string.Empty;
 
         string iniPath = Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "GameUserSettings.ini");
-        File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "GameUserSettings.ini"), iniPath);
+        File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "GameUserSettings.ini"), iniPath, true);
         InIHelper iniHelper = new(iniPath);
 
         var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>

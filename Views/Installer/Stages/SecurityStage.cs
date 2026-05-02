@@ -4,12 +4,14 @@ using System.Diagnostics;
 using AutoOS.Helpers.Services;
 using Microsoft.Win32;
 using System.ServiceProcess;
+using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media;
 
 namespace AutoOS.Views.Installer.Stages;
 
 public static class SecurityStage
 {
-    public static List<(string Title, Func<Task> Action, Func<bool> Condition)> GetActions()
+    public static async Task<List<(string Title, Func<Task> Action, Func<bool> Condition)>> GetActions()
     {
         bool WindowsDefender = PreparingStage.WindowsDefender;
         bool UserAccountControl = PreparingStage.UserAccountControl;
@@ -20,6 +22,99 @@ public static class SecurityStage
         bool AMDCPU = PreparingStage.AMDCPU;
         bool SpectreMeltdownMitigations = PreparingStage.SpectreMeltdownMitigations;
         bool ProcessMitigations = PreparingStage.ProcessMitigations;
+
+        if (WindowsDefender == false)
+        {
+            bool IsTamperOn()
+            {
+                return (Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows Defender\Features", false)?.GetValue("TamperProtection") as int?) != 4;
+            }
+
+            bool IsRealtimeOn()
+            {
+                return (Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows Defender\Real-Time Protection", false)?.GetValue("DisableRealtimeMonitoring") as int?) != 1;
+            }
+
+            if (IsTamperOn() || IsRealtimeOn())
+            {
+                var panel = new StackPanel { Spacing = 8 };
+                var dialogProgressBar = new ProgressBar { IsIndeterminate = true };
+                panel.Children.Add(dialogProgressBar);
+
+                var dialogInfoText = new TextBlock { };
+                var dialogHyperlink = new Hyperlink { };
+                dialogHyperlink.Inlines.Add(new Run { Text = "Windows Security" });
+
+                dialogHyperlink.Click += async (_, __) =>
+                {
+                    await Task.Run(() =>
+                    {
+                        try
+                        {
+                            Process.Start(new ProcessStartInfo { FileName = "windowsdefender://threatsettings", UseShellExecute = true });
+                        }
+                        catch { }
+                    });
+                };
+
+                dialogInfoText.Inlines.Add(new Run { Text = "Open " });
+                dialogInfoText.Inlines.Add(dialogHyperlink);
+                dialogInfoText.Inlines.Add(new Run { Text = " and disable Real-time protection and Tamper Protection." });
+
+                var dialogInfoBar = new InfoBar
+                {
+                    IsOpen = true,
+                    Severity = InfoBarSeverity.Informational,
+                    IsClosable = false,
+                    Content = new Grid
+                    {
+                        Padding = new Thickness(12, 0, 16, 0),
+                        Children = { dialogInfoText }
+                    }
+                };
+
+                panel.Children.Add(dialogInfoBar);
+
+                var contentDialog = new ContentDialog
+                {
+                    Title = "Disable Windows Security",
+                    Content = panel,
+                    PrimaryButtonText = "Done",
+                    IsPrimaryButtonEnabled = false,
+                    XamlRoot = App.MainWindow.Content.XamlRoot
+                };
+
+                contentDialog.Resources["ContentDialogMaxWidth"] = 800;
+
+                contentDialog.Opened += async (_, __) =>
+                {
+                    while (true)
+                    {
+                        await Task.Delay(500);
+
+                        if (!IsTamperOn() && !IsRealtimeOn())
+                        {
+                            contentDialog.IsPrimaryButtonEnabled = true;
+                            dialogProgressBar.IsIndeterminate = false;
+                            dialogProgressBar.Value = 100;
+                            dialogProgressBar.Foreground = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemFillColorSuccess"]);
+                            dialogInfoBar.Severity = InfoBarSeverity.Success;
+                            dialogInfoText.Inlines.Clear();
+                            dialogInfoText.Inlines.Add(new Run { Text = "Windows Security is disabled. Click done to continue." });
+
+                            foreach (var process in Process.GetProcessesByName("SecHealthUI"))
+                            {
+                                try { process.Kill(); } catch { }
+                            }
+
+                            break;
+                        }
+                    }
+                };
+
+                await contentDialog.ShowAsync();
+            }
+        }
 
         return new List<(string Title, Func<Task> Action, Func<bool> Condition)>
         {

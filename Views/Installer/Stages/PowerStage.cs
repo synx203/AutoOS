@@ -9,7 +9,6 @@ public static class PowerStage
 {
     public static List<(string Title, Func<Task> Action, Func<bool> Condition)> GetActions()
     {
-        bool HyperThreading = PreparingStage.HyperThreading;
         Guid guid = Guid.Empty;
 
         return new List<(string Title, Func<Task> Action, Func<bool> Condition)>
@@ -71,7 +70,6 @@ public static class PowerStage
             (@"Setting ""Processor efficiency containment concurrency threshold"" to 100", async () => PowerApi.WriteACValueIndex(guid, new Guid("54533251-82be-4824-96c1-47b60b740d00"), new Guid("69439b22-221b-4830-bd34-f7bcece24583"), 100), null),
             (@"Setting ""Processor hybrid containment concurrency threshold"" to 100", async () => PowerApi.WriteACValueIndex(guid, new Guid("54533251-82be-4824-96c1-47b60b740d00"), new Guid("6788488b-1b90-4d11-8fa7-973e470dff47"), 100), null),
             (@"Setting ""Processor idle demote threshold"" to 1", async () => PowerApi.WriteACValueIndex(guid, new Guid("54533251-82be-4824-96c1-47b60b740d00"), new Guid("4b92d758-5a24-4851-a470-815d78aee119"), 1), null),
-            (@"Setting ""Processor idle disable"" to ""Disable idle""", async () => PowerApi.WriteACValueIndex(guid, new Guid("54533251-82be-4824-96c1-47b60b740d00"), new Guid("5d76a2ca-e8c0-402f-a133-2158492d58ad"), 1), () => HyperThreading == false),
             (@"Setting ""Processor idle promote threshold"" to 0", async () => PowerApi.WriteACValueIndex(guid, new Guid("54533251-82be-4824-96c1-47b60b740d00"), new Guid("7b224883-b3cc-4d79-819f-8374152cbe7c"), 0), null),
             (@"Setting ""Processor idle time check"" to 200000", async () => PowerApi.WriteACValueIndex(guid, new Guid("54533251-82be-4824-96c1-47b60b740d00"), new Guid("c4581c31-89ab-4597-8e2b-9c9cab440e6b"), 200000), null),
             (@"Disabling ""Processor performance autonomous mode""", async () => PowerApi.WriteACValueIndex(guid, new Guid("54533251-82be-4824-96c1-47b60b740d00"), new Guid("8baa4a8a-14c6-4451-8e8b-14bdbd197537"), 0), null),
