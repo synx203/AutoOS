@@ -12,13 +12,15 @@ namespace AutoOS
 {
     public partial class App : Application
     {
-        private readonly ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+        
         public new static App Current => (App)Application.Current;
         public static Window MainWindow = Window.Current;
+        public static IntPtr Hwnd => WinRT.Interop.WindowNative.GetWindowHandle(MainWindow);
         public JsonNavigationService NavService { get; set; }
         public IThemeService ThemeService { get; set; }
         internal static bool IsInstalled { get; private set; }
         internal static double Scaling { get; set; }
+        private readonly ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
         
         public App()
         {

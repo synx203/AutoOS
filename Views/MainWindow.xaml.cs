@@ -46,7 +46,7 @@ namespace AutoOS.Views
                     .ConfigureSettingsPage(typeof(SettingsPage))
                     .ConfigureJsonFile("Assets/NavViewMenu/Settings.json")
                     .ConfigureTitleBar(AppTitleBar, false)
-                    .ConfigureBreadcrumbBar(BreadCrumbNav, BreadcrumbPageMappings.PageDictionary);
+                    .ConfigureBreadcrumbBar(BreadCrumbNav, BreadcrumbPageMappingsSettings.PageDictionary);
                 AppTitleBar.Title = "AutoOS Settings";
 
                 NavView.IsSettingsVisible = true;
@@ -58,7 +58,7 @@ namespace AutoOS.Views
                     .ConfigureDefaultPage((Windows.Storage.ApplicationData.Current.LocalSettings.Values["actionStage"] as int? ?? -1) > 0 ? typeof(Installer.InstallPage) : typeof(Installer.HomeLandingPage))
                     .ConfigureJsonFile("Assets/NavViewMenu/Installer.json")
                     .ConfigureTitleBar(AppTitleBar, false)
-                    .ConfigureBreadcrumbBar(BreadCrumbNav, BreadcrumbPageMappings.PageDictionary);
+                    .ConfigureBreadcrumbBar(BreadCrumbNav, BreadcrumbPageMappingsInstaller.PageDictionary);
                 AppTitleBar.Title = "AutoOS Installer";
 
                 presenter.Maximize();
