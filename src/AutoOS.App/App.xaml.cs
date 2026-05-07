@@ -1,4 +1,4 @@
-﻿using AutoOS.Core.Helpers.Logging;
+using AutoOS.Core.Helpers.Logging;
 using AutoOS.Views.Installer.Stages;
 using AutoOS.Views.Startup;
 using AutoOS.Views;
@@ -78,15 +78,22 @@ namespace AutoOS
 			{
 				AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
 
-				MainWindow = new MainWindow();
-				MainWindow.Title = MainWindow.AppWindow.Title = "AutoOS Installer";
-				MainWindow.AppWindow.SetIcon("Assets/AppIcon.ico");
+				if (appActivationArguments.Kind is ExtendedActivationKind.StartupTask && (localSettings.Values["actionStage"] as int? ?? -1) <= 0)
+				{
+					Application.Current.Exit();
+				}
+				else
+				{
+					MainWindow = new MainWindow();
+					MainWindow.Title = MainWindow.AppWindow.Title = "AutoOS Installer";
+					MainWindow.AppWindow.SetIcon("Assets/AppIcon.ico");
 
-				AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(WindowNative.GetWindowHandle(MainWindow))).Closing += AppWindow_Closing;
+					AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(WindowNative.GetWindowHandle(MainWindow))).Closing += AppWindow_Closing;
 
-				ThemeService = new ThemeService().Initialize(MainWindow);
+					ThemeService = new ThemeService().Initialize(MainWindow);
 
-				MainWindow.Activate();
+					MainWindow.Activate();
+				}
 			}
 		}
 

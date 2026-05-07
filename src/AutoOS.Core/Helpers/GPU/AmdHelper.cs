@@ -4,6 +4,7 @@ using AutoOS.Core.Helpers.Extract;
 using AutoOS.Core.Helpers.GPU.Models;
 using AutoOS.Core.Helpers.Registry;
 using AutoOS.Core.Helpers.Services;
+using AutoOS.Core.Helpers.TaskScheduler;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Text.Json.Nodes;
@@ -261,6 +262,7 @@ public static partial class AmdHelper
             ("Disabling unnecessary services", async () => ServicesHelper.StopService("amdfendrmgr"), null),
             ("Disabling unnecessary services", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\amdlog", "Start", 4, RegistryValueKind.DWord), null),
             ("Disabling unnecessary services", async () => ServicesHelper.StopService("amdlog"), null),
+            ("Disabling unnecessary services", async () => TaskSchedulerHelper.Toggle("StartCN", false), null),
 
             // disable high-definition multimedia interface (hdmi)/displayport (dp) audio
             ("Disabling High-Definition Multimedia Interface (HDMI)/DisplayPort (DP) Audio", async () => GpuHelper.ToggleHdmiDpAudio(gpu, false), () => gpu.HDMIDPAudio == false)

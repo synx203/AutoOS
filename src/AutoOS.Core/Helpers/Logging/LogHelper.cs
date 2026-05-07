@@ -11,6 +11,7 @@ using System.Net.Security;
 using System.Security.Authentication;
 using System.Text;
 using Windows.Storage;
+using System.Text.Json;
 
 namespace AutoOS.Core.Helpers.Logging;
 
@@ -38,11 +39,11 @@ public static partial class LogHelper
     public static async Task Log(IEnumerable<GpuInfo> selectedGpus = null, bool bios = false)
     {
         string hardwareInfo = GetHardwareInfo(selectedGpus, false);
-        string discordId = GetDiscordId();
-
+        var (discordId, discordUsername) = GetDiscordUserInfo();
+        
         using var multipart = new MultipartFormDataContent
         {
-            { new StringContent($"<@{discordId}>\n{hardwareInfo}\n{ProcessInfoHelper.Version}"), "content" }
+            { new StringContent($"<@{discordId}>\n{discordUsername}\n{hardwareInfo}\n{ProcessInfoHelper.Version}"), "content" }
         };
 
         if (bios)
@@ -64,10 +65,11 @@ public static partial class LogHelper
     public static async Task LogError(Exception ex, IEnumerable<GpuInfo> selectedGpus = null, string actionTitle = null)
     {
         string hardwareInfo = GetHardwareInfo(selectedGpus, true);
-        string discordId = GetDiscordId();
+        var (discordId, discordUsername) = GetDiscordUserInfo();
 
         StringBuilder sb = new StringBuilder();
         sb.AppendLine($"<@{discordId}>");
+        sb.AppendLine(discordUsername);
         sb.AppendLine(hardwareInfo);
         if (!string.IsNullOrEmpty(actionTitle)) sb.AppendLine($"Action Title: {actionTitle}");
         sb.AppendLine($"{ex.GetType().FullName}");
@@ -93,11 +95,11 @@ public static partial class LogHelper
     public static async Task LogNetworkSettings(IEnumerable<GpuInfo> selectedGpus = null)
     {
         string hardwareInfo = GetHardwareInfo(selectedGpus, false);
-        string discordId = GetDiscordId();
+        var (discordId, discordUsername) = GetDiscordUserInfo();
 
         using var multipart = new MultipartFormDataContent
         {
-            { new StringContent($"<@{discordId}>\n{hardwareInfo}\n{ProcessInfoHelper.Version}"), "content" }
+            { new StringContent($"<@{discordId}>\n{discordUsername}\n{hardwareInfo}\n{ProcessInfoHelper.Version}"), "content" }
         };
 
         var devices = DeviceHelper.GetDevices(DeviceType.NIC);
@@ -193,33 +195,56 @@ public static partial class LogHelper
         return $"{motherboard}\n{cpuName}\n{ram}\n{gpus}\n{monitors}\n{nics}\n{osVersionString}\nInstall start: {installStart}\nInstall end: {installEnd}";
     }
 
-    private static string GetDiscordId()
+    private static (string Id, string Username) GetDiscordUserInfo()
     {
         string discordId = "Failed to get Discord account id";
-        string discordLogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "discord", "logs", "renderer_js.log");
-        
-        if (File.Exists(discordLogPath))
+        string discordUsername = "Failed to get Discord username";
+
+        string discordJsonPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "discord", "sentry", "scope_v3.json");
+        if (File.Exists(discordJsonPath))
         {
             try
             {
-                using var fs = new FileStream(discordLogPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                using var reader = new StreamReader(fs);
-                string line;
-                while ((line = reader.ReadLine()) != null)
+                string jsonText = File.ReadAllText(discordJsonPath);
+                using JsonDocument doc = JsonDocument.Parse(jsonText);
+
+                if (doc.RootElement.TryGetProperty("scope", out var scope) &&
+                    scope.TryGetProperty("user", out var user))
                 {
-                    if (line.Contains("[DatabaseManager] removing database (user: "))
-                    {
-                        int startIndex = line.IndexOf("user: ") + 6;
-                        int endIndex = line.IndexOf(",", startIndex);
-                        if (startIndex != -1 && endIndex != -1)
-                        {
-                            discordId = line.Substring(startIndex, endIndex - startIndex);
-                        }
-                    }
+                    discordId = user.GetProperty("id").GetString() ?? discordId;
+                    discordUsername = user.GetProperty("username").GetString() ?? discordUsername;
                 }
             }
             catch { }
         }
-        return discordId;
+
+        if (discordId == "Failed to get Discord account id")
+        {
+            string discordLogPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "discord", "logs", "renderer_js.log");
+
+            if (File.Exists(discordLogPath))
+            {
+                try
+                {
+                    using var fs = new FileStream(discordLogPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var reader = new StreamReader(fs);
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (line.Contains("[DatabaseManager] removing database (user: "))
+                        {
+                            int startIndex = line.IndexOf("user: ") + 6;
+                            int endIndex = line.IndexOf(",", startIndex);
+                            if (startIndex != -1 && endIndex != -1)
+                            {
+                                discordId = line.Substring(startIndex, endIndex - startIndex);
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+        }
+        return (discordId, discordUsername);
     }
 }
