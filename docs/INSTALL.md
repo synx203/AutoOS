@@ -18,7 +18,8 @@ If you have one of following below, download them.<br/>
 Open System Information (`msinfo32`) and look for `System Model`, in your browser search for "{Your system model} drivers".<br/>
 Click on the support page, head to drivers and select Windows 11, then download the rest of the drivers you may need (Realtek Wi-Fi / Bluetooth, Mediatek Wi-Fi / Bluetooth, Audio and Storage Controller).
 
-If the page contains `Intel Rapid Storage Technology Driver` / `Intel RAID Driver`, either download it or disable `VMD Controller` in your BIOS, otherwise you may get `Inaccessible boot device` BSOD.<br/>
+If the page contains `Intel Rapid Storage Technology Driver` / `Intel RAID Driver`, either download it or disable `VMD Controller` in your BIOS.
+If you keep it enabled and don't download the driver, you will get `Inaccessible boot device` BSOD.<br/>
 On DELL/Alienware go to `Storage -> SATA/NVMe Operation` and change it from `Disabled` to `AHCI/NVMe`.
 
 > [!NOTE]  
