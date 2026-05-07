@@ -1,4 +1,4 @@
-﻿using AutoOS.Core.Common;
+using AutoOS.Core.Common;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
@@ -7,7 +7,7 @@ using ValveKeyValue;
 
 namespace AutoOS.Core.Helpers.Games;
 
-public static class SteamHelper
+public static partial class SteamHelper
 {
     public static readonly string SteamDir = (Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"Software\Valve\Steam")?.GetValue("InstallPath") as string ?? @"C:\Program Files (x86)\Steam").Replace('/', '\\');
     public static readonly string SteamPath = Path.Combine(SteamDir, "steam.exe");

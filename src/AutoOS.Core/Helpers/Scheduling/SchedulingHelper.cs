@@ -1,11 +1,11 @@
-﻿using AutoOS.Core.Helpers.CPU.Models;
+using AutoOS.Core.Helpers.CPU.Models;
 using AutoOS.Core.Helpers.CPU;
 using AutoOS.Core.Helpers.Device.Models;
 using AutoOS.Core.Helpers.Device;
 
 namespace AutoOS.Core.Helpers.Scheduling;
 
-public static class SchedulingHelper
+public static partial class SchedulingHelper
 {
     public static async Task OptimizeAffinities(Action<DeviceType, string, DeviceInfo> onDeviceUpdated = null)
     {

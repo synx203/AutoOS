@@ -1,4 +1,4 @@
-﻿using AutoOS.Core.Common;
+using AutoOS.Core.Common;
 using AutoOS.Core.Helpers.Download;
 using AutoOS.Core.Helpers.Extract;
 using AutoOS.Core.Helpers.GPU.Models;
@@ -16,7 +16,7 @@ using Windows.Win32;
 
 namespace AutoOS.Core.Helpers.GPU
 {
-	public static class NvidiaHelper
+	public static partial class NvidiaHelper
 	{
 		private static readonly HttpClient httpClient = new(new SocketsHttpHandler
 		{

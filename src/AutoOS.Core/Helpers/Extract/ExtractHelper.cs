@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace AutoOS.Core.Helpers.Extract;
 
-public static class ExtractHelper
+public static partial class ExtractHelper
 {
 	public static async Task Extract(string inputPath, string outputPath)
 	{

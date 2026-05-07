@@ -26,12 +26,11 @@ On DELL/Alienware go to `Storage -> SATA/NVMe Operation` and change it from `Dis
 > Disabling it in BIOS is will result in better disk speeds over using the Intel RST driver.<br/>
 > If you can't access your old Windows after disabling VMD Controller, boot into safe mode once, then restart.
 
-After downloading all your drivers, extract all `.zip` files<br/>
+After downloading all your drivers, extract all `.zip` files.<br/>
 For `.exe` run them and select the `Extract` instead of `Install` if it exists.<br/>
 If they don't have that option, use `7-Zip, NanaZip, or WinRAR` to extract them.
 
 Finally, create a `New Folder` and move all extracted folders into it. The folder should contain each driver and their `.inf` files.
-
 
 ### Step 3: Run the deployment script
 Open PowerShell **as Administrator**.<br/>

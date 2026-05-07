@@ -1,4 +1,4 @@
-﻿using AutoOS.Core.Common;
+using AutoOS.Core.Common;
 using AutoOS.Core.Helpers.Download;
 using AutoOS.Core.Helpers.Extract;
 using AutoOS.Core.Helpers.GPU.Models;
@@ -11,7 +11,7 @@ using Windows.Storage;
 
 namespace AutoOS.Core.Helpers.GPU;
 
-public static class AmdHelper
+public static partial class AmdHelper
 {
     private static readonly HttpClient httpClient = new();
 
@@ -129,26 +129,26 @@ public static class AmdHelper
             // set theme to system
             (@"Setting ""Theme"" to ""System""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "RSXColorScheme", 0, RegistryValueKind.DWord), null),
 
-            // disable "radeonâ„¢ super resolution"
-            (@"Disabling ""Radeonâ„¢ Super Resolution""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_RadeonUpscalingEnabled", 0, RegistryValueKind.DWord), null),
+            // disable "radeon™ super resolution"
+            (@"Disabling ""Radeon™ Super Resolution""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_RadeonUpscalingEnabled", 0, RegistryValueKind.DWord), null),
 
             // disable "amd fluid motion frames 2.1"
             (@"Disabling ""AMD Fluid Motion Frames 2.1""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DrvFrameGenEnabled", new byte[] { 0, 0, 0, 0 }, RegistryValueKind.Binary), null),
 
-            // disable "radeonâ„¢ anti lag"
-            (@"Disabling ""Radeonâ„¢ Anti Lag""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_DeLagEnabled", 0, RegistryValueKind.DWord), null),
+            // disable "radeon™ anti lag"
+            (@"Disabling ""Radeon™ Anti Lag""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_DeLagEnabled", 0, RegistryValueKind.DWord), null),
 
-            // disable "radeonâ„¢ boost"
-            (@"Disabling ""Radeonâ„¢ Boost""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_RadeonBoostEnabled", 0, RegistryValueKind.DWord), null),
+            // disable "radeon™ boost"
+            (@"Disabling ""Radeon™ Boost""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_RadeonBoostEnabled", 0, RegistryValueKind.DWord), null),
 
-            // disable "radeonâ„¢ chill"
-            (@"Disabling ""Radeonâ„¢ Chill""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_ChillEnabled", 0, RegistryValueKind.DWord), null),
+            // disable "radeon™ chill"
+            (@"Disabling ""Radeon™ Chill""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_ChillEnabled", 0, RegistryValueKind.DWord), null),
 
-            // disable "radeonâ„¢ image sharpening"
-            (@"Disabling ""Radeonâ„¢ Image Sharpening""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_USUEnable", 0, RegistryValueKind.DWord), null),
+            // disable "radeon™ image sharpening"
+            (@"Disabling ""Radeon™ Image Sharpening""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_USUEnable", 0, RegistryValueKind.DWord), null),
 
-            // disable "radeonâ„¢ enhanced sync"
-            (@"Disabling ""Radeonâ„¢ Enhanced Sync""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "TurboSync", new byte[] { 0x30, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary), null),
+            // disable "radeon™ enhanced sync"
+            (@"Disabling ""Radeon™ Enhanced Sync""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "TurboSync", new byte[] { 0x30, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary), null),
 
             // set "wait for vertical refresh" to "off, unless application specifies"
             (@"Setting ""Wait for Vertical Refresh"" to Off, unless application specifies", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"{gpu.RegistryPath}\UMD", "VSyncControl", new byte[] { 0x31, 0x00, 0x00, 0x00 }, RegistryValueKind.Binary), null),

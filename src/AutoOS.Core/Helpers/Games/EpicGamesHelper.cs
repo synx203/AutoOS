@@ -1,4 +1,4 @@
-﻿using AutoOS.Core.Common;
+using AutoOS.Core.Common;
 using DevWinUI;
 using System.Diagnostics;
 using System.Globalization;
@@ -13,7 +13,7 @@ using Windows.Media.Core;
 
 namespace AutoOS.Core.Helpers.Games;
 
-public static class EpicGamesHelper
+public static partial class EpicGamesHelper
 {
     public static readonly string EpicGamesPath = File.Exists(@"C:\Program Files (x86)\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe") ? @"C:\Program Files (x86)\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe" : @"C:\Program Files\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe";
 

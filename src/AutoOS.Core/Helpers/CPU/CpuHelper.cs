@@ -1,11 +1,11 @@
-﻿using AutoOS.Core.Helpers.CPU.Models;
+using AutoOS.Core.Helpers.CPU.Models;
 using System.Runtime.InteropServices;
 using Windows.Win32.Foundation;
 using Windows.Win32;
 
 namespace AutoOS.Core.Helpers.CPU;
 
-public partial class CpuHelper
+public static partial class CpuHelper
 {
     public static CpuArchitecture GetCpuArchitecture()
     {

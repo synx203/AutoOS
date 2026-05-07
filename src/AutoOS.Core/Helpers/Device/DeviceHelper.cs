@@ -15,7 +15,7 @@ using AutoOS.Core.Helpers.Device.Models;
 
 namespace AutoOS.Core.Helpers.Device;
 
-public static class DeviceHelper
+public static partial class DeviceHelper
 {
     private static readonly Guid GUID_DEVCLASS_DISPLAY = new("4d36e968-e325-11ce-bfc1-08002be10318");
     private static readonly Guid GUID_DEVCLASS_USB = new("36fc9e60-c465-11cf-8056-444553540000");

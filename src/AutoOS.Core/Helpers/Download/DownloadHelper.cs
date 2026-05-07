@@ -1,11 +1,11 @@
-﻿using AutoOS.Core.Common;
+using AutoOS.Core.Common;
 using Downloader;
 using System.Net;
 using System.Text;
 
 namespace AutoOS.Core.Helpers.Download;
 
-public static class DownloadHelper
+public static partial class DownloadHelper
 {
     private static readonly HttpClient httpClient = new();
 
@@ -84,6 +84,11 @@ public static class DownloadHelper
             }
             await Task.Delay(100);
             retries++;
+        }
+
+        if (!File.Exists(finalFileName))
+        {
+            throw new FileNotFoundException($"Download failed: The file '{finalFileName}' could not be found.");
         }
     }
 }

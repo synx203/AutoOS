@@ -82,11 +82,11 @@ Pressing **Install AutoOS** in the **AutoOS Installer** does the following:
 - Groups services and disables failure actions for some
 - Cleans up temporary files
 
-See the [Screenshots](docs/SCREENSHOTS.md#-autoos-installer) or [YouTube Showcase](https://youtu.be/k_xp1WXjMvw) for more information.
+See the [Screenshots](docs/SCREENSHOTS.md#%EF%B8%8F-autoos-installer) or [YouTube Showcase](https://youtu.be/k_xp1WXjMvw) for more information.
 
 After the **AutoOS Installer** is done you have a **fully optimized Windows installation** and the **AutoOS Settings** app.
 
-See the [Screenshots](docs/SCREENSHOTS.md#-autoos-settings) or [YouTube Showcase](https://youtu.be/SVfBKoSJDCQ) for more information.
+See the [Screenshots](docs/SCREENSHOTS.md#%EF%B8%8F-autoos-settings) or [YouTube Showcase](https://youtu.be/SVfBKoSJDCQ) for more information.
 
 On startup **AutoOS Startup** does the following:
 

@@ -14,7 +14,7 @@ using Windows.Storage;
 
 namespace AutoOS.Core.Helpers.Logging;
 
-public static class LogHelper
+public static partial class LogHelper
 {
     private static readonly ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
 

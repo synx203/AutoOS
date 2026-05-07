@@ -1,15 +1,11 @@
-﻿using AutoOS.Core.Helpers.Device.Models;
-using AutoOS.Core.Helpers.Device;
+using AutoOS.Core.Helpers.Device.Models;
 using AutoOS.Core.Helpers.Network.Models;
-using AutoOS.Core.Helpers.Network;
 using Microsoft.Win32;
-using Windows.Storage;
 
 namespace AutoOS.Core.Helpers.Network;
 
-public static class NetworkHelper
+public static partial class NetworkHelper
 {
-    private static readonly ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
     public static List<NetworkAdvancedSetting> GetAdvancedSettings(DeviceInfo device)
     {
         var settings = new List<NetworkAdvancedSetting>();
@@ -70,12 +66,6 @@ public static class NetworkHelper
 
                 case NetworkSettingType.Dword:
                 case NetworkSettingType.Int:
-                    var baseValue = paramKey.GetValue("Base")?.ToString();
-                    if (baseValue == "8" || baseValue == "16")
-                        setting.Base = 16;
-                    else
-                        setting.Base = 10;
-
                     if (int.TryParse(paramKey.GetValue("min")?.ToString(), out int min))
                         setting.Min = min;
                     if (int.TryParse(paramKey.GetValue("max")?.ToString(), out int max))

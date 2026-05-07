@@ -1,4 +1,4 @@
-﻿using AutoOS.Core.Helpers.Registry;
+using AutoOS.Core.Helpers.Registry;
 using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -9,7 +9,7 @@ using Windows.Win32;
 
 namespace AutoOS.Core.Helpers.Services;
 
-public static class ServicesHelper
+public static partial class ServicesHelper
 {
     public unsafe static void KillServiceProcess(string baseServiceName)
     {

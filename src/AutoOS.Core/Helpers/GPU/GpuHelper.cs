@@ -1,4 +1,4 @@
-﻿using AutoOS.Core.Helpers.GPU.Models;
+using AutoOS.Core.Helpers.GPU.Models;
 using DevWinUI;
 using System.Net.Security;
 using Windows.Win32.Devices.DeviceAndDriverInstallation;
@@ -7,7 +7,7 @@ using Windows.Win32;
 
 namespace AutoOS.Core.Helpers.GPU;
 
-public static class GpuHelper
+public static partial class GpuHelper
 {
     private static readonly HttpClient httpClient = new(new SocketsHttpHandler
     {

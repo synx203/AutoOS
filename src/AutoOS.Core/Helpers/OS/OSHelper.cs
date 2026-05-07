@@ -2,7 +2,7 @@ using Windows.System.Profile;
 
 namespace AutoOS.Core.Helpers.OS;
 
-public static class OSHelper
+public static partial class OSHelper
 {
     public static (ushort Major, ushort Minor, ushort Build, ushort Ubr) GetWindowsVersion()
     {
