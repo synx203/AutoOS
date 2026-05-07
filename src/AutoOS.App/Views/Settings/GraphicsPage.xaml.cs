@@ -1,7 +1,6 @@
-﻿using AutoOS.Common;
+using AutoOS.Common;
 using AutoOS.Core.Helpers.Device.Models;
 using AutoOS.Core.Helpers.Device;
-using AutoOS.Core.Helpers.GPU.Converters;
 using AutoOS.Core.Helpers.GPU.Models;
 using AutoOS.Core.Helpers.GPU;
 using AutoOS.Core.Helpers.Picker;
@@ -12,6 +11,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.ServiceProcess;
 using Windows.Storage;
+using AutoOS.Core.Helpers.Registry;
 
 namespace AutoOS.Views.Settings;
 
@@ -20,8 +20,9 @@ public sealed partial class GraphicsPage : Page
     private readonly ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
 
     private bool isInitializingPStatesState = true;
-    private bool isInitializingHDCPState = true;
+    private bool isInitializingECCState = true;
     private bool isInitializingGspFirmwareState = true;
+    private bool isInitializingHDCPState = true;
     private bool isInitializingHDMIDPAudioState = true;
     private bool isInitializingOBSState = true;
     public ObservableCollection<GpuInfo> GPUs { get; } = [];
@@ -36,8 +37,9 @@ public sealed partial class GraphicsPage : Page
     private async void GraphicsPage_Loaded(object sender, RoutedEventArgs e)
     {
         isInitializingPStatesState = false;
-        isInitializingHDCPState = false;
+        isInitializingECCState = false;
         isInitializingGspFirmwareState = false;
+        isInitializingHDCPState = false;
         isInitializingHDMIDPAudioState = false;
     }
 
@@ -56,11 +58,14 @@ public sealed partial class GraphicsPage : Page
                 if (localSettings.Values.TryGetValue($"PStates_{gpu.PnPDeviceId}", out var pstates))
                     gpu.PStates = Convert.ToBoolean(pstates);
 
-                if (localSettings.Values.TryGetValue($"HDCP_{gpu.PnPDeviceId}", out var hdcp))
-                    gpu.HDCP = Convert.ToBoolean(hdcp);
+                if (localSettings.Values.TryGetValue($"ECC_{gpu.PnPDeviceId}", out var ecc))
+                    gpu.ECC = Convert.ToBoolean(ecc);
 
                 if (localSettings.Values.TryGetValue($"GspFirmware_{gpu.PnPDeviceId}", out var gspfirmware))
                     gpu.GspFirmware = Convert.ToBoolean(gspfirmware);
+
+                if (localSettings.Values.TryGetValue($"HDCP_{gpu.PnPDeviceId}", out var hdcp))
+                    gpu.HDCP = Convert.ToBoolean(hdcp);
 
                 if (localSettings.Values.TryGetValue($"HDMIDPAudio_{gpu.PnPDeviceId}", out var hdmidpaudio))
                     gpu.HDMIDPAudio = Convert.ToBoolean(hdmidpaudio);
@@ -467,17 +472,17 @@ public sealed partial class GraphicsPage : Page
         GpuInfo.Children.Clear();
     }
 
-    private async void HDCP_Toggled(object sender, RoutedEventArgs e)
+    private async void ECC_Toggled(object sender, RoutedEventArgs e)
     {
         // return if still initializing
-        if (isInitializingHDCPState) return;
+        if (isInitializingECCState) return;
 
         ToggleSwitch toggleSwitch = (ToggleSwitch)sender;
         GpuInfo gpu = (GpuInfo)toggleSwitch.DataContext;
         var GpuInfo = FindParent<StackPanel>(toggleSwitch).FindName("GpuInfo") as StackPanel;
         if (!gpu.IsInstalled)
         {
-            localSettings.Values[$"HDCP_{gpu.PnPDeviceId}"] = toggleSwitch.IsOn;
+            localSettings.Values[$"ECC_{gpu.PnPDeviceId}"] = toggleSwitch.IsOn;
             return;
         }
 
@@ -490,28 +495,36 @@ public sealed partial class GraphicsPage : Page
         // add infobar
         GpuInfo.Children.Add(new InfoBar
         {
-            Title = toggleSwitch.IsOn ? "Enabling High-Bandwidth Digital Content Protection (HDCP)..." : "Disabling High-Bandwidth Digital Content Protection (HDCP)...",
+            Title = toggleSwitch.IsOn ? "Enabling Error Code Correction (ECC)..." : "Disabling Error Code Correction (ECC)...",
             IsClosable = false,
             IsOpen = true,
             Severity = InfoBarSeverity.Informational,
             Margin = new Thickness(0, 0, 0, 12)
         });
 
-        // toggle hdcp
+        // toggle ecc
         if (gpu.VendorId == "10de")
         {
             if (toggleSwitch.IsOn)
             {
-                Registry.SetValue(gpu.RegistryPath, "RMHdcpKeyglobZero", 0, RegistryValueKind.DWord);
+                await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, new ProcessStartInfo { FileName = "nvidia-smi.exe", Arguments = "-e 1", CreateNoWindow = true });
                 using var key = Registry.LocalMachine.OpenSubKey(gpu.RegistryPath["HKEY_LOCAL_MACHINE\\".Length..], writable: true);
-                key?.DeleteValue("RmDisableHdcp22", false);
-                key?.DeleteValue("RmSkipHdcp22Init", false);
+                key?.DeleteValue("RMNoECCFuseCheck", false);
+                key?.DeleteValue("RMEnableL1ECC", false);
+                key?.DeleteValue("RMEnableSMECC", false);
+                key?.DeleteValue("RMEnableSHMECC", false);
+                key?.DeleteValue("RMAssertOnEccErrors", false);
+                key?.DeleteValue("RMGuestECCState", false);
             }
             else
             {
-                Registry.SetValue(gpu.RegistryPath, "RMHdcpKeyglobZero", 1, RegistryValueKind.DWord);
-                Registry.SetValue(gpu.RegistryPath, "RmDisableHdcp22", 1, RegistryValueKind.DWord);
-                Registry.SetValue(gpu.RegistryPath, "RmSkipHdcp22Init", 1, RegistryValueKind.DWord);
+                await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, new ProcessStartInfo { FileName = "nvidia-smi.exe", Arguments = "-e 0", CreateNoWindow = true });
+                Registry.SetValue(gpu.RegistryPath, "RMNoECCFuseCheck", 1, RegistryValueKind.DWord);
+                Registry.SetValue(gpu.RegistryPath, "RMEnableL1ECC", 0, RegistryValueKind.DWord);
+                Registry.SetValue(gpu.RegistryPath, "RMEnableSMECC", 0, RegistryValueKind.DWord);
+                Registry.SetValue(gpu.RegistryPath, "RMEnableSHMECC", 0, RegistryValueKind.DWord);
+                Registry.SetValue(gpu.RegistryPath, "RMAssertOnEccErrors", 0, RegistryValueKind.DWord);
+                Registry.SetValue(gpu.RegistryPath, "RMGuestECCState", 0, RegistryValueKind.DWord);
             }
         }
 
@@ -553,7 +566,7 @@ public sealed partial class GraphicsPage : Page
         // add infobar
         var infoBar = new InfoBar
         {
-            Title = toggleSwitch.IsOn ? "Successfully enabled High-Bandwidth Digital Content Protection (HDCP)." : "Successfully disabled High-Bandwidth Digital Content Protection (HDCP).",
+            Title = toggleSwitch.IsOn ? "Successfully enabled Error Code Correction (ECC)." : "Successfully disabled Error Code Correction (ECC).",
             IsClosable = false,
             IsOpen = true,
             Severity = InfoBarSeverity.Success,
@@ -653,6 +666,107 @@ public sealed partial class GraphicsPage : Page
         var infoBar = new InfoBar
         {
             Title = toggleSwitch.IsOn ? "Successfully enabled GPU System Processor (GSP) Firmware." : "Successfully disabled GPU System Processor (GSP) Firmware.",
+            IsClosable = false,
+            IsOpen = true,
+            Severity = InfoBarSeverity.Success,
+            Margin = new Thickness(0, 0, 0, 12)
+        };
+        GpuInfo.Children.Add(infoBar);
+
+        // delay
+        await Task.Delay(2000);
+
+        // remove infobar
+        GpuInfo.Children.Clear();
+    }
+
+    private async void HDCP_Toggled(object sender, RoutedEventArgs e)
+    {
+        // return if still initializing
+        if (isInitializingHDCPState) return;
+
+        ToggleSwitch toggleSwitch = (ToggleSwitch)sender;
+        GpuInfo gpu = (GpuInfo)toggleSwitch.DataContext;
+        var GpuInfo = FindParent<StackPanel>(toggleSwitch).FindName("GpuInfo") as StackPanel;
+        if (!gpu.IsInstalled)
+        {
+            localSettings.Values[$"HDCP_{gpu.PnPDeviceId}"] = toggleSwitch.IsOn;
+            return;
+        }
+
+        // disable hittestvisible to avoid double-clicking
+        toggleSwitch.IsHitTestVisible = false;
+
+        // remove infobar
+        GpuInfo.Children.Clear();
+
+        // add infobar
+        GpuInfo.Children.Add(new InfoBar
+        {
+            Title = toggleSwitch.IsOn ? "Enabling High-Bandwidth Digital Content Protection (HDCP)..." : "Disabling High-Bandwidth Digital Content Protection (HDCP)...",
+            IsClosable = false,
+            IsOpen = true,
+            Severity = InfoBarSeverity.Informational,
+            Margin = new Thickness(0, 0, 0, 12)
+        });
+
+        // toggle hdcp
+        if (gpu.VendorId == "10de")
+        {
+            if (toggleSwitch.IsOn)
+            {
+                Registry.SetValue(gpu.RegistryPath, "RMHdcpKeyglobZero", 0, RegistryValueKind.DWord);
+                using var key = Registry.LocalMachine.OpenSubKey(gpu.RegistryPath["HKEY_LOCAL_MACHINE\\".Length..], writable: true);
+                key?.DeleteValue("RmDisableHdcp22", false);
+                key?.DeleteValue("RmSkipHdcp22Init", false);
+            }
+            else
+            {
+                Registry.SetValue(gpu.RegistryPath, "RMHdcpKeyglobZero", 1, RegistryValueKind.DWord);
+                Registry.SetValue(gpu.RegistryPath, "RmDisableHdcp22", 1, RegistryValueKind.DWord);
+                Registry.SetValue(gpu.RegistryPath, "RmSkipHdcp22Init", 1, RegistryValueKind.DWord);
+            }
+        }
+
+        // close obs studio
+        if (Process.GetProcessesByName("obs64").Length > 0)
+        {
+            foreach (var process in Process.GetProcessesByName("obs64"))
+            {
+                process.Kill();
+                await process.WaitForExitAsync();
+            }
+        }
+
+        // delay
+        await Task.Delay(400);
+
+        // restart driver
+        await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "CRU", "restart64.exe")) { Arguments = "/q" })!.WaitForExitAsync();
+
+        // apply profile
+        if (Directory.Exists(@"C:\Program Files (x86)\MSI Afterburner\Profiles\") && Directory.GetFiles(@"C:\Program Files (x86)\MSI Afterburner\Profiles\").Any(f => !f.EndsWith("MSIAfterburner.cfg", StringComparison.OrdinalIgnoreCase)))
+        {
+            await Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })!.WaitForExitAsync();
+        }
+
+        // launch obs studio
+        if (!(localSettings.Values["OBS"] as int? == 0) && File.Exists(@"C:\Program Files\obs-studio\bin\64bit\obs64.exe"))
+        {
+            ProcessActions.CleanDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "obs-studio", ".sentinel"));
+            Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\obs-studio\bin\64bit\obs64.exe", Arguments = "--disable-updater --startreplaybuffer --minimize-to-tray", WorkingDirectory = @"C:\Program Files\obs-studio\bin\64bit" });
+        }
+
+        // re-enable hittestvisible
+        toggleSwitch.IsHitTestVisible = true;
+
+        // remove infobar
+        GpuInfo.Children.Clear();
+
+        // add infobar
+        var infoBar = new InfoBar
+        {
+            Title = toggleSwitch.IsOn ? "Successfully enabled High-Bandwidth Digital Content Protection (HDCP)." : "Successfully disabled High-Bandwidth Digital Content Protection (HDCP).",
             IsClosable = false,
             IsOpen = true,
             Severity = InfoBarSeverity.Success,

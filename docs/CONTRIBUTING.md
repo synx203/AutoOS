@@ -60,7 +60,7 @@ AutoOS/
       NativeMethods.txt # Native Methods for Win32 interop
   Directory.Build.props # Central project configuration
   Directory.Packages.props # Central package configuration
-  Settings.XamlStyler # Configuration for XAML formatting
+  settings.xamlstyler # Configuration for XAML formatting
 ```
 
 ---

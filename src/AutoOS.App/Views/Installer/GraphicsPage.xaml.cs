@@ -1,4 +1,4 @@
-﻿using AutoOS.Core.Helpers.GPU.Converters;
+using AutoOS.Core.Helpers.GPU.Converters;
 using AutoOS.Core.Helpers.GPU.Models;
 using AutoOS.Core.Helpers.GPU;
 using AutoOS.Core.Helpers.Picker;
@@ -46,8 +46,9 @@ public sealed partial class GraphicsPage : Page
                 ["RegistryPath"] = gpu.RegistryPath,
                 ["Location"] = gpu.Location,
                 ["PStates"] = gpu.PStates,
-                ["HDCP"] = gpu.HDCP,
+                ["ECC"] = gpu.ECC,
                 ["GspFirmware"] = gpu.GspFirmware,
+                ["HDCP"] = gpu.HDCP,
                 ["HDMIDPAudio"] = gpu.HDMIDPAudio,
                 ["CurrentVersion"] = gpu.CurrentVersion
             });
@@ -85,8 +86,9 @@ public sealed partial class GraphicsPage : Page
                             RegistryPath = obj["RegistryPath"]?.ToString(),
                             Location = obj["Location"]?.ToString(),
                             PStates = obj["PStates"]?.GetValue<bool>() ?? false,
-                            HDCP = obj["HDCP"]?.GetValue<bool>() ?? false,
+                            ECC = obj["ECC"]?.GetValue<bool>() ?? false,
                             GspFirmware = obj["GspFirmware"]?.GetValue<bool>() ?? false,
+                            HDCP = obj["HDCP"]?.GetValue<bool>() ?? false,
                             HDMIDPAudio = obj["HDMIDPAudio"]?.GetValue<bool>() ?? false,
                             CurrentVersion = obj["CurrentVersion"]?.ToString()
                         });
@@ -107,8 +109,9 @@ public sealed partial class GraphicsPage : Page
             {
                 gpu.Install = saved.Install;
                 gpu.PStates = saved.PStates;
-                gpu.HDCP = saved.HDCP;
+                gpu.ECC = saved.ECC;
                 gpu.GspFirmware = saved.GspFirmware;
+                gpu.HDCP = saved.HDCP;
                 gpu.HDMIDPAudio = saved.HDMIDPAudio;
             }
 

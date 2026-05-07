@@ -68,6 +68,7 @@ public static partial class GpuHelper
                 string codename = string.Empty;
                 bool pstates = false;
                 bool hdcp = false;
+                bool ecc = false;
                 bool gspFirmware = false;
                 bool hdmidpaudio = true;
 
@@ -87,9 +88,10 @@ public static partial class GpuHelper
                             currentVersion = string.Concat(versionParts[2].AsSpan()[1..], versionParts[3].AsSpan()[..2], ".", versionParts[3].AsSpan(2, 2));
                         }
                         pstates = Microsoft.Win32.Registry.GetValue(registryPath, "DisableDynamicPstate", null) is not int pstateValue || pstateValue == 0;
-                        hdcp = Microsoft.Win32.Registry.GetValue(registryPath, "RMHdcpKeyglobZero", null) is int intValue && intValue == 0;
+                        ecc = Microsoft.Win32.Registry.GetValue(registryPath, "RMNoECCFuseCheck", null) is not int eccValue || eccValue == 0;
                         gspFirmware = Microsoft.Win32.Registry.GetValue(registryPath, "EnableGpuFirmware", null) is int firmwareValue && firmwareValue == 1;
-                    }
+                        hdcp = Microsoft.Win32.Registry.GetValue(registryPath, "RMHdcpKeyglobZero", null) is int intValue && intValue == 0;
+                     }
                     else if (vendorId == "1002")
                     {
                         currentVersion = (Microsoft.Win32.Registry.GetValue(registryPath, "RadeonSoftwareVersion", null) ?? Microsoft.Win32.Registry.GetValue(registryPath, "FireproSoftwareVersion", null))?.ToString();
@@ -172,8 +174,9 @@ public static partial class GpuHelper
                     IsInstalled = isInstalled,
                     RegistryPath = registryPath,
                     PStates = pstates,
-                    HDCP = hdcp,
+                    ECC = ecc,
                     GspFirmware = gspFirmware,
+                    HDCP = hdcp,
                     HDMIDPAudio = hdmidpaudio,
                     Location = gpuBusDev
                 });

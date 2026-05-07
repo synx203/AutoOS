@@ -46,11 +46,11 @@
                                         <ToggleSwitch DataContext="{x:Bind}"
                                                       IsOn="{x:Bind PStates, Mode=TwoWay}" />
                                     </dev:SettingsCard>
-                                    <dev:SettingsCard Description="Disabling HDCP breaks Netflix and other protected video streaming services."
-                                                      Header="High-Bandwidth Digital Content Protection (HDCP)"
-                                                      Visibility="{x:Bind NVIDIA, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <dev:SettingsCard Description="Disabling Error Correction Code (ECC) can slightly increase memory performance and bandwidth but removes protection against silent data corruption and memory-related system crashes."
+                                                      Header="Error Code Correction (ECC)"
+                                                      Visibility="{x:Bind ECCSupport, Converter={StaticResource BoolToVisibilityConverter}}">
                                         <ToggleSwitch DataContext="{x:Bind}"
-                                                      IsOn="{x:Bind HDCP, Mode=TwoWay}" />
+                                                      IsOn="{x:Bind ECC, Mode=TwoWay}" />
                                     </dev:SettingsCard>
                                     <dev:SettingsCard Description="Enabling GPU System Processor (GSP) Firmware offloads driver tasks from the CPU to the GPU System Processor (GSP) for lower latency but can cause driver / display issues that requires you to go into safe mode to disable it."
                                                       Header="GPU System Processor (GSP) Firmware"
@@ -58,7 +58,13 @@
                                         <ToggleSwitch DataContext="{x:Bind}"
                                                       IsOn="{x:Bind GspFirmware, Mode=TwoWay}" />
                                     </dev:SettingsCard>
-                                    <dev:SettingsCard Description="Disabling HDMI/DP Audio prevents audio devices connected to the graphics card from showing up."
+                                    <dev:SettingsCard Description="Disabling High-Bandwidth Digital Content Protection (HDCP) breaks Netflix and other protected video streaming services."
+                                                      Header="High-Bandwidth Digital Content Protection (HDCP)"
+                                                      Visibility="{x:Bind NVIDIA, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <ToggleSwitch DataContext="{x:Bind}"
+                                                      IsOn="{x:Bind HDCP, Mode=TwoWay}" />
+                                    </dev:SettingsCard>
+                                    <dev:SettingsCard Description="Disabling High-Definition Multimedia Interface (HDMI)/DisplayPort (DP) Audio prevents audio devices connected to the graphics card from showing up."
                                                       Header="High-Definition Multimedia Interface (HDMI)/DisplayPort (DP) Audio">
                                         <ToggleSwitch DataContext="{x:Bind}"
                                                       IsOn="{x:Bind HDMIDPAudio, Mode=TwoWay}" />

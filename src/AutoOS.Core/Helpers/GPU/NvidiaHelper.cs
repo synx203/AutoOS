@@ -282,28 +282,7 @@ namespace AutoOS.Core.Helpers.GPU
 				(@"Setting ""Dynamic range"" to ""Full (0-255)""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "_User_SUB0_DFP4_XALG_Color_Range", new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 }, RegistryValueKind.Binary), null),
 
                 // configure color settings
-                ("Configuring color settings", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, new ProcessStartInfo { FileName = "cmd", Arguments = @"/c for /f ""delims="" %a in ('reg query HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\nvlddmkm\State\DisplayDatabase') do reg add ""%a"" /v ""ColorformatConfig"" /t REG_BINARY /d ""DB02000014000000000A00080000000003010000"" /f", CreateNoWindow = true }), null),
-
-                // disable error code correction (ecc)
-                ("Disabling Error Code Correction (ECC)", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, new ProcessStartInfo { FileName = "nvidia-smi.exe", Arguments = "-e 0", CreateNoWindow = true }), null),
-
-                // ignore the ecc fuse
-                ("Disabling Error Code Correction (ECC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMNoECCFuseCheck", 1, RegistryValueKind.DWord), null),
-
-                // disable l1 ecc
-                ("Disabling Error Code Correction (ECC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMEnableL1ECC", 0, RegistryValueKind.DWord), null),
-
-                // disablee sm ecc
-                ("Disabling Error Code Correction (ECC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMEnableSMECC", 0, RegistryValueKind.DWord), null),
-                
-                // disable shm ecc
-                ("Disabling Error Code Correction (ECC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMEnableSHMECC", 0, RegistryValueKind.DWord), null),
-                
-                // disable rm assert on ecc interrupts
-                ("Disabling Error Code Correction (ECC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMAssertOnEccErrors", 0, RegistryValueKind.DWord), null),
-                
-                // disable ecc state in guest
-                ("Disabling Error Code Correction (ECC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMGuestECCState", 0, RegistryValueKind.DWord), null),
+                ("Configuring color settings", async () => { foreach (string key in Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"System\CurrentControlSet\Services\nvlddmkm\State\DisplayDatabase")?.GetSubKeyNames() ?? []) RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\nvlddmkm\State\DisplayDatabase\{key}", "ColorformatConfig", new byte[] { 0xDB, 0x02, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x03, 0x01, 0x00, 0x00 }, RegistryValueKind.Binary); }, null),
 
                 // disable runtime power management
                 ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableRuntimePowerManagement", 0, RegistryValueKind.DWord), null),
@@ -528,10 +507,6 @@ namespace AutoOS.Core.Helpers.GPU
                 // disable non-contiguous allocation
                 ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMDisableNoncontigAlloc", 1, RegistryValueKind.DWord), null),
 
-                // enable gsp firmware
-                ("Enabling GSP Firmware", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableGpuFirmware", 1, RegistryValueKind.DWord), () => gpu.GspFirmware == true),
-				("Enabling GSP Firmware", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableGpuFirmwareLogs", 0, RegistryValueKind.DWord), () => gpu.GspFirmware == true),
-
                 // force "hardware composed: independent flip"
                 (@"Forcing ""Hardware Composed: Independent Flip""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "enableRS2FlipCollapse", 1, RegistryValueKind.DWord), null),
 				(@"Forcing ""Hardware Composed: Independent Flip""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "enableRS2ImmediateFlipCompletionReporting", 1, RegistryValueKind.DWord), null),
@@ -570,14 +545,23 @@ namespace AutoOS.Core.Helpers.GPU
                 // disable asynchronous p-state changes
                 ("Disabling Dynamic Performance States (P-States)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "DisableAsyncPstates", 1, RegistryValueKind.DWord), () => gpu.PStates == false),
 
-                // disable high-bandwidth digital content protection (hdcp)
-                ("Disabling High-Bandwidth Digital Content Protection (HDCP)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMHdcpKeyglobZero", 1, RegistryValueKind.DWord), null),
-				("Disabling High-Bandwidth Digital Content Protection (HDCP)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RmDisableHdcp22", 1, RegistryValueKind.DWord), null),
-				("Disabling High-Bandwidth Digital Content Protection (HDCP)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RmSkipHdcp22Init", 1, RegistryValueKind.DWord), null),
+                // disable error code correction (ecc)
+                ("Disabling Error Code Correction (ECC)", async () => await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, new ProcessStartInfo { FileName = "nvidia-smi.exe", Arguments = "-e 0", CreateNoWindow = true }), () => gpu.ECCSupport && gpu.ECC == false),
+                ("Disabling Error Code Correction (ECC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMNoECCFuseCheck", 1, RegistryValueKind.DWord), () => gpu.ECCSupport && gpu.ECC == false),
+                ("Disabling Error Code Correction (ECC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMEnableL1ECC", 0, RegistryValueKind.DWord), () => gpu.ECCSupport && gpu.ECC == false),
+                ("Disabling Error Code Correction (ECC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMEnableSMECC", 0, RegistryValueKind.DWord), () => gpu.ECCSupport && gpu.ECC == false),
+                ("Disabling Error Code Correction (ECC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMEnableSHMECC", 0, RegistryValueKind.DWord), () => gpu.ECCSupport && gpu.ECC == false),
+                ("Disabling Error Code Correction (ECC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMAssertOnEccErrors", 0, RegistryValueKind.DWord), () => gpu.ECCSupport && gpu.ECC == false),
+                ("Disabling Error Code Correction (ECC)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMGuestECCState", 0, RegistryValueKind.DWord), () => gpu.ECCSupport && gpu.ECC == false),
 
                 // enable gsp firmware
                 ("Enabling GSP Firmware", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableGpuFirmware", 1, RegistryValueKind.DWord), () => gpu.GspFirmware == true),
 				("Enabling GSP Firmware", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableGpuFirmwareLogs", 0, RegistryValueKind.DWord), () => gpu.GspFirmware == true),
+
+                // disable high-bandwidth digital content protection (hdcp)
+                ("Disabling High-Bandwidth Digital Content Protection (HDCP)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMHdcpKeyglobZero", 1, RegistryValueKind.DWord), () => gpu.HDCP == false),
+				("Disabling High-Bandwidth Digital Content Protection (HDCP)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RmDisableHdcp22", 1, RegistryValueKind.DWord), () => gpu.HDCP == false),
+				("Disabling High-Bandwidth Digital Content Protection (HDCP)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RmSkipHdcp22Init", 1, RegistryValueKind.DWord), () => gpu.HDCP == false),
 
                 // disable high-definition multimedia interface (hdmi)/displayport (dp) audio
                 ("Disabling High-Definition Multimedia Interface (HDMI)/DisplayPort (DP) Audio", async () => GpuHelper.ToggleHdmiDpAudio(gpu, false), () => gpu.HDMIDPAudio == false)
