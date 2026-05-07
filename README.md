@@ -11,13 +11,12 @@
 [![Discord](https://img.shields.io/badge/Discord-AutoOS-5865F2?style=flat&logo=discord&logoColor=white)](https://discord.gg/bZU4dMMWpg)
 [![PayPal](https://img.shields.io/badge/Donate-PayPal-003087?logo=paypal&logoColor=fff)](https://www.paypal.com/donate/?hosted_button_id=GVEVUSHUWXEAG)
 
-<p align="center">
-  <a href="#-introduction">Introduction</a> •
+<h3 align="center">
   <a href="docs/INSTALL.md">Installation Guide</a> •
   <a href="docs/SCREENSHOTS.md">Screenshots</a> •
   <a href="docs/BUILD.md">Build Instructions</a> •
   <a href="docs/LICENSE_THIRD_PARTY.md">Credits & License</a>
-</p>
+</h3>
 </div>
 
 AutoOS is a Native AOT WinUI 3 application that automates Windows setup and optimization with a focus on gaming performance, privacy, system compatibility and quality of life improvements.
