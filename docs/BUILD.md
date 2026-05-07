@@ -11,7 +11,7 @@ Ensure that your installation includes the appropriate workloads:
 
 ### 2. 🔗 Clone the repository
 
-If the debugger is not attaching to the process, you are required to set EnableLua to 0 and restart your PC. This has been a problem for 5 years and Microsoft hasn't provided a fix:
+If the debugger is not attaching to the process, you are required to set `EnableLua` to `0` and restart your PC. This has been a problem with WinUI 3 apps that require Administrator privileges for 5 years and Microsoft hasn't provided a fix:
 ```bat
 reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v EnableLUA /t REG_DWORD /d 0 /f
 ```

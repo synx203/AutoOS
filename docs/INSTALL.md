@@ -1,39 +1,61 @@
 # 🚀 Installation Guide
 
-**Step 1:** Before installing, please join my [Discord Server](https://discord.gg/bZU4dMMWpg) to receive installation support and stay informed about future updates or changes.
+> [!TIP]
+> Join my [Discord Server](https://discord.gg/bZU4dMMWpg) to receive installation support and stay informed about future updates or changes.
 
-**Step 2:** Download the latest Windows 25H2 ISO file from [here](https://drive.google.com/drive/folders/1BlAYofjlW1bU-WPG3jXygO1ezoJ4gPs7?usp=sharing) (Log into your Google Account if you get an error). Other ISOs are not supported to guarantee consistency and the latest features. 
+### Step 1 Downloading the ISO: 
+Download the latest Windows 25H2 ISO file from [here](https://drive.google.com/drive/folders/1BlAYofjlW1bU-WPG3jXygO1ezoJ4gPs7?usp=sharing) (Log into your Google Account if you get an error).<br/>
+Other ISOs are not supported (will not work) to guarantee consistency and the latest features. 
 
-**Step 3:** Open Device Manager (`devmgmt.msc`) and look for the brand of your Ethernet and Wi-Fi Adapter. If you have one of the below, download the corresponding drivers. For the rest of your drivers (Realtek Wi-Fi / Bluetooth, Mediatek Wi-Fi / Bluetooth, Audio and Storage Controller), download them from the Drivers / Support page of your Mainboard / PC manufacturer's website.
+### Step 2: Downloading Drivers
+Open Device Manager (`devmgmt.msc`) and look for the brand of your Ethernet and Wi-Fi Adapter.<br/>
+If you have one of the below, download the corresponding drivers.<br/>
 
 **INTEL:** [Ethernet](https://www.intel.com/content/www/us/en/download/727998/intel-network-adapter-driver-for-microsoft-windows-11.html) · [Wi-Fi](https://www.dl.dropboxusercontent.com/scl/fi/9qjxlr4x59dv9ncusmu3h/INTEL-WiFi.zip?rlkey=v1mzzc37onjmcpundt48u8i83&st=pnj3c3ax&dl=0) · [Bluetooth](https://www.dl.dropboxusercontent.com/scl/fi/qoylgflunti1fhzpcjnip/INTEL-Bluetooth.zip?rlkey=j23dopqk2ek1r5ju00zemwsf2&st=wopu40cj&dl=0)
 
 **Realtek:** [Ethernet](https://www.dl.dropboxusercontent.com/scl/fi/gr47u24zve7ll7lmel9ke/Install_Win11_Win10_10079_20_DMAROFF_01262026.zip?rlkey=pp7modxp8ht1zxcwlu5foam8l&st=vsxyeok0&dl=0)
 
-Extract all `.zip` files (for `.exe` files from HP, etc, run them and select `Extract` instead of `Install`, otherwise use `7-Zip, NanaZip, or WinRAR` to extract them) and move all extracted folders `into one new folder`. The folder should contain each driver and their `.inf` files.
+Open System Information (`msinfo32`) and look for `System Model`, in your browser search for "{Your system model} drivers".<br/>
+Click on the support page, head to drivers and select Windows 11, then download the rest of the drivers you may need (Realtek Wi-Fi / Bluetooth, Mediatek Wi-Fi / Bluetooth, Audio and Storage Controller).
 
-On Prebuilts and Laptops you may need to disable `VMD Controller` in your BIOS, otherwise you may get `Inaccessible boot device` BSOD. It might be called differently in your BIOS. For DELL/Alienware go to `Storage -> SATA/NVMe Operation` and change it from `Disabled` to `AHCI/NVMe`.
+If the page contains `Intel Rapid Storage Technology Driver` / `Intel RAID Driver`, either download it or disable `VMD Controller` in your BIOS, otherwise you may get `Inaccessible boot device` BSOD.<br/>
+On DELL/Alienware go to `Storage -> SATA/NVMe Operation` and change it from `Disabled` to `AHCI/NVMe`.
 
 > [!NOTE]  
+> Disabling it in BIOS is will result in better disk speeds over using the Intel RST driver.<br/>
 > If you can't access your old Windows after disabling VMD Controller, boot into safe mode once, then restart.
 
-**Step 4:** Open PowerShell **as Administrator**.
+After downloading all your drivers, extract all `.zip` files<br/>
+For `.exe` run them and select the `Extract` instead of `Install` if it exists.<br/>
+If they don't have that option, use `7-Zip, NanaZip, or WinRAR` to extract them.
 
-**Step 5:** Paste this into the PowerShell window to run the deployment script. Then select the **ISO** and your **drivers folder** or skip the driver installation if you are sure that you don't need them.
+Finally, create a `New Folder` and move all extracted folders into it. The folder should contain each driver and their `.inf` files.
+
+
+### Step 3: Run the deployment script
+Open PowerShell **as Administrator**.<br/>
+Paste this into the PowerShell window to run the deployment script.<br/>
 
 ```ps1
 $PSDefaultParameterValues['Invoke-WebRequest:UseBasicParsing'] = $true
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force 
 irm https://raw.githubusercontent.com/tinodin/AutoOS/master/deploy/deploy.ps1 | iex
 ```
-
+Then select the **ISO** file you downloaded in Step 1 and your **drivers folder** you created in Step 2.
 If you get any errors during the script leave a message in my discord server.
 
-**Step 6:** Once the script finished, `restart` and boot into the `default option`. Make sure to `keep your ethernet cable connected` or `connect to your WiFi in the setup`. **DO NOT BYPASS THE NETWORK REQUIREMENT!** Then wait for Windows to finish installing.
+### Step 4: Restarting into the new Windows 
+Once the script finished, restart your PC and boot into the `default option` by pressing `Enter`.<br/>
 
-**Step 7:** Once finished, wait for AutoOS to open up.
+> [!WARNING]  
+> Make sure to `keep your ethernet cable connected` or `connect to your WiFi in the setup`.<br/>
+> **DO NOT BYPASS THE NETWORK REQUIREMENT!**
 
-**Step 8:** Carefully look through every tab and select your preferences and apps. Please select the Discord app and don't use Discord in the Browser. Then click "Install AutoOS". This process will take around 15-30 minutes.
+### Step 5: AutoOS Installer
+Once finished, wait for AutoOS Installer to open up.<br/>
+Carefully look through every tab and select your preferences and apps. <br/>
+Please select the Discord app and do not use Discord in the Browser. <br/>
+Then click "Install AutoOS". This process will take around 15-30 minutes.
 
 > [!NOTE]  
 > You may experience a blank screen in the App after installing the Graphics Driver. To fix this, resize the window, click the navigation pane button a few times or just wait until it rerenders the UI.
