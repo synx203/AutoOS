@@ -40,7 +40,7 @@ env:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     outputs: # For accessing them from 'release' job
       app-version: ${{ steps.get-version.outputs.version }}
