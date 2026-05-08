@@ -46,7 +46,7 @@ namespace AutoOS.Views.Settings.Power
         public uint GetDcValue() => State.DcValue;
     }
 
-    public sealed class PowerDialogState : INotifyPropertyChanged
+    public sealed partial class PowerDialogState : INotifyPropertyChanged
     {
         private readonly uint _originalAc;
         private readonly uint _originalDc;
