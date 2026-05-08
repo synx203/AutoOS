@@ -762,19 +762,6 @@ public static class ApplicationStage
             ("Installing Vanguard", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "setup.exe"), WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => RiotClient == true),
             ("Cleaning up Vanguard files", async () => await (await ApplicationData.Current.TemporaryFolder.GetFileAsync("setup.exe")).DeleteAsync(), () => RiotClient == true),
 
-            // download ea
-            ("Downloading EA", async () => await DownloadHelper.Download("https://origin-a.akamaihd.net/EA-Desktop-Client-Download/installer-releases/EAappInstaller.exe", ApplicationData.Current.TemporaryFolder.Path, "EAappInstaller.exe", new InstallPageReporter()), () => EA == true),
-
-            // install ea
-            ("Installing EA", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(ApplicationData.Current.TemporaryFolder.Path, "EAappInstaller.exe"), Arguments = "/s", WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => EA == true),
-            ("Cleaning up EA files", async () => await (await ApplicationData.Current.TemporaryFolder.GetFileAsync("EAappInstaller.exe")).DeleteAsync(), () => EA == true),
-
-            // log in to ea
-            ("Please log in to your EA account (Close to continue)", async () => { Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\Electronic Arts\EA Desktop\EA Desktop\EADesktop.exe", WindowStyle = ProcessWindowStyle.Maximized }); while (Process.GetProcessesByName("EADesktop").Length > 0) await Task.Delay(500); }, () => EA == true),
-
-            // remove ea desktop shortcut
-            ("Removing EA desktop shortcut", async () => File.Delete(@"C:\Users\Public\Desktop\EA.lnk"), () => EA == true),
-
             // download ubisoft connect
             ("Downloading Ubisoft Connect", async () => await DownloadHelper.Download("https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectInstaller.exe", ApplicationData.Current.TemporaryFolder.Path, "UbisoftConnectInstaller.exe", reporter: reporter), () => UbisoftConnect == true),
 
