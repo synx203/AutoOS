@@ -207,8 +207,8 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
           artifacts: |
-            ${{ env.APP_NAME }}_${{ env.APP_VERSION }}_x64_Test/AutoOS.msix
-            ${{ env.APP_NAME }}_${{ env.APP_VERSION }}_x64_Test/AutoOS.cer
+              ${{ env.APP_NAME }}.App_${{ env.APP_VERSION }}_x64_Test/AutoOS.msix
+              ${{ env.APP_NAME }}.App_${{ env.APP_VERSION }}_x64_Test/AutoOS.cer
           bodyFile: "CHANGELOG.md"
           name: v${{ env.APP_VERSION }}
           tag: v${{ env.APP_VERSION }}
