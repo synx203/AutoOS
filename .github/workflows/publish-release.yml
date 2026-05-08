@@ -199,7 +199,7 @@ jobs:
       
       - name: Rename output files
         run: |
-          folder="${{ env.APP_NAME }}_${{ env.APP_VERSION }}_x64_Test"
+          folder="${APP_NAME}.App_${APP_VERSION}_x64_Test"
           mv "$folder"/*.msix "$folder/AutoOS.msix"
           mv "$folder"/*.cer "$folder/AutoOS.cer"
 
