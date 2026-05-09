@@ -611,7 +611,8 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style BasedOn="{StaticResource DefaultAutoSuggestBoxStyle}"
+    <Style x:Key="GamesSearchBoxStyle"
+           BasedOn="{StaticResource DefaultAutoSuggestBoxStyle}"
            TargetType="AutoSuggestBox" />
     <Style x:Key="DefaultAutoSuggestBoxStyle"
            TargetType="AutoSuggestBox">
