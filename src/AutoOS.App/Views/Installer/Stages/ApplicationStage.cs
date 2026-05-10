@@ -76,6 +76,8 @@ public class ApplicationSelection
 public static class ApplicationStage
 {
     public static bool Fortnite;
+    public static bool Valorant;
+
     public static List<(string Title, Func<Task> Action, Func<bool> Condition)> GetActions(IStatusReporter reporter = null, ApplicationSelection selection = null)
     {
         if (reporter == null && selection == null)
@@ -707,6 +709,7 @@ public static class ApplicationStage
             // import epic games launcher games
             ("Importing Epic Games Launcher Games", async () => await EpicGamesHelper.RunImportEpicGamesLauncherGames(), () => EpicGames == true && EpicGamesGames == true),
             ("Importing Epic Games Launcher Games", async () => Fortnite = File.Exists(@"C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat") && (JsonNode.Parse(await File.ReadAllTextAsync(@"C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat"))?["InstallationList"] is JsonArray installations) && installations.Any(entry => entry?["AppName"]?.ToString() == "Fortnite") , () => EpicGames == true && EpicGamesGames == true),
+            ("Importing Epic Games Launcher Games", async () => Valorant = File.Exists(@"C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat") && (JsonNode.Parse(await File.ReadAllTextAsync(@"C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat"))?["InstallationList"] is JsonArray installations) && installations.Any(entry => entry?["AppName"]?.ToString() == "602eb4abc8764c87b7f2607a1ef8c18e") , () => EpicGames == true && EpicGamesGames == true),
             ("Importing Epic Games Launcher Games", async () => await Task.Delay(1000), () => EpicGames == true && EpicGamesGames == true),
 
             // log in to epic games launcher account
