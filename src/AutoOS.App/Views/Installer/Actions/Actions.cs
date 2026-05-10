@@ -68,8 +68,10 @@ public static class ProcessActions
                 await process.WaitForExitAsync();
             }
         }
+		
+		Registry.SetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "AutoRestartShell", 1, RegistryValueKind.DWord);
 
-        string dll = @"StartAllBack\StartAllBackX64.dll";
+		string dll = @"StartAllBack\StartAllBackX64.dll";
         var paths = new[] {
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), dll),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), dll),
@@ -120,21 +122,6 @@ public static class ProcessActions
             }
             catch { }
         }
-
-        Registry.SetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "AutoRestartShell", 1, RegistryValueKind.DWord);
-
-		while (true)
-		{
-			if (Process.GetProcessesByName("explorer").Length == 0)
-			{
-				Process.Start("explorer.exe");
-				break;
-			}
-			else
-			{
-				await Task.Delay(1000);
-			}
-		}
     }
 
     public static void CleanDirectory(string path)
