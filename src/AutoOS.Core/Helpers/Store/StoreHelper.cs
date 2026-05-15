@@ -1,4 +1,4 @@
-﻿using AutoOS.Core.Common;
+using AutoOS.Core.Common;
 using AutoOS.Core.Helpers.Download;
 using System.Diagnostics;
 using System.Runtime.InteropServices;

@@ -88,7 +88,7 @@ public sealed partial class DisplayPage : Page
                 await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "CRU", "restart64.exe")) { Arguments = "/q" })!.WaitForExitAsync();
 
                 // apply profile
-                if (Directory.Exists(@"C:\Program Files (x86)\MSI Afterburner\Profiles\") && Directory.GetFiles(@"C:\Program Files (x86)\MSI Afterburner\Profiles\").Any(f => !f.EndsWith("MSIAfterburner.cfg", StringComparison.OrdinalIgnoreCase)))
+                if (File.Exists(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") && Directory.Exists(@"C:\Program Files (x86)\MSI Afterburner\Profiles\") && Directory.GetFiles(@"C:\Program Files (x86)\MSI Afterburner\Profiles\").Any(file => !file.EndsWith("MSIAfterburner.cfg", StringComparison.OrdinalIgnoreCase)))
                 {
                     await Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })!.WaitForExitAsync();
                 }
@@ -230,7 +230,7 @@ public sealed partial class DisplayPage : Page
         await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "CRU", "restart64.exe")) { Arguments = "/q" })!.WaitForExitAsync();
 
         // apply profile
-        if (Directory.Exists(@"C:\Program Files (x86)\MSI Afterburner\Profiles\") && Directory.GetFiles(@"C:\Program Files (x86)\MSI Afterburner\Profiles\").Any(f => !f.EndsWith("MSIAfterburner.cfg", StringComparison.OrdinalIgnoreCase)))
+        if (File.Exists(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") && Directory.Exists(@"C:\Program Files (x86)\MSI Afterburner\Profiles\") && Directory.GetFiles(@"C:\Program Files (x86)\MSI Afterburner\Profiles\").Any(file => !file.EndsWith("MSIAfterburner.cfg", StringComparison.OrdinalIgnoreCase)))
         {
             await Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })!.WaitForExitAsync();
         }
@@ -294,7 +294,7 @@ public sealed partial class DisplayPage : Page
         await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "CRU", "restart64.exe"))).WaitForExitAsync();
 
         // apply profile
-        if (Directory.Exists(@"C:\Program Files (x86)\MSI Afterburner\Profiles\") && Directory.GetFiles(@"C:\Program Files (x86)\MSI Afterburner\Profiles\").Any(f => !f.EndsWith("MSIAfterburner.cfg", StringComparison.OrdinalIgnoreCase)))
+        if (File.Exists(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") && Directory.Exists(@"C:\Program Files (x86)\MSI Afterburner\Profiles\") && Directory.GetFiles(@"C:\Program Files (x86)\MSI Afterburner\Profiles\").Any(file => !file.EndsWith("MSIAfterburner.cfg", StringComparison.OrdinalIgnoreCase)))
         {
             await Process.Start(new ProcessStartInfo(@"C:\Program Files (x86)\MSI Afterburner\MSIAfterburner.exe") { Arguments = "/Profile1 /q" })!.WaitForExitAsync();
         }
