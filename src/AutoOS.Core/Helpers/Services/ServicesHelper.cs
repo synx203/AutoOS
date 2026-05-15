@@ -3,7 +3,6 @@ using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.ServiceProcess;
 using Windows.Win32.System.Services;
 using Windows.Win32;
 

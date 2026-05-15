@@ -650,6 +650,12 @@ public static class ApplicationStage
             // optimize discord settings
             ("Optimizing Discord settings", async () => await File.WriteAllTextAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Discord", "settings.json"), "{\n  \"enableHardwareAcceleration\": false,\n  \"OPEN_ON_STARTUP\": false,\n  \"MINIMIZE_TO_TRAY\": false,\n  \"debugLogging\": false,\n  \"openasar\": {\n    \"setup\": true,\n    \"noTrack\": false\n  }\n}"), () => Discord == true),
 
+            // log in to discord
+            ("Please log in to your Discord account (Close to continue)", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "Discord.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => Discord == true),
+
+            // remove discord desktop shortcut 
+            ("Removing Discord desktop shortcut", async () => File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Discord.lnk")), () => Discord == true),
+
             // download vencord
             ("Downloading Vencord", async () => await DownloadHelper.Download("https://github.com/Vencord/Installer/releases/latest/download/VencordInstallerCli.exe", ApplicationData.Current.TemporaryFolder.Path, "VencordInstallerCli.exe", reporter: reporter), () => Discord == true),
 
@@ -662,12 +668,6 @@ public static class ApplicationStage
             ("Importing Vencord settings", async () => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vencord", "settings")), () => Discord == true),
             ("Importing Vencord settings", async () => File.Copy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", "settings.json"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vencord", "settings", "settings.json"), true), () => Discord == true),
             ("Importing Vencord settings", async () => await Task.Delay(500), () => Discord == true),
-
-            // log in to discord
-            ("Please log in to your Discord account (Close to continue)", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "Discord.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => Discord == true),
-
-            // remove discord desktop shortcut 
-            ("Removing Discord desktop shortcut", async () => File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Discord.lnk")), () => Discord == true),
 
             // download whatsapp
             ("Downloading WhatsApp", async () => await StoreHelper.Download("5319275A.WhatsAppDesktop_cv1g1gvanyjgm", reporter: reporter), () => WhatsApp == true),

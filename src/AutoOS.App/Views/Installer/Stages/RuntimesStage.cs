@@ -2,7 +2,6 @@
 using AutoOS.Core.Helpers.Download;
 using AutoOS.Core.Helpers.Extract;
 using AutoOS.Core.Helpers.Registry;
-using AutoOS.Views.Installer.Actions;
 using Microsoft.Win32;
 using System.Diagnostics;
 using Windows.Storage;
