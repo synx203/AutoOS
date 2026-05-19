@@ -6,7 +6,6 @@ using AutoOS.Core.Helpers.GPU.Models;
 using AutoOS.Core.Helpers.Logging;
 using AutoOS.Core.Helpers.Registry;
 using AutoOS.Core.Helpers.Services;
-using AutoOS.Core.Helpers.Store;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -197,12 +196,6 @@ namespace AutoOS.Core.Helpers.GPU
 
             var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
             {
-                // download intel® graphics command center (beta)
-                ("Downloading Intel® Graphics Command Center (Beta)", async () => await StoreHelper.Download("AppUp.IntelGraphicsCommandCenterBeta_8wekyb3d8bbwe"), () => Intel_4th_5th == true || Intel_6th == true || Intel_7th_10th == true || Intel_11th_14th == true || Intel_Arc == true),
-
-                // install intel® graphics command center (beta)
-                ("Installing Intel® Graphics Command Center (Beta)", async () => await StoreHelper.Install("AppUp.IntelGraphicsCommandCenterBeta_8wekyb3d8bbwe"), () => Intel_4th_5th == true || Intel_6th == true || Intel_7th_10th == true || Intel_11th_14th == true || Intel_Arc == true),
-
                 // configure settings
                 ("Configuring settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Intel\Display\igfxcui\MediaKeys", "ProcAmpApplyAlways", 0, RegistryValueKind.DWord), () => Intel_3rd == true || Intel_4th_5th == true || Intel_6th == true || Intel_7th_10th == true || Intel_11th_14th == true),
                 ("Configuring settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Intel\Display\igfxcui\MediaKeys", "ProcAmpBrightness", 0, RegistryValueKind.DWord), () => Intel_3rd == true || Intel_4th_5th == true || Intel_6th == true || Intel_7th_10th == true || Intel_11th_14th == true),

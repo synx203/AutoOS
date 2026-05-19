@@ -1980,11 +1980,22 @@ public partial class HeaderCarousel : ItemsControl
         }
         else if (launcher == "Steam")
         {
-            Process.Start(new ProcessStartInfo
+            if (ulong.TryParse(gameId, out ulong id) && id > (ulong)int.MaxValue)
             {
-                FileName = @"C:\Program Files (x86)\Steam\steam.exe",
-                Arguments = $"-applaunch {gameId} -silent"
-            });
+				Process.Start(new ProcessStartInfo
+				{
+					FileName = SteamHelper.SteamPath,
+					Arguments = $"-silent steam://rungameid/{gameId} "
+				});
+			}
+            else
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = SteamHelper.SteamPath,
+                    Arguments = $"-applaunch {gameId} -silent"
+                });
+            }
         }
         else if (launcher == "Eden")
         {
@@ -2384,13 +2395,26 @@ public partial class HeaderCarousel : ItemsControl
         }
         else if (Launcher == "Steam")
         {
-            var exeFiles = Directory.GetFiles(InstallLocation, "*.exe", SearchOption.AllDirectories);
-            var exeNames = exeFiles.Select(Path.GetFileNameWithoutExtension).Distinct().ToList();
-            var exeSet = new HashSet<string>(exeFiles, StringComparer.OrdinalIgnoreCase);
+            StartGameWatcher(() =>
+            {
+                if (ProcessNames != null && ProcessNames.Any())
+                {
+                    if (ProcessNames.Any(name => Process.GetProcessesByName(name).Length > 0))
+                        return true;
+                }
 
-            if (exeNames.Count == 0) return;
+                if (!string.IsNullOrEmpty(InstallLocation) && Directory.Exists(InstallLocation))
+                {
+                    var exeFiles = Directory.GetFiles(InstallLocation, "*.exe", SearchOption.AllDirectories);
+                    var exeNames = exeFiles.Select(Path.GetFileNameWithoutExtension).Distinct().ToList();
+                    var exeSet = new HashSet<string>(exeFiles, StringComparer.OrdinalIgnoreCase);
 
-            StartGameWatcher(() => exeNames.Any(name => Process.GetProcessesByName(name).Any(process => exeSet.Contains(ProcessesHelper.GetProcessPath(process)))));
+                    if (exeNames.Any(name => Process.GetProcessesByName(name).Any(process => exeSet.Contains(ProcessesHelper.GetProcessPath(process)))))
+                        return true;
+                }
+
+                return false;
+            });
         }
         else if (Launcher == "Eden")
         {

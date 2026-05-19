@@ -385,7 +385,7 @@
                                             <NumberBox x:Name="MergeCountBox"
                                                        Minimum="1"
                                                        SpinButtonPlacementMode="Inline"
-                                                       Value="50" />
+                                                       Value="25" />
                                             <Button Click="MergeNext_Click">
                                                 <StackPanel VerticalAlignment="Center"
                                                             Orientation="Horizontal">

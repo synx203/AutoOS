@@ -1,4 +1,5 @@
 using AutoOS.Core.Common;
+using System.Collections.Concurrent;
 using DevWinUI;
 using System.Diagnostics;
 using System.Globalization;
@@ -715,7 +716,7 @@ public static partial class EpicGamesHelper
 
     public static async Task<List<GameModel>> GetGames()
     {
-        var games = new List<GameModel>();
+        var games = new ConcurrentBag<GameModel>();
 
 		if (File.Exists(EpicGamesPath) && (Directory.Exists(EpicGamesManifestDir) || Directory.Exists(EpicGamesThirdPartyManifestDir)))
         {
@@ -723,7 +724,7 @@ public static partial class EpicGamesHelper
             string AccessToken = await UpdateEpicGamesToken(ActiveEpicGamesAccountPath);
 
             if (AccessToken == null)
-                return games;
+                return [.. games];
 
             loginClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AccessToken);
 
@@ -752,7 +753,7 @@ public static partial class EpicGamesHelper
 
             if (buildResponse.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                return games;
+                return [.. games];
             }
 
             var buildData = JsonNode.Parse(await buildResponse.Content.ReadAsStringAsync()) as JsonArray;
@@ -762,7 +763,7 @@ public static partial class EpicGamesHelper
 
             if (playTimeResponse.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                return games;
+                return [.. games];
             }
 
             var playTimeData = (JsonNode.Parse(await playTimeResponse.Content.ReadAsStringAsync()) as JsonArray)?.ToDictionary(
@@ -1049,7 +1050,7 @@ public static partial class EpicGamesHelper
                 }
             });
         }
-        return games;
+        return [.. games];
     }
 }
 
