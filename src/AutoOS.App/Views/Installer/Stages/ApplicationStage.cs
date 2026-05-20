@@ -452,14 +452,14 @@ public static class ApplicationStage
             ("Downloading Mica Visual Studio", async () => await DownloadHelper.Download("https://github.com/Tech5G5G/Mica-Visual-Studio/releases/latest/download/MicaVisualStudio.vsix", Path.GetTempPath(), "MicaVisualStudio.vsix", reporter: reporter), () => VisualStudio == true),
 
             // install mica visual studio
-            ("Installing Mica Visual Studio", async () => await Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\VSIXInstaller.exe", Arguments = $"/quiet /admin {Path.Combine(Path.GetTempPath(), "MicaVisualStudio.vsix")}" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => VisualStudio == true),
+            ("Installing Mica Visual Studio", async () => await Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files (x86)\Microsoft Visual Studio\Installer\resources\app\ServiceHub\Services\Microsoft.VisualStudio.Setup.Service\VSIXInstaller.exe", Arguments = $"/quiet /admin {Path.Combine(Path.GetTempPath(), "MicaVisualStudio.vsix")}" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => VisualStudio == true),
             ("Cleaning up Mica Visual Studio files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "MicaVisualStudio.vsix")), () => VisualStudio == true),
 
             // download xaml styler
             ("Downloading XAML Styler", async () => await DownloadHelper.Download("https://marketplace.visualstudio.com/_apis/public/gallery/publishers/TeamXavalon/vsextensions/XAMLStyler2022/3.2501.8/vspackage", Path.GetTempPath(), "XamlStyler.Extension.Windows.VS2022.vsix", reporter: reporter), () => VisualStudio == true),
 
             // install xaml styler
-            ("Installing XAML Styler", async () => await Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\VSIXInstaller.exe", Arguments = $"/quiet /admin {Path.Combine(Path.GetTempPath(), "XamlStyler.Extension.Windows.VS2022.vsix")}" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => VisualStudio == true),
+            ("Installing XAML Styler", async () => await Process.Start(new ProcessStartInfo { FileName = @"C:\Program Files (x86)\Microsoft Visual Studio\Installer\resources\app\ServiceHub\Services\Microsoft.VisualStudio.Setup.Service\VSIXInstaller.exe", Arguments = $"/quiet /admin {Path.Combine(Path.GetTempPath(), "XamlStyler.Extension.Windows.VS2022.vsix")}" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => VisualStudio == true),
             ("Cleaning up XAML Styler files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "XamlStyler.Extension.Windows.VS2022.vsix")), () => VisualStudio == true),
 
             // download visual studio code
