@@ -13,19 +13,6 @@ namespace AutoOS.Views
         public string TitleBarName { get; set; }
         internal static MainWindow Instance { get; set; }
 
-        public string AppSubtitle
-		{
-			get
-			{
-                var version = new Version(ProcessInfoHelper.Version);
-                if (version.Revision > 0)
-                {
-                    return ProcessInfoHelper.VersionWithPrefix + " - Pre-release";
-                }
-                return ProcessInfoHelper.VersionWithPrefix;
-            }
-        }
-
         public MainWindow()
         {
             Instance = this;
@@ -38,6 +25,8 @@ namespace AutoOS.Views
             var presenter = AppWindow.Presenter.As<OverlappedPresenter>();
             presenter.PreferredMinimumWidth = 660;
             presenter.PreferredMinimumHeight = 715;
+
+            RootGrid.PointerPressed += OnPointerPressed;
 
             if (App.IsInstalled)
             {
@@ -98,7 +87,7 @@ namespace AutoOS.Views
 
         public bool AllPagesVisited()
         {
-            return AllPages.All(p => _visitedPages.Contains(p));
+            return AllPages.All(page => _visitedPages.Contains(page));
         }
 
         public void CheckAllPagesVisited()
@@ -126,6 +115,29 @@ namespace AutoOS.Views
         private void AppIcon_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             PInvoke.PostMessage((HWND)WindowNative.GetWindowHandle(App.MainWindow), PInvoke.WM_SYSCOMMAND, 0xF090, 0);
+        }
+
+        private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            var pointerPoint = e.GetCurrentPoint(RootGrid);
+            var properties = pointerPoint.Properties;
+
+            if (properties.IsXButton1Pressed)
+            {
+                if (App.Current.NavService.CanGoBack)
+                {
+                    App.Current.NavService.GoBack();
+                }
+                e.Handled = true;
+            }
+            else if (properties.IsXButton2Pressed)
+            {
+                if (NavFrame.CanGoForward)
+                {
+                    NavFrame.GoForward();
+                }
+                e.Handled = true;
+            }
         }
     }
 }
