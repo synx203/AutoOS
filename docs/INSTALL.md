@@ -66,7 +66,7 @@ Then click "Install AutoOS". This process will take around 15-30 minutes.
 ### What to do after the installation is finished?
 - For `Riot Games` titles to show up in the `Games` tab, install them through the `Epic Games Launcher` as well.
 - For `EA` or `Ubisoft Connect` titles to show up in the `Games` tab, add them to your `Epic Games Launcher` library.
-- `Disable` the toggle in `Services & Drivers` tab and restart whenever you are `Gaming`.
+- `Disable` the toggle in `Services & Drivers` tab and restart whenever you are `Gaming` competitively.
 - `Enable` it again and restart if you need functionality back for `Work` or installing applications / drivers.
 - Go to the `Games` tab while `Services & Drivers` are disabled and press the `Play` button.
 - Once you are in the `Game`, press the `Stop Processes` button. 
@@ -74,6 +74,8 @@ Then click "Install AutoOS". This process will take around 15-30 minutes.
 - Cap your Game's `frame rate limit` to `a multiple` of your monitor's `refresh rate` (144hz, 72/144/288fps).
 - Use `NVIDIA Reflex Low Latency` set to `Off` in competetive games unless you are GPU bound with a bad GPU.
 - Check the `BIOS Settings` tab for recommendations, click `Merge All` then `Import to NVRAM`.
+- If you don't boot after merging all, reset CMOS and use `Merge Next` until you find the culprit.
+- If you face worse performance, instability or crashes, use `Restore from Backup`.
 - If you are `unstable` on `Intel`, lower your `Max Turbo Ratios`, disable `E-Cores` and enable `Hyper-Threading`.
 - If your output supports a lower buffer size in the `Sound` tab, you may lower it in exchange for higher CPU usage.
 - Leave a `review`, share `suggestions`, or report `issues` on the `Discord Server`.

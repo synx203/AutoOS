@@ -2,13 +2,15 @@ using AutoOS.Core.Helpers.OS;
 using AutoOS.Core.Helpers.Registry;
 using Microsoft.Win32;
 using System.Diagnostics;
+using Microsoft.Windows.ApplicationModel.WindowsAppRuntime;
 
 namespace AutoOS.Views.Installer
 {
     public sealed partial class HomeLandingPage : Page
     {
         private static readonly HttpClient httpClient = new();
-        public HomeLandingPage()
+		public string WASDKVersion { get; } = $"Windows App SDK {ReleaseInfo.Major}.{ReleaseInfo.Minor}";
+		public HomeLandingPage()
         {
             InitializeComponent();
             Loaded += HomeLandingPage_Loaded;

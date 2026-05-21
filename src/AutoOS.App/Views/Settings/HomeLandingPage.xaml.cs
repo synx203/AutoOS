@@ -2,10 +2,11 @@
 using AutoOS.Core.Helpers.OS;
 using AutoOS.Core.Helpers.Registry;
 using AutoOS.Views.Installer.Stages;
-using AutoOS.Views.Updater.Stages;
 using AutoOS.Views.Updater;
+using AutoOS.Views.Updater.Stages;
 using CommunityToolkit.WinUI.Controls;
 using Microsoft.Win32;
+using Microsoft.Windows.ApplicationModel.WindowsAppRuntime;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Windows.Storage;
@@ -15,7 +16,8 @@ namespace AutoOS.Views.Settings
     public sealed partial class HomeLandingPage : Page
     {
         private readonly ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
-        private static readonly HttpClient httpClient = new()
+		public string WASDKVersion { get; } = $"Windows App SDK {ReleaseInfo.Major}.{ReleaseInfo.Minor}";
+		private static readonly HttpClient httpClient = new()
         {
             DefaultRequestHeaders =
             {
