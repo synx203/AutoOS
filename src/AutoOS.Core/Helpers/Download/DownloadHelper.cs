@@ -33,8 +33,7 @@ public static partial class DownloadHelper
 		DownloadConfiguration config = new()
 		{
 			MaxTryAgainOnFailure = 5,
-			EnableAutoResumeDownload = true,
-			DownloadFileExtension = ".download",
+			EnableAutoResumeDownload = false,
 			ParallelDownload = true,
 			ChunkCount = 8,
 			ParallelCount = 4,

@@ -88,12 +88,12 @@
                                     Spacing="8">
                             <!--  Search Box  -->
                             <AutoSuggestBox x:Name="SearchBox"
-                                            Style="{StaticResource GamesSearchBoxStyle}"
                                             MinWidth="240"
                                             Padding="12,8"
                                             CornerRadius="18"
                                             PlaceholderText="Search..."
                                             QueryIcon="Find"
+                                            Style="{StaticResource GamesSearchBoxStyle}"
                                             XYFocusRight="{Binding ElementName=Sort}" />
                             <!--  Sort  -->
                             <Button x:Name="Sort"
