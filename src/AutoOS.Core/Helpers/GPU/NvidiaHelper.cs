@@ -10,7 +10,6 @@ using System.Net.Http.Headers;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Text.Json;
-using Windows.Storage;
 using Windows.Win32.System.Power;
 using Windows.Win32;
 
@@ -163,6 +162,7 @@ namespace AutoOS.Core.Helpers.GPU
                 (gpu.IsInstalled ? $"Updating to NVIDIA driver {newestVersion}" : $"Installing NVIDIA driver {newestVersion}", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "NVIDIA", "driver", "setup.exe"), Arguments = $"/s{(gpu.IsInstalled ? " /clean" : "")}", CreateNoWindow = true })!.WaitForExitAsync(), null),
 				(gpu.IsInstalled ? $"Updating to NVIDIA driver {newestVersion}" : $"Installing NVIDIA driver {newestVersion}", async () => await Task.Delay(3000), null),
 				(gpu.IsInstalled ? $"Updating to NVIDIA driver {newestVersion}" : $"Installing NVIDIA driver {newestVersion}", async () => GpuHelper.RefreshGpu(gpu), null),
+				(gpu.IsInstalled ? $"Updating to NVIDIA driver {newestVersion}" : $"Installing NVIDIA driver {newestVersion}", async () => await Task.Delay(3000), null),
 				("Cleaning up NVIDIA files", async () => Directory.Delete(Path.Combine(Path.GetTempPath(), "NVIDIA"), true), null)
 			};
 

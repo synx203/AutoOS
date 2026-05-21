@@ -8,7 +8,6 @@ using AutoOS.Core.Helpers.TaskScheduler;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Text.Json.Nodes;
-using Windows.Storage;
 
 namespace AutoOS.Core.Helpers.GPU;
 
@@ -58,8 +57,8 @@ public static partial class AmdHelper
                     if (sku?.ToString().Contains(deviceId, StringComparison.InvariantCultureIgnoreCase) != true)
                         continue;
 
-                    newestVersion = build["externalbuildversion"]?.ToString();
-                    newestDownloadUrl = build["fullbuild"]?.ToString();
+					newestVersion = string.Join(".", build["externalbuildversion"].ToString().Split('.').Take(3));
+					newestDownloadUrl = build["fullbuild"]?.ToString();
                     break;
                 }
 
