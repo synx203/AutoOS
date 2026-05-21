@@ -383,9 +383,10 @@
                                                     Spacing="8"
                                                     Visibility="{x:Bind HasRecommendations, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                                             <NumberBox x:Name="MergeCountBox"
+                                                       Maximum="250"
                                                        Minimum="1"
                                                        SpinButtonPlacementMode="Inline"
-                                                       Value="25" />
+                                                       Value="50" />
                                             <Button Click="MergeNext_Click">
                                                 <StackPanel VerticalAlignment="Center"
                                                             Orientation="Horizontal">

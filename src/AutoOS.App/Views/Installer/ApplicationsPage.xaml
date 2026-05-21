@@ -23,24 +23,24 @@
             <StackPanel Margin="{ThemeResource ContentPageMargin}"
                         Padding="{ThemeResource ContentPagePadding}"
                         dev:PanelAttach.ChildrenTransitions="Default">
-                <dev:Card Title="Office"
+                <dev:Card Title="Messaging"
                           Margin="0,0,0,8"
                           Padding="24,24,24,12">
                     <dev:Card.Content>
-                        <GridView x:Name="Office"
+                        <GridView x:Name="Messaging"
                                   IsMultiSelectCheckBoxEnabled="False"
-                                  SelectionChanged="Office_Changed"
+                                  SelectionChanged="Messaging_Changed"
                                   SelectionMode="Multiple">
                             <GridView.ItemTemplate>
                                 <DataTemplate x:DataType="views:GridViewItem">
                                     <Grid Height="85"
-                                          Margin="8">
+                                          Margin="4">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
                                         <StackPanel VerticalAlignment="Center">
                                             <Image Height="36"
-                                                   Margin="0,0,0,8">
+                                                   Margin="0,0,0,4">
                                                 <Image.Source>
                                                     <BitmapImage DecodePixelHeight="36"
                                                                  DecodePixelType="Logical"
@@ -59,32 +59,32 @@
                             </GridView.ItemTemplate>
                             <GridView.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <controls:StaggeredPanel ColumnSpacing="12"
-                                                             DesiredColumnWidth="155"
+                                    <controls:StaggeredPanel ColumnSpacing="4"
+                                                             DesiredColumnWidth="145"
                                                              RowSpacing="12" />
                                 </ItemsPanelTemplate>
                             </GridView.ItemsPanel>
                         </GridView>
                     </dev:Card.Content>
                 </dev:Card>
-                <dev:Card Title="Development"
+                <dev:Card Title="Launchers"
                           Margin="0,0,0,8"
                           Padding="24,24,24,12">
                     <dev:Card.Content>
-                        <GridView x:Name="Development"
+                        <GridView x:Name="Launchers"
                                   IsMultiSelectCheckBoxEnabled="False"
-                                  SelectionChanged="Development_Changed"
+                                  SelectionChanged="Launchers_Changed"
                                   SelectionMode="Multiple">
                             <GridView.ItemTemplate>
                                 <DataTemplate x:DataType="views:GridViewItem">
                                     <Grid Height="85"
-                                          Margin="8">
+                                          Margin="4">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
                                         <StackPanel VerticalAlignment="Center">
                                             <Image Height="36"
-                                                   Margin="0,0,0,8">
+                                                   Margin="0,0,0,4">
                                                 <Image.Source>
                                                     <BitmapImage DecodePixelHeight="36"
                                                                  DecodePixelType="Logical"
@@ -103,8 +103,8 @@
                             </GridView.ItemTemplate>
                             <GridView.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <controls:StaggeredPanel ColumnSpacing="12"
-                                                             DesiredColumnWidth="155"
+                                    <controls:StaggeredPanel ColumnSpacing="4"
+                                                             DesiredColumnWidth="145"
                                                              RowSpacing="12" />
                                 </ItemsPanelTemplate>
                             </GridView.ItemsPanel>
@@ -122,13 +122,13 @@
                             <GridView.ItemTemplate>
                                 <DataTemplate x:DataType="views:GridViewItem">
                                     <Grid Height="85"
-                                          Margin="8">
+                                          Margin="4">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
                                         <StackPanel VerticalAlignment="Center">
                                             <Image Height="36"
-                                                   Margin="0,0,0,8">
+                                                   Margin="0,0,0,4">
                                                 <Image.Source>
                                                     <BitmapImage DecodePixelHeight="36"
                                                                  DecodePixelType="Logical"
@@ -147,32 +147,32 @@
                             </GridView.ItemTemplate>
                             <GridView.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <controls:StaggeredPanel ColumnSpacing="12"
-                                                             DesiredColumnWidth="155"
+                                    <controls:StaggeredPanel ColumnSpacing="4"
+                                                             DesiredColumnWidth="145"
                                                              RowSpacing="12" />
                                 </ItemsPanelTemplate>
                             </GridView.ItemsPanel>
                         </GridView>
                     </dev:Card.Content>
                 </dev:Card>
-                <dev:Card Title="Messaging"
+                <dev:Card Title="Peripherals"
                           Margin="0,0,0,8"
                           Padding="24,24,24,12">
                     <dev:Card.Content>
-                        <GridView x:Name="Messaging"
+                        <GridView x:Name="Peripherals"
                                   IsMultiSelectCheckBoxEnabled="False"
-                                  SelectionChanged="Messaging_Changed"
+                                  SelectionChanged="Peripherals_Changed"
                                   SelectionMode="Multiple">
                             <GridView.ItemTemplate>
                                 <DataTemplate x:DataType="views:GridViewItem">
                                     <Grid Height="85"
-                                          Margin="8">
+                                          Margin="4">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
                                         <StackPanel VerticalAlignment="Center">
                                             <Image Height="36"
-                                                   Margin="0,0,0,8">
+                                                   Margin="0,0,0,4">
                                                 <Image.Source>
                                                     <BitmapImage DecodePixelHeight="36"
                                                                  DecodePixelType="Logical"
@@ -191,32 +191,32 @@
                             </GridView.ItemTemplate>
                             <GridView.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <controls:StaggeredPanel ColumnSpacing="12"
-                                                             DesiredColumnWidth="155"
+                                    <controls:StaggeredPanel ColumnSpacing="4"
+                                                             DesiredColumnWidth="145"
                                                              RowSpacing="12" />
                                 </ItemsPanelTemplate>
                             </GridView.ItemsPanel>
                         </GridView>
                     </dev:Card.Content>
                 </dev:Card>
-                <dev:Card Title="Launchers"
-                          Margin="0,0,0,36"
+                <dev:Card Title="Development"
+                          Margin="0,0,0,8"
                           Padding="24,24,24,12">
                     <dev:Card.Content>
-                        <GridView x:Name="Launchers"
+                        <GridView x:Name="Development"
                                   IsMultiSelectCheckBoxEnabled="False"
-                                  SelectionChanged="Launchers_Changed"
+                                  SelectionChanged="Development_Changed"
                                   SelectionMode="Multiple">
                             <GridView.ItemTemplate>
                                 <DataTemplate x:DataType="views:GridViewItem">
                                     <Grid Height="85"
-                                          Margin="8">
+                                          Margin="4">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
                                         <StackPanel VerticalAlignment="Center">
                                             <Image Height="36"
-                                                   Margin="0,0,0,8">
+                                                   Margin="0,0,0,4">
                                                 <Image.Source>
                                                     <BitmapImage DecodePixelHeight="36"
                                                                  DecodePixelType="Logical"
@@ -235,8 +235,52 @@
                             </GridView.ItemTemplate>
                             <GridView.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <controls:StaggeredPanel ColumnSpacing="12"
-                                                             DesiredColumnWidth="155"
+                                    <controls:StaggeredPanel ColumnSpacing="4"
+                                                             DesiredColumnWidth="145"
+                                                             RowSpacing="12" />
+                                </ItemsPanelTemplate>
+                            </GridView.ItemsPanel>
+                        </GridView>
+                    </dev:Card.Content>
+                </dev:Card>
+                <dev:Card Title="Office"
+                          Margin="0,0,0,36"
+                          Padding="24,24,24,12">
+                    <dev:Card.Content>
+                        <GridView x:Name="Office"
+                                  IsMultiSelectCheckBoxEnabled="False"
+                                  SelectionChanged="Office_Changed"
+                                  SelectionMode="Multiple">
+                            <GridView.ItemTemplate>
+                                <DataTemplate x:DataType="views:GridViewItem">
+                                    <Grid Height="85"
+                                          Margin="4">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*" />
+                                        </Grid.RowDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <Image Height="36"
+                                                   Margin="0,0,0,4">
+                                                <Image.Source>
+                                                    <BitmapImage DecodePixelHeight="36"
+                                                                 DecodePixelType="Logical"
+                                                                 UriSource="{x:Bind ImageSource, Mode=OneTime}" />
+                                                </Image.Source>
+                                            </Image>
+                                            <TextBlock HorizontalAlignment="Center"
+                                                       FontSize="14"
+                                                       Text="{x:Bind Text, Mode=OneTime}"
+                                                       TextAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </GridView.ItemTemplate>
+                            <GridView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <controls:StaggeredPanel ColumnSpacing="4"
+                                                             DesiredColumnWidth="145"
                                                              RowSpacing="12" />
                                 </ItemsPanelTemplate>
                             </GridView.ItemsPanel>

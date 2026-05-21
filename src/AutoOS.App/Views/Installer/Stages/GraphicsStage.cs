@@ -67,8 +67,8 @@ public static class GraphicsStage
         
             // download obs studio
             ("Downloading OBS Studio", async () => await DownloadHelper.Download(JsonDocument.Parse(await new HttpClient { DefaultRequestHeaders = { { "User-Agent", "AutoOS" } } }.GetStringAsync("https://api.github.com/repos/obsproject/obs-studio/releases/latest")).RootElement.GetProperty("assets").EnumerateArray().First(a => a.GetProperty("name").GetString().Contains("Windows-x64-Installer.exe")).GetProperty("browser_download_url").GetString(), Path.GetTempPath(), "OBS-Studio-Windows-x64-Installer.exe", new InstallPageReporter()), null),
-            ("Downloading OBS Studio settings", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/gkhuws75qnckr63lnfbzn/obs-studio.zip?rlkey=6ziow6s1a85a7s5snrdi7v1x2&st=db3yzo4m&dl=0", Path.GetTempPath(), "obs-studio.zip", new InstallPageReporter()), null),
-            ("Downloading OBS Studio uninstaller", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/k8dboxunne9wk5j955n0u/uninstall.exe?rlkey=4egb9y4mbsg7pboczrrulto98&st=xmldubc2&dl=0", @"C:\Program Files\obs-studio", "uninstall.exe", new InstallPageReporter()), null),
+            ("Downloading OBS Studio", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/gkhuws75qnckr63lnfbzn/obs-studio.zip?rlkey=6ziow6s1a85a7s5snrdi7v1x2&st=db3yzo4m&dl=0", Path.GetTempPath(), "obs-studio.zip", new InstallPageReporter()), null),
+            ("Downloading OBS Studio", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/k8dboxunne9wk5j955n0u/uninstall.exe?rlkey=4egb9y4mbsg7pboczrrulto98&st=xmldubc2&dl=0", @"C:\Program Files\obs-studio", "uninstall.exe", new InstallPageReporter()), null),
 
             // install obs studio
             ("Installing OBS Studio", async () => { await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "OBS-Studio-Windows-x64-Installer.exe"), @"C:\Program Files\obs-studio"); File.Delete(Path.Combine(Path.GetTempPath(), "OBS-Studio-Windows-x64-Installer.exe")); }, null),

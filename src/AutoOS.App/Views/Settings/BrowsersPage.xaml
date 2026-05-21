@@ -34,7 +34,6 @@
             <StackPanel Margin="{ThemeResource ContentPageMargin}"
                         Padding="{ThemeResource ContentPagePadding}"
                         dev:PanelAttach.ChildrenTransitions="Default">
-                
                 <dev:Card Title="Browsers"
                           Margin="0,0,0,8"
                           Padding="24,24,24,12"
@@ -47,13 +46,13 @@
                             <GridView.ItemTemplate>
                                 <DataTemplate x:DataType="views:GridViewItem">
                                     <Grid Height="85"
-                                          Margin="8">
+                                          Margin="4">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
                                         <StackPanel VerticalAlignment="Center">
                                             <Image Height="36"
-                                                   Margin="0,0,0,8">
+                                                   Margin="0,0,0,4">
                                                 <Image.Source>
                                                     <BitmapImage DecodePixelHeight="36"
                                                                  DecodePixelType="Logical"
@@ -72,8 +71,8 @@
                             </GridView.ItemTemplate>
                             <GridView.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <controls:StaggeredPanel ColumnSpacing="12"
-                                                             DesiredColumnWidth="155"
+                                    <controls:StaggeredPanel ColumnSpacing="4"
+                                                             DesiredColumnWidth="145"
                                                              RowSpacing="12" />
                                 </ItemsPanelTemplate>
                             </GridView.ItemsPanel>
@@ -93,13 +92,13 @@
                             <GridView.ItemTemplate>
                                 <DataTemplate x:DataType="views:GridViewItem">
                                     <Grid Height="85"
-                                          Margin="8">
+                                          Margin="4">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
                                         <StackPanel VerticalAlignment="Center">
                                             <Image Height="36"
-                                                   Margin="0,0,0,8">
+                                                   Margin="0,0,0,4">
                                                 <Image.Source>
                                                     <BitmapImage DecodePixelHeight="36"
                                                                  DecodePixelType="Logical"
@@ -118,8 +117,8 @@
                             </GridView.ItemTemplate>
                             <GridView.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <controls:StaggeredPanel ColumnSpacing="12"
-                                                             DesiredColumnWidth="155"
+                                    <controls:StaggeredPanel ColumnSpacing="4"
+                                                             DesiredColumnWidth="145"
                                                              RowSpacing="12" />
                                 </ItemsPanelTemplate>
                             </GridView.ItemsPanel>

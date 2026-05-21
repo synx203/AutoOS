@@ -2276,6 +2276,7 @@ public partial class HeaderCarousel : ItemsControl
             }
 
             ProcessesHelper.ResumeProcess(ServicesHelper.GetServicePid("TextInputManagementService"));
+			Process.Start("ctfmon.exe");
 
             string filePath = @"C:\Program Files\Everything 1.5a\Everything.exe";
 

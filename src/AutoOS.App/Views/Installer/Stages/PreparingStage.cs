@@ -47,29 +47,10 @@ public static class PreparingStage
     public static bool iCloud;
     public static bool Bitwarden;
     public static bool OnePassword;
-    public static bool Word;
-    public static bool Excel;
-    public static bool PowerPoint;
-    public static bool OneNote;
-    public static bool Teams;
-    public static bool Outlook;
-    public static bool OneDrive;
-    public static bool VisualStudio;
-    public static bool VisualStudioCode;
-    public static bool Antigravity;
-    public static bool Git;
-    public static bool Python;
-    public static bool Nodejs;
-    public static bool Trello;
-    public static bool AppleMusic;
-    public static bool Tidal;
-    public static bool Qobuz;
-    public static bool AmazonMusic;
-    public static bool DeezerMusic;
-    public static bool Spotify;
-
+    
     public static bool Discord;
     public static bool WhatsApp;
+
     public static bool EpicGames;
     public static bool EpicGamesAccount;
     public static bool EpicGamesGames;
@@ -83,6 +64,36 @@ public static class PreparingStage
     public static bool RockstarGamesLauncher;
     public static bool FiveM;
     public static bool FACEIT;
+    
+    public static bool AppleMusic;
+    public static bool Tidal;
+    public static bool Qobuz;
+    public static bool AmazonMusic;
+    public static bool DeezerMusic;
+    public static bool Spotify;
+
+    public static bool SteelSeriesGG;
+    public static bool RazerSynapse;
+    public static bool LogitechGHub;
+    public static bool LogitechOnboardMemoryManager;
+    public static bool Wootility;
+    public static bool CorsairICue;
+
+    public static bool VisualStudio;
+    public static bool VisualStudioCode;
+    public static bool Antigravity;
+    public static bool Git;
+    public static bool Python;
+    public static bool Nodejs;
+    public static bool Trello;
+
+    public static bool Word;
+    public static bool Excel;
+    public static bool PowerPoint;
+    public static bool OneNote;
+    public static bool Teams;
+    public static bool Outlook;
+    public static bool OneDrive;
 
     public static List<GpuInfo> GPUs { get; set; } = [];
     public static bool MSI;
@@ -176,29 +187,6 @@ public static class PreparingStage
             Bitwarden = (localSettings.Values["Extensions"]?.ToString().Contains("Bitwarden") ?? false);
             OnePassword = (localSettings.Values["Extensions"]?.ToString().Contains("1Password") ?? false);
 
-            Word = (localSettings.Values["Office"]?.ToString().Contains("Word") ?? false);
-            Excel = (localSettings.Values["Office"]?.ToString().Contains("Excel") ?? false);
-            PowerPoint = (localSettings.Values["Office"]?.ToString().Contains("PowerPoint") ?? false);
-            OneNote = (localSettings.Values["Office"]?.ToString().Contains("OneNote") ?? false);
-            Teams = (localSettings.Values["Office"]?.ToString().Contains("Teams") ?? false);
-            Outlook = (localSettings.Values["Office"]?.ToString().Contains("Outlook") ?? false);
-            OneDrive = (localSettings.Values["Office"]?.ToString().Contains("OneDrive") ?? false);
-
-            VisualStudio = (localSettings.Values["Development"]?.ToString().Contains("Visual Studio") ?? false);
-            VisualStudioCode = (localSettings.Values["Development"]?.ToString().Contains("Visual Studio Code") ?? false);
-            Antigravity = (localSettings.Values["Development"]?.ToString().Contains("Antigravity") ?? false);
-            Git = (localSettings.Values["Development"]?.ToString().Contains("Git") ?? false);
-            Python = (localSettings.Values["Development"]?.ToString().Contains("Python") ?? false);
-            Nodejs = (localSettings.Values["Development"]?.ToString().Contains("Node.js") ?? false);
-            Trello = (localSettings.Values["Development"]?.ToString().Contains("Trello") ?? false);
-
-            AppleMusic = (localSettings.Values["Music"]?.ToString().Contains("Apple Music") ?? false);
-            Tidal = (localSettings.Values["Music"]?.ToString().Contains("TIDAL") ?? false);
-            Qobuz = (localSettings.Values["Music"]?.ToString().Contains("Qobuz") ?? false);
-            AmazonMusic = (localSettings.Values["Music"]?.ToString().Contains("Amazon Music") ?? false);
-            DeezerMusic = (localSettings.Values["Music"]?.ToString().Contains("Deezer Music") ?? false);
-            Spotify = (localSettings.Values["Music"]?.ToString().Contains("Spotify") ?? false);
-
             Discord = (localSettings.Values["Messaging"]?.ToString().Contains("Discord") ?? false);
             WhatsApp = (localSettings.Values["Messaging"]?.ToString().Contains("WhatsApp") ?? false);
 
@@ -212,6 +200,36 @@ public static class PreparingStage
             RockstarGamesLauncher = (localSettings.Values["Launchers"]?.ToString().Contains("Rockstar Games Launcher") ?? false);
             FiveM = (localSettings.Values["Launchers"]?.ToString().Contains("FiveM") ?? false);
             FACEIT = (localSettings.Values["Launchers"]?.ToString().Contains("FACEIT") ?? false);
+
+            AppleMusic = (localSettings.Values["Music"]?.ToString().Contains("Apple Music") ?? false);
+            Tidal = (localSettings.Values["Music"]?.ToString().Contains("TIDAL") ?? false);
+            Qobuz = (localSettings.Values["Music"]?.ToString().Contains("Qobuz") ?? false);
+            AmazonMusic = (localSettings.Values["Music"]?.ToString().Contains("Amazon Music") ?? false);
+            DeezerMusic = (localSettings.Values["Music"]?.ToString().Contains("Deezer Music") ?? false);
+            Spotify = (localSettings.Values["Music"]?.ToString().Contains("Spotify") ?? false);
+
+            SteelSeriesGG = (localSettings.Values["Peripherals"]?.ToString().Contains("SteelSeries GG") ?? false);
+            RazerSynapse = (localSettings.Values["Peripherals"]?.ToString().Contains("Razer Synapse") ?? false);
+            LogitechGHub = (localSettings.Values["Peripherals"]?.ToString().Contains("Logitech G HUB") ?? false);
+            LogitechOnboardMemoryManager = (localSettings.Values["Peripherals"]?.ToString().Contains("Logitech Onboard Memory Manager") ?? false);
+            Wootility = (localSettings.Values["Peripherals"]?.ToString().Contains("Wootility") ?? false);
+            CorsairICue = (localSettings.Values["Peripherals"]?.ToString().Contains("Corsair iCUE") ?? false);
+
+            VisualStudio = (localSettings.Values["Development"]?.ToString().Contains("Visual Studio") ?? false);
+            VisualStudioCode = (localSettings.Values["Development"]?.ToString().Contains("Visual Studio Code") ?? false);
+            Antigravity = (localSettings.Values["Development"]?.ToString().Contains("Antigravity") ?? false);
+            Git = (localSettings.Values["Development"]?.ToString().Contains("Git") ?? false);
+            Python = (localSettings.Values["Development"]?.ToString().Contains("Python") ?? false);
+            Nodejs = (localSettings.Values["Development"]?.ToString().Contains("Node.js") ?? false);
+            Trello = (localSettings.Values["Development"]?.ToString().Contains("Trello") ?? false);
+
+            Word = (localSettings.Values["Office"]?.ToString().Contains("Word") ?? false);
+            Excel = (localSettings.Values["Office"]?.ToString().Contains("Excel") ?? false);
+            PowerPoint = (localSettings.Values["Office"]?.ToString().Contains("PowerPoint") ?? false);
+            OneNote = (localSettings.Values["Office"]?.ToString().Contains("OneNote") ?? false);
+            Teams = (localSettings.Values["Office"]?.ToString().Contains("Teams") ?? false);
+            Outlook = (localSettings.Values["Office"]?.ToString().Contains("Outlook") ?? false);
+            OneDrive = (localSettings.Values["Office"]?.ToString().Contains("OneDrive") ?? false);
 
             var gpuArray = JsonNode.Parse(localSettings.Values["GPUs"]?.ToString() ?? "[]")?.AsArray();
             if (gpuArray != null)

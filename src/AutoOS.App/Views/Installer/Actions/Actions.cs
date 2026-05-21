@@ -131,10 +131,22 @@ public static class ProcessActions
             if (Directory.Exists(path))
             {
                 foreach (string file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
-                    File.Delete(file);
+                {
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch { }
+                }
 
                 foreach (string dir in Directory.EnumerateDirectories(path, "*", SearchOption.TopDirectoryOnly))
-                    Directory.Delete(dir, true);
+                {
+                    try
+                    {
+                        Directory.Delete(dir, true);
+                    }
+                    catch { }
+                }
             }
         }
         catch { }

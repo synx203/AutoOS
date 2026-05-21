@@ -142,8 +142,8 @@ public sealed partial class InstallPage : Page
 
         for (int i = 0; i < filteredActions.Count; i++)
         {
-            if (i == 0 || filteredActions[i].Title != filteredActions[i - 1].Title)
-            {
+			if (i == 0 || filteredActions[i].Title != filteredActions[i - 1].Title || filteredActions[i].Title.Contains("downloading", StringComparison.OrdinalIgnoreCase))
+			{
                 groupedTitleCount++;
             }
         }
@@ -156,8 +156,8 @@ public sealed partial class InstallPage : Page
         int globalIndex = 0;
         foreach (var (title, action, _) in filteredActions)
         {
-            if (previousTitle != string.Empty && previousTitle != title && currentGroup.Count > 0)
-            {
+			if (previousTitle != string.Empty && (previousTitle != title || title.Contains("downloading", StringComparison.OrdinalIgnoreCase)) && currentGroup.Count > 0)
+			{
                 int groupIndex = globalIndex - currentGroup.Count;
                 bool executed = false;
                 foreach (var groupedAction in currentGroup)

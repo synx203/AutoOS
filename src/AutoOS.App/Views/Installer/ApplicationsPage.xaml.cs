@@ -8,6 +8,7 @@ public sealed partial class ApplicationsPage : Page
     private bool isInitializingOfficeState = true;
     private bool isInitializingDevelopmentState = true;
     private bool isInitializingMusicState = true;
+    private bool isInitializingPeripheralsState = true;
     private bool isInitializingMessagingState = true;
     private bool isInitializingLaunchersState = true;
 
@@ -17,11 +18,12 @@ public sealed partial class ApplicationsPage : Page
     {
         InitializeComponent();
         GetItems();
-        GetOffice();
-        GetDevelopment();
-        GetMusic();
         GetMessaging();
         GetLaunchers();
+        GetMusic();
+		GetPeripherals();
+        GetDevelopment();
+        GetOffice();
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -33,38 +35,6 @@ public sealed partial class ApplicationsPage : Page
 
     private void GetItems()
     {
-        Office.ItemsSource = new List<GridViewItem>
-        {
-            new() { Text = "Word", ImageSource = "ms-appx:///Assets/Fluent/Word.png" },
-            new() { Text = "Excel", ImageSource = "ms-appx:///Assets/Fluent/Excel.png" },
-            new() { Text = "PowerPoint", ImageSource = "ms-appx:///Assets/Fluent/Powerpoint.png" },
-            new() { Text = "OneNote", ImageSource = "ms-appx:///Assets/Fluent/OneNote.png" },
-            new() { Text = "Teams", ImageSource = "ms-appx:///Assets/Fluent/Teams.png" },
-            new() { Text = "Outlook", ImageSource = "ms-appx:///Assets/Fluent/Outlook.png" },
-            new() { Text = "OneDrive", ImageSource = "ms-appx:///Assets/Fluent/OneDrive.png" }
-        };
-
-        Development.ItemsSource = new List<GridViewItem>
-        {
-            new() { Text = "Visual Studio", ImageSource = "ms-appx:///Assets/Fluent/VisualStudio.png" },
-            new() { Text = "Visual Studio Code", ImageSource = "ms-appx:///Assets/Fluent/VisualStudioCode.png" },
-            new() { Text = "Antigravity", ImageSource = "ms-appx:///Assets/Fluent/Antigravity.png" },
-            new() { Text = "Git", ImageSource = "ms-appx:///Assets/Fluent/Git.png" },
-            new() { Text = "Python", ImageSource = "ms-appx:///Assets/Fluent/Python.png" },
-            new() { Text = "Node.js", ImageSource = "ms-appx:///Assets/Fluent/Nodejs.png" },
-            new() { Text = "Trello", ImageSource = "ms-appx:///Assets/Fluent/Trello.png" }
-        };
-
-        Music.ItemsSource = new List<GridViewItem>
-        {
-            new() { Text = "Apple Music", ImageSource = "ms-appx:///Assets/Fluent/AppleMusic.png" },
-            new() { Text = "TIDAL", ImageSource = "ms-appx:///Assets/Fluent/Tidal.png" },
-            new() { Text = "Qobuz", ImageSource = "ms-appx:///Assets/Fluent/Qobuz.png" },
-            new() { Text = "Amazon Music", ImageSource = "ms-appx:///Assets/Fluent/AmazonMusic.png" },
-            new() { Text = "Deezer Music", ImageSource = "ms-appx:///Assets/Fluent/DeezerMusic.png" },
-            new() { Text = "Spotify", ImageSource = "ms-appx:///Assets/Fluent/Spotify.png" }
-        };
-
         Messaging.ItemsSource = new List<GridViewItem>
         {
             new() { Text = "Discord", ImageSource = "ms-appx:///Assets/Fluent/Discord.png" },
@@ -84,45 +54,48 @@ public sealed partial class ApplicationsPage : Page
             new() { Text = "FiveM", ImageSource = "ms-appx:///Assets/Fluent/FiveM.jpg" },
             new() { Text = "FACEIT", ImageSource = "ms-appx:///Assets/Fluent/FACEIT.png" }
         };
-    }
 
-    private void GetOffice()
-    {
-        var selectedOffice = localSettings.Values["Office"] as string;
-        var oficeItems = Office.ItemsSource as List<GridViewItem>;
-        Office.SelectedItems.AddRange(
-            selectedOffice?.Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(e => oficeItems?.FirstOrDefault(ext => ext.Text == e))
-            .Where(ext => ext != null) ?? Enumerable.Empty<GridViewItem>()
-        );
+        Music.ItemsSource = new List<GridViewItem>
+        {
+            new() { Text = "Apple Music", ImageSource = "ms-appx:///Assets/Fluent/AppleMusic.png" },
+            new() { Text = "TIDAL", ImageSource = "ms-appx:///Assets/Fluent/Tidal.png" },
+            new() { Text = "Qobuz", ImageSource = "ms-appx:///Assets/Fluent/Qobuz.png" },
+            new() { Text = "Amazon Music", ImageSource = "ms-appx:///Assets/Fluent/AmazonMusic.png" },
+            new() { Text = "Deezer Music", ImageSource = "ms-appx:///Assets/Fluent/DeezerMusic.png" },
+            new() { Text = "Spotify", ImageSource = "ms-appx:///Assets/Fluent/Spotify.png" }
+        };
 
-        isInitializingOfficeState = false;
-    }
+		Peripherals.ItemsSource = new List<GridViewItem>
+        {
+            new() { Text = "Logitech G HUB", ImageSource = "ms-appx:///Assets/Fluent/Logitech.png" },
+            new() { Text = "Logitech Onboard Memory Manager", ImageSource = "ms-appx:///Assets/Fluent/Logitech.png" },
+            new() { Text = "Wootility", ImageSource = "ms-appx:///Assets/Fluent/Wootility.png" },
+            new() { Text = "SteelSeries GG", ImageSource = "ms-appx:///Assets/Fluent/SteelSeriesGG.png" },
+            new() { Text = "Razer Synapse", ImageSource = "ms-appx:///Assets/Fluent/RazerSynapse.png" },
+			new() { Text = "Corsair iCUE", ImageSource = "ms-appx:///Assets/Fluent/CorsairICue.png" }
+        };
 
-    private void GetDevelopment()
-    {
-        var selectedDevelopment = localSettings.Values["Development"] as string;
-        var developmentItems = Development.ItemsSource as List<GridViewItem>;
-        Development.SelectedItems.AddRange(
-            selectedDevelopment?.Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(e => developmentItems?.FirstOrDefault(ext => ext.Text == e))
-            .Where(ext => ext != null) ?? Enumerable.Empty<GridViewItem>()
-        );
+        Development.ItemsSource = new List<GridViewItem>
+        {
+            new() { Text = "Visual Studio", ImageSource = "ms-appx:///Assets/Fluent/VisualStudio.png" },
+            new() { Text = "Visual Studio Code", ImageSource = "ms-appx:///Assets/Fluent/VisualStudioCode.png" },
+            new() { Text = "Antigravity", ImageSource = "ms-appx:///Assets/Fluent/Antigravity.png" },
+            new() { Text = "Git", ImageSource = "ms-appx:///Assets/Fluent/Git.png" },
+            new() { Text = "Python", ImageSource = "ms-appx:///Assets/Fluent/Python.png" },
+            new() { Text = "Node.js", ImageSource = "ms-appx:///Assets/Fluent/Nodejs.png" },
+            new() { Text = "Trello", ImageSource = "ms-appx:///Assets/Fluent/Trello.png" }
+        };
 
-        isInitializingDevelopmentState = false;
-    }
-
-    private void GetMusic()
-    {
-        var selectedMusic = localSettings.Values["Music"] as string;
-        var musicItems = Music.ItemsSource as List<GridViewItem>;
-        Music.SelectedItems.AddRange(
-            selectedMusic?.Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(e => musicItems?.FirstOrDefault(ext => ext.Text == e))
-            .Where(ext => ext != null) ?? Enumerable.Empty<GridViewItem>()
-        );
-
-        isInitializingMusicState = false;
+        Office.ItemsSource = new List<GridViewItem>
+        {
+            new() { Text = "Word", ImageSource = "ms-appx:///Assets/Fluent/Word.png" },
+            new() { Text = "Excel", ImageSource = "ms-appx:///Assets/Fluent/Excel.png" },
+            new() { Text = "PowerPoint", ImageSource = "ms-appx:///Assets/Fluent/Powerpoint.png" },
+            new() { Text = "OneNote", ImageSource = "ms-appx:///Assets/Fluent/OneNote.png" },
+            new() { Text = "Teams", ImageSource = "ms-appx:///Assets/Fluent/Teams.png" },
+            new() { Text = "Outlook", ImageSource = "ms-appx:///Assets/Fluent/Outlook.png" },
+            new() { Text = "OneDrive", ImageSource = "ms-appx:///Assets/Fluent/OneDrive.png" }
+        };
     }
 
     private void GetMessaging()
@@ -151,40 +124,56 @@ public sealed partial class ApplicationsPage : Page
         isInitializingLaunchersState = false;
     }
 
-    private void Office_Changed(object sender, SelectionChangedEventArgs e)
+    private void GetMusic()
     {
-        if (isInitializingOfficeState) return;
+        var selectedMusic = localSettings.Values["Music"] as string;
+        var musicItems = Music.ItemsSource as List<GridViewItem>;
+        Music.SelectedItems.AddRange(
+            selectedMusic?.Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(e => musicItems?.FirstOrDefault(ext => ext.Text == e))
+            .Where(ext => ext != null) ?? Enumerable.Empty<GridViewItem>()
+        );
 
-        var selectedOffice = Office.SelectedItems
-            .Cast<GridViewItem>()
-            .Select(item => item.Text)
-            .ToArray();
-
-        localSettings.Values["Office"] = string.Join(", ", selectedOffice);
+        isInitializingMusicState = false;
     }
 
-    private void Development_Changed(object sender, SelectionChangedEventArgs e)
+    private void GetPeripherals()
     {
-        if (isInitializingDevelopmentState) return;
+        var selectedPeripherals = localSettings.Values["Peripherals"] as string;
+        var peripheralItems = Peripherals.ItemsSource as List<GridViewItem>;
+        Peripherals.SelectedItems.AddRange(
+            selectedPeripherals?.Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(e => peripheralItems?.FirstOrDefault(ext => ext.Text == e))
+            .Where(ext => ext != null) ?? Enumerable.Empty<GridViewItem>()
+        );
 
-        var selectedDevelopment = Development.SelectedItems
-            .Cast<GridViewItem>()
-            .Select(item => item.Text)
-            .ToArray();
-
-        localSettings.Values["Development"] = string.Join(", ", selectedDevelopment);
+        isInitializingPeripheralsState = false;
     }
 
-    private void Music_Changed(object sender, SelectionChangedEventArgs e)
+    private void GetDevelopment()
     {
-        if (isInitializingMusicState) return;
+        var selectedDevelopment = localSettings.Values["Development"] as string;
+        var developmentItems = Development.ItemsSource as List<GridViewItem>;
+        Development.SelectedItems.AddRange(
+            selectedDevelopment?.Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(e => developmentItems?.FirstOrDefault(ext => ext.Text == e))
+            .Where(ext => ext != null) ?? Enumerable.Empty<GridViewItem>()
+        );
 
-        var selectedMusic = Music.SelectedItems
-            .Cast<GridViewItem>()
-            .Select(item => item.Text)
-            .ToArray();
+        isInitializingDevelopmentState = false;
+    }
 
-        localSettings.Values["Music"] = string.Join(", ", selectedMusic);
+    private void GetOffice()
+    {
+        var selectedOffice = localSettings.Values["Office"] as string;
+        var oficeItems = Office.ItemsSource as List<GridViewItem>;
+        Office.SelectedItems.AddRange(
+            selectedOffice?.Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(e => oficeItems?.FirstOrDefault(ext => ext.Text == e))
+            .Where(ext => ext != null) ?? Enumerable.Empty<GridViewItem>()
+        );
+
+        isInitializingOfficeState = false;
     }
 
     private void Messaging_Changed(object sender, SelectionChangedEventArgs e)
@@ -209,6 +198,54 @@ public sealed partial class ApplicationsPage : Page
             .ToArray();
 
         localSettings.Values["Launchers"] = string.Join(", ", selectedLaunchers);
+    }
+
+    private void Music_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (isInitializingMusicState) return;
+
+        var selectedMusic = Music.SelectedItems
+            .Cast<GridViewItem>()
+            .Select(item => item.Text)
+            .ToArray();
+
+        localSettings.Values["Music"] = string.Join(", ", selectedMusic);
+    }
+
+    private void Peripherals_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (isInitializingPeripheralsState) return;
+
+        var selectedPeripherals = Peripherals.SelectedItems
+            .Cast<GridViewItem>()
+            .Select(item => item.Text)
+            .ToArray();
+
+        localSettings.Values["Peripherals"] = string.Join(", ", selectedPeripherals);
+    }
+
+    private void Development_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (isInitializingDevelopmentState) return;
+
+        var selectedDevelopment = Development.SelectedItems
+            .Cast<GridViewItem>()
+            .Select(item => item.Text)
+            .ToArray();
+
+        localSettings.Values["Development"] = string.Join(", ", selectedDevelopment);
+    }
+
+    private void Office_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (isInitializingOfficeState) return;
+
+        var selectedOffice = Office.SelectedItems
+            .Cast<GridViewItem>()
+            .Select(item => item.Text)
+            .ToArray();
+
+        localSettings.Values["Office"] = string.Join(", ", selectedOffice);
     }
 }
 

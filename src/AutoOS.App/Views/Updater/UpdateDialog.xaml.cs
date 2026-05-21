@@ -1,12 +1,5 @@
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using AutoOS.Core.Common;
 using AutoOS.Core.Helpers.Download;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 
 namespace AutoOS.Views.Updater;
@@ -68,7 +61,7 @@ public sealed partial class UpdateDialog : UserControl
 
         for (int i = 0; i < filteredActions.Count; i++)
         {
-            if (i == 0 || filteredActions[i].Title != filteredActions[i - 1].Title)
+            if (i == 0 || filteredActions[i].Title != filteredActions[i - 1].Title || filteredActions[i].Title.Contains("downloading", StringComparison.OrdinalIgnoreCase))
             {
                 groupedTitleCount++;
             }
@@ -80,7 +73,7 @@ public sealed partial class UpdateDialog : UserControl
 
         foreach (var (title, action, condition) in filteredActions)
         {
-            if (previousTitle != string.Empty && previousTitle != title && currentGroup.Count > 0)
+            if (previousTitle != string.Empty && (previousTitle != title || title.Contains("downloading", StringComparison.OrdinalIgnoreCase)) && currentGroup.Count > 0)
             {
                 CurrentGroupStart = ProgressBar.Value;
                 CurrentGroupTarget = CurrentGroupStart + incrementPerTitle;

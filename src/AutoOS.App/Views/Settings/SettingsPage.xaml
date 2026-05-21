@@ -124,20 +124,20 @@
                     <dev:Card Title="Switch Emulator"
                               Padding="24,24,24,12">
                         <dev:Card.Content>
-                            <StackPanel Margin="0,0,0,4">
+                            <StackPanel Margin="0,0,0,12">
                                 <GridView x:Name="SwitchEmulator"
                                           SelectionChanged="SwitchEmulator_Changed"
                                           SelectionMode="Single">
                                     <GridView.ItemTemplate>
                                         <DataTemplate x:DataType="views:SettingsGridViewItem">
-                                            <Grid Height="75"
-                                                  Margin="12">
+                                            <Grid Height="85"
+                                                  Margin="4">
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="*" />
                                                 </Grid.RowDefinitions>
                                                 <StackPanel VerticalAlignment="Center">
                                                     <Image Height="36"
-                                                           Margin="0,0,0,8">
+                                                           Margin="0,0,0,4">
                                                         <Image.Source>
                                                             <BitmapImage DecodePixelHeight="36"
                                                                          DecodePixelType="Logical"
@@ -156,8 +156,8 @@
                                     </GridView.ItemTemplate>
                                     <GridView.ItemsPanel>
                                         <ItemsPanelTemplate>
-                                            <controls:StaggeredPanel ColumnSpacing="12"
-                                                                     DesiredColumnWidth="155"
+                                            <controls:StaggeredPanel ColumnSpacing="4"
+                                                                     DesiredColumnWidth="145"
                                                                      RowSpacing="12" />
                                         </ItemsPanelTemplate>
                                     </GridView.ItemsPanel>
