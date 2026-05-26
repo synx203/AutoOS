@@ -223,6 +223,7 @@ $restartRequired = $false
 
 $services = @(
     @{ Path = "HKLM:\SYSTEM\CurrentControlSet\Services\cdrom"; Name = "Start"; Value = 1 },
+    @{ Path = "HKLM:\SYSTEM\CurrentControlSet\Services\defragsvc "; Name = "Start"; Value = 3 },
     @{ Path = "HKLM:\SYSTEM\CurrentControlSet\Services\spaceport"; Name = "Start"; Value = 0 },
     @{ Path = "HKLM:\SYSTEM\CurrentControlSet\Services\vdrvroot"; Name = "Start"; Value = 0 },
     @{ Path = "HKLM:\SYSTEM\CurrentControlSet\Services\vds"; Name = "Start"; Value = 3 }
