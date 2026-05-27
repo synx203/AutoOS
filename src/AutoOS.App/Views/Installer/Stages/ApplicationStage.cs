@@ -995,6 +995,10 @@ public static class ApplicationStage
             // optimize visual studio
             ("Optimizing Visual Studio", async () => { while (Process.GetProcessesByName("VSNgenRunner").Length == 1) await Task.Delay(500); }, () => VisualStudio == true),
 
+			// disable visual studio startup entry
+            ("Disabling Visual Studio startup entry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\VSStandardCollectorService150", "Start", 4, RegistryValueKind.DWord), () => VisualStudio == true),
+			("Disabling Visual Studio startup entry", async () => ServicesHelper.StopService("VSStandardCollectorService150"), () => VisualStudio == true),
+
             // pin visual studio to the taskbar
             ("Pinning Visual Studio to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Visual Studio.lnk")}"""), () => VisualStudio == true),
 
