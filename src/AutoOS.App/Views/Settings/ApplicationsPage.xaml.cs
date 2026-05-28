@@ -174,8 +174,8 @@ public sealed partial class ApplicationsPage : Page
         selection.HidHide = selectedControllers.Contains("HidHide");
         selection.DualSenseY = selectedControllers.Contains("DualSenseY");
         selection.RaceElement = selectedControllers.Contains("RaceElement");
-        selection.PlaystationAccessories = selectedControllers.Contains("PlaystationAccessories");
-        selection.XboxAccessories = selectedControllers.Contains("XboxAccessories");
+        selection.PlaystationAccessories = selectedControllers.Contains("PlayStation® Accessories");
+        selection.XboxAccessories = selectedControllers.Contains("Xbox Accessories");
 
         var selectedDevItems = Development.SelectedItems.Cast<GridViewItem>().ToList();
         var selectedDev = selectedDevItems.Select(item => item.Text).ToList();

@@ -429,13 +429,13 @@ public static class ApplicationStage
             ("Please log in to your Discord account (Close to continue)", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord", "app-" + discordVersion, "Discord.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => Discord == true && DiscordAccount == false),
             
             // set appearance to system
-            ("Setting appearance to system", async () => DiscordHelper.SetSystemAppearance(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "discord", "Local Storage", "leveldb")), () => Discord == true),
+            ("Setting appearance to system", async () => await DiscordHelper.SetSystemAppearance(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "discord", "Local Storage", "leveldb")), () => Discord == true),
 
             // disable game overlay
-            ("Disabling game overlay", async () => DiscordHelper.DisableGameOverlay(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "discord", "Local Storage", "leveldb")), () => Discord == true),
+            ("Disabling game overlay", async () => await DiscordHelper.DisableGameOverlay(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "discord", "Local Storage", "leveldb")), () => Discord == true),
 
             // disable clips
-            ("Disabling clips", async () => DiscordHelper.DisableClips(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "discord", "Local Storage", "leveldb")), () => Discord == true),
+            ("Disabling clips", async () => await DiscordHelper.DisableClips(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "discord", "Local Storage", "leveldb")), () => Discord == true),
 
             // remove discord desktop shortcut 
             ("Removing Discord desktop shortcut", async () => File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Discord.lnk")), () => Discord == true),
@@ -1014,32 +1014,39 @@ public static class ApplicationStage
             ("Installing HidHide", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "HidHide_x64.exe"), Arguments = "/qn /NORESTART" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => HidHide == true),
             ("Cleaning up HidHide files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "HidHide_x64.exe")), () => HidHide == true),
 
+            // disable hidhide service
+            ("Disabling HidHide service", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\HidHideWatchdog.exe", "Start", 4, RegistryValueKind.DWord), () => HidHide == true),
+            ("Disabling HidHide service", async () => ServicesHelper.StopService("HidHideWatchdog.exe"), () => HidHide == true),
+
+            // disable hidhide startup entry
+            ("Disabling HidHide startup entry", async () => TaskSchedulerHelper.Toggle(@"nefarius_HidHide_Updater", false), () => HidHide == true),
+
             // download dualsensey
-            ("Downloading DualSenseY", async () => await DownloadHelper.Download("https://github.com/WujekFoliarz/DualSenseY-v2/releases/latest/download/x64-release.zip", Path.Combine(Path.GetTempPath(), "DualSenseY.zip")), () => selection == null),
+            ("Downloading DualSenseY", async () => await DownloadHelper.Download("https://github.com/WujekFoliarz/DualSenseY-v2/releases/latest/download/x64-release.zip", Path.GetTempPath(), "x64-release.zip"), () => DualSenseY == true),
 
             // install dualsensey
-            ("Installing DualSenseY", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "DualSenseY.zip"), Path.Combine(Path.GetTempPath(), "DualSenseY")), () => selection == null),
-            ("Installing DualSenseY", async () => Directory.Move(Path.Combine(Path.GetTempPath(), "DualSenseY"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "DualSenseY")), () => selection == null),
-            ("Installing DualSenseY", async () => await ProcessActions.RunPowerShell(@"$Shell = New-Object -ComObject WScript.Shell; $Shortcut = $Shell.CreateShortcut([System.IO.Path]::Combine($env:ProgramData, 'Microsoft\Windows\Start Menu\Programs\DualSenseY.lnk')); $Shortcut.TargetPath = [System.IO.Path]::Combine($env:ProgramFiles, 'DualSenseY\DualSenseY.exe'); $Shortcut.Save()"), () => selection == null),
-            ("Installing DualSenseY", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DualSenseY", "DisplayName", "DualSenseY", RegistryValueKind.String), () => selection == null),
-            ("Installing DualSenseY", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DualSenseY", "UninstallString", $@"cmd /c rd /s /q ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "DualSenseY")}"" & del ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Microsoft\Windows\Start Menu\Programs\DualSenseY.lnk")}"" & reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DualSenseY"" /f", RegistryValueKind.String), () => selection == null),
-            ("Installing DualSenseY", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DualSenseY", "DisplayIcon", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"DualSenseY\DualSenseY.exe"), RegistryValueKind.String), () => selection == null),
-            ("Installing DualSenseY", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DualSenseY", "Publisher", "WujekFoliarz", RegistryValueKind.String), () => selection == null),
-            ("Installing DualSenseY", async () => await Task.Delay(500), () => selection == null),
-            ("Cleaning up DualSenseY files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "DualSenseY.zip")), () => selection == null),
+            ("Installing DualSenseY", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "x64-release.zip"), Path.Combine(Path.GetTempPath(), "DualSenseY")), () => DualSenseY == true),
+            ("Installing DualSenseY", async () => Directory.Move(Path.Combine(Path.GetTempPath(), "DualSenseY"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "DualSenseY")), () => DualSenseY == true),
+            ("Installing DualSenseY", async () => await ProcessActions.RunPowerShell(@"$Shell = New-Object -ComObject WScript.Shell; $Shortcut = $Shell.CreateShortcut([System.IO.Path]::Combine($env:ProgramData, 'Microsoft\Windows\Start Menu\Programs\DualSenseY.lnk')); $Shortcut.TargetPath = [System.IO.Path]::Combine($env:ProgramFiles, 'DualSenseY\DualSenseY.exe'); $Shortcut.Save()"), () => DualSenseY == true),
+            ("Installing DualSenseY", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DualSenseY", "DisplayName", "DualSenseY", RegistryValueKind.String), () => DualSenseY == true),
+            ("Installing DualSenseY", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DualSenseY", "UninstallString", $@"cmd /c rd /s /q ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "DualSenseY")}"" & del ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Microsoft\Windows\Start Menu\Programs\DualSenseY.lnk")}"" & reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DualSenseY"" /f", RegistryValueKind.String), () => DualSenseY == true),
+            ("Installing DualSenseY", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DualSenseY", "DisplayIcon", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"DualSenseY\DualSenseY.exe"), RegistryValueKind.String), () => DualSenseY == true),
+            ("Installing DualSenseY", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DualSenseY", "Publisher", "WujekFoliarz", RegistryValueKind.String), () => DualSenseY == true),
+            ("Installing DualSenseY", async () => await Task.Delay(500), () => DualSenseY == true),
+            ("Cleaning up DualSenseY files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "x64-release.zip")), () => DualSenseY == true),
 
             // download raceelement
-            ("Downloading RaceElement", async () => await DownloadHelper.Download("https://github.com/RiddleTime/Race-Element/releases/latest/download/RaceElement.exe", Path.Combine(Path.GetTempPath(), "RaceElement.exe")), () => selection == null),
+            ("Downloading RaceElement", async () => await DownloadHelper.Download("https://github.com/RiddleTime/Race-Element/releases/latest/download/RaceElement.exe", Path.GetTempPath(), "RaceElement.exe"), () => RaceElement == true),
 
             // install raceelement
-            ("Installing RaceElement", async () => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "RaceElement")), () => selection == null),
-            ("Installing RaceElement", async () => File.Move(Path.Combine(Path.GetTempPath(), "RaceElement.exe"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "RaceElement", "RaceElement.exe")), () => selection == null),
-            ("Installing RaceElement", async () => await ProcessActions.RunPowerShell(@"$Shell = New-Object -ComObject WScript.Shell; $Shortcut = $Shell.CreateShortcut([System.IO.Path]::Combine($env:ProgramData, 'Microsoft\Windows\Start Menu\Programs\RaceElement.lnk')); $Shortcut.TargetPath = [System.IO.Path]::Combine($env:ProgramFiles, 'RaceElement\RaceElement.exe'); $Shortcut.Save()"), () => selection == null),
-            ("Installing RaceElement", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RaceElement", "DisplayName", "RaceElement", RegistryValueKind.String), () => selection == null),
-            ("Installing RaceElement", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RaceElement", "UninstallString", $@"cmd /c rd /s /q ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "RaceElement")}"" & del ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Microsoft\Windows\Start Menu\Programs\RaceElement.lnk")}"" & reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RaceElement"" /f", RegistryValueKind.String), () => selection == null),
-            ("Installing RaceElement", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RaceElement", "DisplayIcon", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "RaceElement", "RaceElement.exe"), RegistryValueKind.String), () => selection == null),
-            ("Installing RaceElement", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RaceElement", "Publisher", "RiddleTime", RegistryValueKind.String), () => selection == null),
-            ("Installing RaceElement", async () => await Task.Delay(500), () => selection == null),
+            ("Installing RaceElement", async () => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "RaceElement")), () => RaceElement == true),
+            ("Installing RaceElement", async () => File.Move(Path.Combine(Path.GetTempPath(), "RaceElement.exe"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "RaceElement", "RaceElement.exe"), true), () => RaceElement == true),
+            ("Installing RaceElement", async () => await ProcessActions.RunPowerShell(@"$Shell = New-Object -ComObject WScript.Shell; $Shortcut = $Shell.CreateShortcut([System.IO.Path]::Combine($env:ProgramData, 'Microsoft\Windows\Start Menu\Programs\RaceElement.lnk')); $Shortcut.TargetPath = [System.IO.Path]::Combine($env:ProgramFiles, 'RaceElement\RaceElement.exe'); $Shortcut.Save()"), () => RaceElement == true),
+            ("Installing RaceElement", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RaceElement", "DisplayName", "RaceElement", RegistryValueKind.String), () => RaceElement == true),
+            ("Installing RaceElement", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RaceElement", "UninstallString", $@"cmd /c rd /s /q ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "RaceElement")}"" & del ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Microsoft\Windows\Start Menu\Programs\RaceElement.lnk")}"" & reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RaceElement"" /f", RegistryValueKind.String), () => RaceElement == true),
+            ("Installing RaceElement", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RaceElement", "DisplayIcon", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "RaceElement", "RaceElement.exe"), RegistryValueKind.String), () => RaceElement == true),
+            ("Installing RaceElement", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\RaceElement", "Publisher", "RiddleTime", RegistryValueKind.String), () => RaceElement == true),
+            ("Installing RaceElement", async () => await Task.Delay(500), () => RaceElement == true),
 
             //download playstation accessories
             ("Downloading PlayStation® Accessories", async () => await DownloadHelper.Download("https://fwupdater.dl.playstation.net/fwupdater/PlayStationAccessoriesInstaller.exe", Path.GetTempPath(), "PlayStationAccessoriesInstaller.exe", reporter: reporter), () => PlaystationAccessories == true),
@@ -1047,6 +1054,9 @@ public static class ApplicationStage
             // install playstation accessories
             ("Installing PlayStation® Accessories", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "PlayStationAccessoriesInstaller.exe"), Arguments = "/S /v/qn" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => PlaystationAccessories == true),
             ("Cleaning up PlayStation® Accessories files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "PlayStationAccessoriesInstaller.exe")), () => PlaystationAccessories == true),
+
+            // set playstation accessories data collection to limited
+            ("Setting PlayStation® Accessories data collection to limited", async () => await File.WriteAllTextAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sony Corporation", "PlayStationAccessories", "AppSettings.json"), new JsonObject { ["IsAgreedFullDataCollection"] = false, ["IsAnsweredDataCollection"] = true, ["IsCheckedDisabledButtonMessage"] = false, ["IsCheckedUpdateInfo2_0_0_0"] = true, ["IsCompletedEdgeWelcomeFlow"] = false }.ToString()), () => PlaystationAccessories == true),
 
             //download xbox accessories
             ("Downloading Xbox Accessories", async () => await StoreHelper.Download("Microsoft.XboxDevices_8wekyb3d8bbwe", reporter: reporter), () => XboxAccessories == true),
