@@ -12,6 +12,7 @@ public sealed partial class ApplicationsPage : Page
     private bool isInitializingControllersState = true;
     private bool isInitializingMessagingState = true;
     private bool isInitializingLaunchersState = true;
+    private bool isInitializingMiscellaneousState = true;
 
     private readonly ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
 
@@ -26,6 +27,7 @@ public sealed partial class ApplicationsPage : Page
         GetControllers();
         GetDevelopment();
         GetOffice();
+        GetMiscellaneous();
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -108,6 +110,13 @@ public sealed partial class ApplicationsPage : Page
             new() { Text = "Teams", ImageSource = "ms-appx:///Assets/Fluent/Teams.png" },
             new() { Text = "Outlook", ImageSource = "ms-appx:///Assets/Fluent/Outlook.png" },
             new() { Text = "OneDrive", ImageSource = "ms-appx:///Assets/Fluent/OneDrive.png" }
+        };
+
+        Miscellaneous.ItemsSource = new List<GridViewItem>
+        {
+            new() { Text = "MiniTool Partition Wizard", ImageSource = "ms-appx:///Assets/Fluent/MiniToolPartitionWizard.png" },
+            new() { Text = "Bulk Crap Uninstaller", ImageSource = "ms-appx:///Assets/Fluent/BulkCrapUninstaller.png" },
+            new() { Text = "WizTree", ImageSource = "ms-appx:///Assets/Fluent/WizTree.png" }
         };
     }
 
@@ -202,6 +211,19 @@ public sealed partial class ApplicationsPage : Page
         isInitializingOfficeState = false;
     }
 
+    private void GetMiscellaneous()
+    {
+        var selectedMiscellaneous = localSettings.Values["Miscellaneous"] as string;
+        var miscellaneousItems = Miscellaneous.ItemsSource as List<GridViewItem>;
+        Miscellaneous.SelectedItems.AddRange(
+            selectedMiscellaneous?.Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(e => miscellaneousItems?.FirstOrDefault(ext => ext.Text == e))
+            .Where(ext => ext != null) ?? Enumerable.Empty<GridViewItem>()
+        );
+
+        isInitializingMiscellaneousState = false;
+    }
+
     private void Messaging_Changed(object sender, SelectionChangedEventArgs e)
     {
         if (isInitializingMessagingState) return;
@@ -284,6 +306,18 @@ public sealed partial class ApplicationsPage : Page
             .ToArray();
 
         localSettings.Values["Office"] = string.Join(", ", selectedOffice);
+    }
+
+    private void Miscellaneous_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (isInitializingMiscellaneousState) return;
+
+        var selectedMiscellaneous = Miscellaneous.SelectedItems
+            .Cast<GridViewItem>()
+            .Select(item => item.Text)
+            .ToArray();
+
+        localSettings.Values["Miscellaneous"] = string.Join(", ", selectedMiscellaneous);
     }
 }
 
