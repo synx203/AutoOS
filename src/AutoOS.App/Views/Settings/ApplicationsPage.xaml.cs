@@ -15,6 +15,7 @@ public sealed partial class ApplicationsPage : Page
 	private readonly ObservableCollection<GridViewItem> controllersItems = [];
 	private readonly ObservableCollection<GridViewItem> developmentItems = [];
     private readonly ObservableCollection<GridViewItem> officeItems = [];
+    private readonly ObservableCollection<GridViewItem> miscellaneousItems = [];
 
 
     public ApplicationsPage()
@@ -29,6 +30,7 @@ public sealed partial class ApplicationsPage : Page
         Controllers.ItemsSource = controllersItems;
 		Development.ItemsSource = developmentItems;
         Office.ItemsSource = officeItems;
+        Miscellaneous.ItemsSource = miscellaneousItems;
     }
 
     public Visibility GetVisibility(int count) => count > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -97,10 +99,11 @@ public sealed partial class ApplicationsPage : Page
 
         var devList = new List<GridViewItem>
         {
-            new() { Text = "Windsurf", ImageSource = "ms-appx:///Assets/Fluent/Windsurf.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Windsurf", "Windsurf.exe"))},
             new() { Text = "Visual Studio", ImageSource = "ms-appx:///Assets/Fluent/VisualStudio.png", IsInstalled = Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Microsoft Visual Studio")) },
             new() { Text = "Visual Studio Code", ImageSource = "ms-appx:///Assets/Fluent/VisualStudioCode.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Microsoft VS Code", "Code.exe")) },
             new() { Text = "Antigravity", ImageSource = "ms-appx:///Assets/Fluent/Antigravity.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Antigravity", "Antigravity.exe")) },
+            new() { Text = "Windsurf", ImageSource = "ms-appx:///Assets/Fluent/Windsurf.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Windsurf", "Windsurf.exe"))},
+            new() { Text = "WinMerge", ImageSource = "ms-appx:///Assets/Fluent/WinMerge.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WinMerge", "WinMergeU.exe"))},
             new() { Text = "Git", ImageSource = "ms-appx:///Assets/Fluent/Git.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Git", "bin", "git.exe")) },
             new() { Text = "Python", ImageSource = "ms-appx:///Assets/Fluent/Python.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "py.exe")) },
             new() { Text = "Node.js", ImageSource = "ms-appx:///Assets/Fluent/Nodejs.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "nodejs", "node.exe")) },
@@ -121,11 +124,20 @@ public sealed partial class ApplicationsPage : Page
         };
         foreach (var item in officeList.Where(item => !item.IsInstalled))
             officeItems.Add(item);
+
+        var miscellaneousList = new List<GridViewItem>
+        {
+            new() { Text = "Minitool Partition Wizard", ImageSource = "ms-appx:///Assets/Fluent/MinitoolPartitionWizard.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "MiniTool Partition Wizard 13", "partitionwizard.exe")) },
+            new() { Text = "Bulk Crap Uninstaller", ImageSource = "ms-appx:///Assets/Fluent/BulkCrapUninstaller.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "BCUninstaller", "BCUninstaller.exe")) },
+            new() { Text = "WizTree", ImageSource = "ms-appx:///Assets/Fluent/WizTree.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WizTree", "WizTree64.exe")) },
+        };
+        foreach (var item in miscellaneousList.Where(item => !item.IsInstalled))
+            miscellaneousItems.Add(item);
     }
 
     private void GridView_SelectionChanged(object sender, SelectionChangedEventArgs e) 
     {
-        InstallButton.IsEnabled = Office.SelectedItems.Count > 0 || Development.SelectedItems.Count > 0 || Music.SelectedItems.Count > 0 || Peripherals.SelectedItems.Count > 0 || Controllers.SelectedItems.Count > 0 || Messaging.SelectedItems.Count > 0 || Launchers.SelectedItems.Count > 0;
+        InstallButton.IsEnabled = Office.SelectedItems.Count > 0 || Development.SelectedItems.Count > 0 || Music.SelectedItems.Count > 0 || Peripherals.SelectedItems.Count > 0 || Controllers.SelectedItems.Count > 0 || Messaging.SelectedItems.Count > 0 || Launchers.SelectedItems.Count > 0 || Miscellaneous.SelectedItems.Count > 0;
     }
 
     private async void InstallButton_Click(object sender, RoutedEventArgs e)
@@ -180,9 +192,10 @@ public sealed partial class ApplicationsPage : Page
         var selectedDevItems = Development.SelectedItems.Cast<GridViewItem>().ToList();
         var selectedDev = selectedDevItems.Select(item => item.Text).ToList();
         selection.VisualStudio = selectedDev.Contains("Visual Studio");
-        selection.Windsurf = selectedDev.Contains("Windsurf");
         selection.VisualStudioCode = selectedDev.Contains("Visual Studio Code");
         selection.Antigravity = selectedDev.Contains("Antigravity");
+        selection.Windsurf = selectedDev.Contains("Windsurf");
+        selection.WinMerge = selectedDev.Contains("WinMerge");
         selection.Git = selectedDev.Contains("Git");
         selection.Python = selectedDev.Contains("Python");
         selection.Nodejs = selectedDev.Contains("Node.js");
@@ -197,6 +210,11 @@ public sealed partial class ApplicationsPage : Page
         selection.Teams = selectedOffice.Contains("Teams");
         selection.Outlook = selectedOffice.Contains("Outlook");
         selection.OneDrive = selectedOffice.Contains("OneDrive");
+
+        var selectedMiscellaneousItems = Miscellaneous.SelectedItems.Cast<GridViewItem>().ToList();
+        var selectedMiscellaneous = selectedMiscellaneousItems.Select(item => item.Text).ToList();
+        selection.MinitoolPartitionWizard = selectedMiscellaneous.Contains("Minitool Partition Wizard");
+        selection.BulkCrapUninstaller = selectedMiscellaneous.Contains("Bulk Crap Uninstaller");
 
         var updateDialog = new UpdateDialog();
         var reporter = new UpdateDialogReporter(updateDialog);
@@ -245,6 +263,9 @@ public sealed partial class ApplicationsPage : Page
 
             foreach (var item in selectedOfficeItems)
                 officeItems.Remove(item);
+
+            foreach (var item in selectedMiscellaneousItems)
+                miscellaneousItems.Remove(item);
 
             GridView_SelectionChanged(null, null);
         }

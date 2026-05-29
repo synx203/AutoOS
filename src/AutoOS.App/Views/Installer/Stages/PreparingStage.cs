@@ -95,6 +95,7 @@ public static partial class PreparingStage
     public static bool VisualStudioCode;
     public static bool Antigravity;
     public static bool Windsurf;
+    public static bool WinMerge;
     public static bool Git;
     public static bool Python;
     public static bool Nodejs;
@@ -107,6 +108,10 @@ public static partial class PreparingStage
     public static bool Teams;
     public static bool Outlook;
     public static bool OneDrive;
+
+    public static bool MinitoolPartitionWizard;
+    public static bool BulkCrapUninstaller;
+    public static bool WizTree;
 
     public static List<GpuInfo> GPUs { get; set; } = [];
     public static bool MSI;
@@ -240,6 +245,7 @@ public static partial class PreparingStage
             VisualStudioCode = (localSettings.Values["Development"]?.ToString().Contains("Visual Studio Code") ?? false);
             Antigravity = (localSettings.Values["Development"]?.ToString().Contains("Antigravity") ?? false);
             Windsurf = (localSettings.Values["Development"]?.ToString().Contains("Windsurf") ?? false);
+            WinMerge = (localSettings.Values["Development"]?.ToString().Contains("WinMerge") ?? false);
             Git = (localSettings.Values["Development"]?.ToString().Contains("Git") ?? false);
             Python = (localSettings.Values["Development"]?.ToString().Contains("Python") ?? false);
             Nodejs = (localSettings.Values["Development"]?.ToString().Contains("Node.js") ?? false);
@@ -252,6 +258,10 @@ public static partial class PreparingStage
             Teams = (localSettings.Values["Office"]?.ToString().Contains("Teams") ?? false);
             Outlook = (localSettings.Values["Office"]?.ToString().Contains("Outlook") ?? false);
             OneDrive = (localSettings.Values["Office"]?.ToString().Contains("OneDrive") ?? false);
+
+            MinitoolPartitionWizard = (localSettings.Values["Miscellaneous"]?.ToString().Contains("Minitool Partition Wizard") ?? false);
+            BulkCrapUninstaller = (localSettings.Values["Miscellaneous"]?.ToString().Contains("Bulk Crap Uninstaller") ?? false);
+            WizTree = (localSettings.Values["Miscellaneous"]?.ToString().Contains("WizTree") ?? false);
 
             var gpuArray = JsonNode.Parse(localSettings.Values["GPUs"]?.ToString() ?? "[]")?.AsArray();
             if (gpuArray != null)

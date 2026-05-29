@@ -60,6 +60,7 @@ public class ApplicationSelection
     public bool VisualStudioCode { get; set; }
     public bool Antigravity { get; set; }
     public bool Windsurf {get; set; }
+    public bool WinMerge {get; set; }
     public bool Git { get; set; }
     public bool Python { get; set; }
     public bool Nodejs { get; set; }
@@ -71,6 +72,10 @@ public class ApplicationSelection
     public bool Teams { get; set; }
     public bool Outlook { get; set; }
     public bool OneDrive { get; set; }
+    public bool MinitoolPartitionWizard { get; set; }
+    public bool BulkCrapUninstaller { get; set; }
+    public bool WizTree { get; set; }
+    
 }
 
 public static class ApplicationStage
@@ -139,6 +144,7 @@ public static class ApplicationStage
         bool VisualStudioCode = selection?.VisualStudioCode ?? PreparingStage.VisualStudioCode;
         bool Antigravity = selection?.Antigravity ?? PreparingStage.Antigravity;
         bool Windsurf = selection?.Windsurf ?? PreparingStage.Windsurf;
+        bool WinMerge = selection?.WinMerge ?? PreparingStage.WinMerge;
         bool Git = selection?.Git ?? PreparingStage.Git;
         bool Python = selection?.Python ?? PreparingStage.Python;
         bool Nodejs = selection?.Nodejs ?? PreparingStage.Nodejs;
@@ -151,6 +157,10 @@ public static class ApplicationStage
         bool Teams = selection?.Teams ?? PreparingStage.Teams;
         bool Outlook = selection?.Outlook ?? PreparingStage.Outlook;
         bool OneDrive = selection?.OneDrive ?? PreparingStage.OneDrive;
+
+        bool MinitoolPartitionWizard = selection?.MinitoolPartitionWizard ?? PreparingStage.MinitoolPartitionWizard;
+        bool BulkCrapUninstaller = selection?.BulkCrapUninstaller ?? PreparingStage.BulkCrapUninstaller;
+        bool WizTree = selection?.WizTree ?? PreparingStage.WizTree;
         
         string icloudVersion = "";
         string bitwardenVersion = "";
@@ -1115,6 +1125,13 @@ public static class ApplicationStage
             // pin windsurf to the taskbar
             ("Pinning Windsurf to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Start Menu\Programs\Windsurf\Windsurf.lnk")}"""), () => Windsurf == true),
 
+            // download winmerge
+            ("Downloading WinMerge", async () => await DownloadHelper.Download(JsonDocument.Parse(await new HttpClient { DefaultRequestHeaders = { { "User-Agent", "AutoOS" } } }.GetStringAsync("https://api.github.com/repos/WinMerge/winmerge/releases/latest")).RootElement.GetProperty("assets").EnumerateArray().First(a => a.GetProperty("name").GetString().Contains("x64-Setup.exe")).GetProperty("browser_download_url").GetString(), Path.GetTempPath(), "WinMerge-x64-Setup.exe", reporter: reporter), () => WinMerge == true),
+
+            // install winmerge
+            ("Installing WinMerge", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "WinMerge-x64-Setup.exe"), Arguments = "/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => WinMerge == true),
+            ("Cleaning up WinMerge files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "WinMerge-x64-Setup.exe")), () => WinMerge == true),
+
             // download git
             ("Downloading Git", async () => await DownloadHelper.Download(JsonDocument.Parse(await new HttpClient { DefaultRequestHeaders = { { "User-Agent", "AutoOS" } } }.GetStringAsync("https://api.github.com/repos/git-for-windows/git/releases")).RootElement.EnumerateArray().First(release => release.GetProperty("assets").EnumerateArray().Any(asset => asset.GetProperty("name").GetString().Contains("64-bit.exe"))).GetProperty("assets").EnumerateArray().First(asset => asset.GetProperty("name").GetString().Contains("64-bit.exe")).GetProperty("browser_download_url").GetString(), Path.GetTempPath(), "Git64-bit.exe", reporter: reporter), () => Git == true),
 
@@ -1207,6 +1224,34 @@ public static class ApplicationStage
 
             // disable office telemetry
             ("Disabling Office telemetry", async () => await ProcessActions.RunPowerShellScript("disableofficetelemetry.ps1", ""), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
+
+            // download minitool partition wizard
+            ("Downloading MiniTool Partition Wizard", async () => await DownloadHelper.Download("https://cdn2.minitool.com/?p=pw&e=pw-free-offline", Path.GetTempPath(), "pw-free-offline.exe", reporter: reporter), () => MinitoolPartitionWizard == true),
+
+            // install minitool partition wizard
+            ("Installing MiniTool Partition Wizard", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "pw-free-offline.exe"), Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => MinitoolPartitionWizard == true),
+            ("Cleaning up MiniTool Partition Wizard files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "pw-free-offline.exe")), () => MinitoolPartitionWizard == true),
+
+            // disable minitool partition wizard notifications
+			("Disabling MiniTool Partition Wizard notifications", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\MiniTool Software Limited\MiniTool Partition Wizard\00cfb691-7786-46e4-a4af-7e2cb0eb10c5", "2", RegistryValueKind.DWord), () => MinitoolPartitionWizard == true),
+
+			// disable minitool partition wizard startup entries
+			("Disabling MiniTool Partition Wizard startup entries", async () => TaskSchedulerHelper.Toggle(@"MiniToolPartitionWizard", false), () => MinitoolPartitionWizard == true),
+			("Disabling MiniTool Partition Wizard startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "MTPW", new byte[] { 0x01 }, RegistryValueKind.Binary), () => MinitoolPartitionWizard == true),
+
+            // download bulk crap uninstaller
+            ("Downloading Bulk Crap Uninstaller", async () => await DownloadHelper.Download(JsonDocument.Parse(await new HttpClient { DefaultRequestHeaders = { { "User-Agent", "AutoOS" } } }.GetStringAsync("https://api.github.com/repos/Klocman/Bulk-Crap-Uninstaller/releases/latest")).RootElement.GetProperty("assets").EnumerateArray().First(a => a.GetProperty("name").GetString().Contains("setup.exe")).GetProperty("browser_download_url").GetString(), Path.GetTempPath(), "BCUninstaller_setup.exe", reporter: reporter), () => BulkCrapUninstaller == true),
+            
+			// install bulk crap uninstaller
+            ("Installing Bulk Crap Uninstaller", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "BCUninstaller_setup.exe"), Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => BulkCrapUninstaller == true),
+            ("Cleaning up Bulk Crap Uninstaller files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "BCUninstaller_setup.exe")), () => BulkCrapUninstaller == true),
+
+            // download wiztree
+            ("Downloading WizTree", async () => await DownloadHelper.Download("https://diskanalyzer.com/files/wiztree_4_31_setup.exe", Path.GetTempPath(), "wiztree_setup.exe", reporter: reporter), () => WizTree == true),
+
+            // install wiztree
+            ("Installing WizTree", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "wiztree_setup.exe"), Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /MERGETASKS=!desktopicon" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => WizTree == true),
+            ("Cleaning up WizTree files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "wiztree_setup.exe")), () => WizTree == true)
         };
 
         if (selection != null)
