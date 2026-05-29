@@ -44,6 +44,7 @@ public class ApplicationSelection
     public bool AmazonMusic { get; set; }
     public bool DeezerMusic { get; set; }
     public bool Spotify { get; set; }
+    public bool MusicBee {get; set; }
     public bool LogitechGHub { get; set; }
     public bool LogitechOnboardMemoryManager { get; set; }
     public bool Wootility { get; set; }
@@ -75,6 +76,7 @@ public class ApplicationSelection
     public bool MinitoolPartitionWizard { get; set; }
     public bool BulkCrapUninstaller { get; set; }
     public bool WizTree { get; set; }
+    public bool BluetoothAudioReceiver { get; set; }
     
 }
 
@@ -125,6 +127,7 @@ public static class ApplicationStage
         bool AmazonMusic = selection?.AmazonMusic ?? PreparingStage.AmazonMusic;
         bool DeezerMusic = selection?.DeezerMusic ?? PreparingStage.DeezerMusic;
         bool Spotify = selection?.Spotify ?? PreparingStage.Spotify;
+        bool MusicBee = selection?.MusicBee ?? PreparingStage.MusicBee;
 
         bool LogitechGHub = selection?.LogitechGHub ?? PreparingStage.LogitechGHub;
         bool LogitechOnboardMemoryManager = selection?.LogitechOnboardMemoryManager ?? PreparingStage.LogitechOnboardMemoryManager;
@@ -161,7 +164,8 @@ public static class ApplicationStage
         bool MinitoolPartitionWizard = selection?.MinitoolPartitionWizard ?? PreparingStage.MinitoolPartitionWizard;
         bool BulkCrapUninstaller = selection?.BulkCrapUninstaller ?? PreparingStage.BulkCrapUninstaller;
         bool WizTree = selection?.WizTree ?? PreparingStage.WizTree;
-        
+        bool BluetoothAudioReceiver = selection?.BluetoothAudioReceiver ?? PreparingStage.BluetoothAudioReceiver;
+
         string icloudVersion = "";
         string bitwardenVersion = "";
         string onePasswordVersion = "";
@@ -889,6 +893,15 @@ public static class ApplicationStage
             // disable spotify startup entry
             ("Disabling Spotify startup entry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "Spotify", new byte[] { 0x01 }, RegistryValueKind.Binary), () => Spotify == true),
 
+            // download musicbee
+            ("Downloading MusicBee", async () => await StoreHelper.Download("50072StevenMayall.MusicBee_kcr266et74avj", reporter: reporter), () => MusicBee == true),
+
+            // install musicbee
+            ("Installing MusicBee", async () => await StoreHelper.Install("50072StevenMayall.MusicBee_kcr266et74avj"), () => MusicBee == true),
+
+            // pin musicbee to the taskbar
+            ("Pinning MusicBee to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path 50072StevenMayall.MusicBee_kcr266et74avj!MusicBeePackage"), () => MusicBee == true),
+
             // download logitech g hub
             ("Downloading Logitech G HUB", async () => await DownloadHelper.Download("https://download01.logi.com/web/ftp/pub/techsupport/gaming/lghub_installer.exe", Path.GetTempPath(), "lghub_installer.exe", reporter: reporter), () => LogitechGHub == true),
 
@@ -1251,7 +1264,13 @@ public static class ApplicationStage
 
             // install wiztree
             ("Installing WizTree", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "wiztree_setup.exe"), Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /MERGETASKS=!desktopicon" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => WizTree == true),
-            ("Cleaning up WizTree files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "wiztree_setup.exe")), () => WizTree == true)
+            ("Cleaning up WizTree files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "wiztree_setup.exe")), () => WizTree == true),
+
+            // download bluetooth audio receiver
+            ("Downloading Bluetooth Audio Receiver", async () => await StoreHelper.Download("55746MarkSmirnov.BluetoothAudioReveicer_xwrbx6997tsfc", reporter: reporter), () => BluetoothAudioReceiver == true),
+
+            // install bluetooth audio receiver
+            ("Installing Bluetooth Audio Receiver", async () => await StoreHelper.Install("55746MarkSmirnov.BluetoothAudioReveicer_xwrbx6997tsfc"), () => BluetoothAudioReceiver == true)
         };
 
         if (selection != null)

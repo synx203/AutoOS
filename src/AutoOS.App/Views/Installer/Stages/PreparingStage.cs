@@ -76,6 +76,7 @@ public static partial class PreparingStage
     public static bool AmazonMusic;
     public static bool DeezerMusic;
     public static bool Spotify;
+    public static bool MusicBee;
 
     public static bool LogitechGHub;
     public static bool LogitechOnboardMemoryManager;
@@ -112,6 +113,7 @@ public static partial class PreparingStage
     public static bool MinitoolPartitionWizard;
     public static bool BulkCrapUninstaller;
     public static bool WizTree;
+    public static bool BluetoothAudioReceiver;
 
     public static List<GpuInfo> GPUs { get; set; } = [];
     public static bool MSI;
@@ -226,6 +228,7 @@ public static partial class PreparingStage
             AmazonMusic = (localSettings.Values["Music"]?.ToString().Contains("Amazon Music") ?? false);
             DeezerMusic = (localSettings.Values["Music"]?.ToString().Contains("Deezer Music") ?? false);
             Spotify = (localSettings.Values["Music"]?.ToString().Contains("Spotify") ?? false);
+            MusicBee = (localSettings.Values["Music"]?.ToString().Contains("MusicBee") ?? false);
 
             SteelSeriesGG = (localSettings.Values["Peripherals"]?.ToString().Contains("SteelSeries GG") ?? false);
             RazerSynapse = (localSettings.Values["Peripherals"]?.ToString().Contains("Razer Synapse") ?? false);
@@ -262,6 +265,7 @@ public static partial class PreparingStage
             MinitoolPartitionWizard = (localSettings.Values["Miscellaneous"]?.ToString().Contains("Minitool Partition Wizard") ?? false);
             BulkCrapUninstaller = (localSettings.Values["Miscellaneous"]?.ToString().Contains("Bulk Crap Uninstaller") ?? false);
             WizTree = (localSettings.Values["Miscellaneous"]?.ToString().Contains("WizTree") ?? false);
+            BluetoothAudioReceiver = (localSettings.Values["Miscellaneous"]?.ToString().Contains("BluetoothAudioReceiver") ?? false);
 
             var gpuArray = JsonNode.Parse(localSettings.Values["GPUs"]?.ToString() ?? "[]")?.AsArray();
             if (gpuArray != null)
