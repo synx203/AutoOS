@@ -760,7 +760,7 @@ public static class BrowsersStage
             ("Cleaning up LibreWolf files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "librewolf-windows-x86_64-setup.exe")), () => LibreWolf == true),
 
             // pin librewolf to the taskbar
-            ("Pinning LibreWolf to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @$"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "LibreWolf.lnk")}"), () => LibreWolf == true),
+            ("Pinning LibreWolf to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @$"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "LibreWolf", "LibreWolf.lnk")}"), () => LibreWolf == true),
 
             // optimize librewolf settings
             ("Optimizing LibreWolf settings", async () => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution")), () => LibreWolf == true),

@@ -19,6 +19,7 @@ Choose your Browsers and Browser Extensions.
 ### Applications
 Choose your Applications.
 ![Applications](https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/AutoOS%20Installer/Applications.png)
+![Applications2](https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/AutoOS%20Installer/Applications2.png)
 
 ### Displays
 Import a pre-configured Custom Resolution Utility (CRU) profile.
@@ -27,6 +28,7 @@ Import a pre-configured Custom Resolution Utility (CRU) profile.
 ### Graphics Cards
 Select which Graphics Card drivers to install and import a pre-configured MSI Afterburner Profile.
 ![Graphics Cards](https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/AutoOS%20Installer/Graphics%20Cards.png)
+![Graphics Cards2](https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/AutoOS%20Installer/Graphics%20Cards2.png)
 
 ### Windows Security
 Choose your Windows Security settings.
@@ -60,10 +62,12 @@ Toggle Dynamic P-States, HDCP and HDMI/DP Audio for your GPUs.<br/>
 Manually adjust or import an MSI Afterburner profile.<br/>
 Toggle OBS Studio Replay Buffer.
 ![Graphics Cards](https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/AutoOS%20Settings/Graphics%20Cards.png)
+![Graphics Cards2](https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/AutoOS%20Settings/Graphics%20Cards2.png)
 
 ### Per-CPU Scheduling
 Manually adjust or automatically optimize Audio, GPU, XHCI and NIC Affinities.
 ![Per-CPU Scheduling](https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/AutoOS%20Settings/Per-CPU%20Scheduling.png)
+![Per-CPU Scheduling2](https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/AutoOS%20Settings/Per-CPU%20Scheduling2.png)
 
 ### Bluetooth & Devices
 Toggle Bluetooth Services and Drivers.<br/>
@@ -77,6 +81,7 @@ Manually adjust or automatically optimize advanced network adapter settings.
 ### Energy & Power
 Adjust, Edit, Delete, Restore, Export, Import Power plans and compare them.
 ![Energy & Power](https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/AutoOS%20Settings/Energy%20&%20Power.png)
+![Energy & Power2](https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/AutoOS%20Settings/Energy%20&%20Power2.png)
 
 ### Services & Drivers
 Toggle Services & Drivers states with configured functionality.
@@ -105,6 +110,7 @@ Post install browsers and browser extensions.
 ### Applications
 Post install applications.
 ![Applications](https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/AutoOS%20Settings/Applications.png)
+![Applications2](https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/AutoOS%20Settings/Applications2.png)
 
 ### Games
 View your Game Library (Supports Epic Games, Riot Games, EA, Ubisoft Connect, Steam, Eden, Citron and Ryujinx).<br/>

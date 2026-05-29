@@ -28,7 +28,7 @@ public sealed partial class BrowsersPage : Page
     {
         var browsers = new List<GridViewItem>
         {
-            new() { Text = "Chrome", ImageSource = "ms-appx:///Assets/Fluent/Chrome.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Google", "Chrome", "Application", "chrome.exe")) || File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Google", "Chrome", "Application", "chrome.exe")) },
+            new() { Text = "Chrome", ImageSource = "ms-appx:///Assets/Fluent/Chrome.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Google", "Chrome", "Application", "chrome.exe")) },
             new() { Text = "Thorium", ImageSource = "ms-appx:///Assets/Fluent/Thorium.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Thorium", "Application", "thorium.exe")) },
             new() { Text = "Helium", ImageSource = "ms-appx:///Assets/Fluent/Helium.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "imput", "Helium", "Application", "chrome.exe")) },
             new() { Text = "Brave", ImageSource = "ms-appx:///Assets/Fluent/Brave.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "BraveSoftware", "Brave-Browser", "Application", "brave.exe")) },
@@ -38,7 +38,7 @@ public sealed partial class BrowsersPage : Page
             new() { Text = "Firefox", ImageSource = "ms-appx:///Assets/Fluent/Firefox.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Mozilla Firefox", "firefox.exe")) },
             new() { Text = "Zen", ImageSource = "ms-appx:///Assets/Fluent/Zen.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Zen Browser", "zen.exe")) },
             new() { Text = "Waterfox", ImageSource = "ms-appx:///Assets/Fluent/Waterfox.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "waterfox.exe")) },
-            new() { Text = "LibreWolf", ImageSource = "ms-appx:///Assets/Fluent/Librewolf.png", IsInstalled = Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "31856maltejur.LibreWolf_ssmwz6s360tct")) }
+            new() { Text = "LibreWolf", ImageSource = "ms-appx:///Assets/Fluent/Librewolf.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "librewolf.exe")) }
         };
         foreach (var item in browsers.Where(item => !item.IsInstalled))
             browserItems.Add(item);
