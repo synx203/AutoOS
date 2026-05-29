@@ -25,6 +25,8 @@ public class BrowserSelection
     public bool Comet { get; set; }
     public bool Firefox { get; set; }
     public bool Zen { get; set; }
+    public bool Waterfox { get; set; }
+    public bool LibreWolf { get; set; }
     public bool uBlock { get; set; }
     public bool PrivacyBadger { get; set; }
     public bool Decentraleyes { get; set; }
@@ -58,6 +60,8 @@ public static class BrowsersStage
         bool? Comet = selection?.Comet ?? PreparingStage.Comet;
         bool? Firefox = selection?.Firefox ?? PreparingStage.Firefox;
         bool? Zen = selection?.Zen ?? PreparingStage.Zen;
+        bool? Waterfox = selection?.Waterfox ?? PreparingStage.Waterfox;
+        bool? LibreWolf = selection?.LibreWolf ?? PreparingStage.LibreWolf;
         bool? uBlock = selection?.uBlock ?? PreparingStage.uBlock;
         bool? PrivacyBadger = selection?.PrivacyBadger ?? PreparingStage.PrivacyBadger;
         bool? Decentraleyes = selection?.Decentraleyes ?? PreparingStage.Decentraleyes;
@@ -591,7 +595,7 @@ public static class BrowsersStage
             ("Pinning Firefox to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @$"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Firefox.lnk")}"""), () => Firefox == true),
 
             // disable firefox startup entry
-            ("Disabling Firefox startup entry", async () => TaskSchedulerHelper.Toggle(@"\Mozilla\Firefox Default Browser Agent 308046B0AF4A39CB", false), () => Firefox == true),
+            ("Disabling Firefox startup entry", async () => TaskSchedulerHelper.Toggle(@"\Mozilla\Firefox Default Browser Agent", false), () => Firefox == true),
             ("Disabling Firefox startup entry", async () => TaskSchedulerHelper.Toggle(@"\Mozilla\Firefox Background Update", false), () => Firefox == true),
 
             // optimize firefox settings
@@ -599,9 +603,6 @@ public static class BrowsersStage
             ("Optimizing Firefox settings", async () => File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Mozilla Firefox", "defaults", "pref", "autoconfig.js"), "pref(\"general.config.filename\", \"firefox.cfg\");\npref(\"general.config.obscure_value\", 0);"), () => Firefox == true),
             ("Optimizing Firefox settings", async () => File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Mozilla Firefox", "firefox.cfg"), "defaultPref(\"app.shield.optoutstudies.enabled\", false);\ndefaultPref(\"browser.search.serpEventTelemetryCategorization.enabled\", false);\ndefaultPref(\"dom.security.unexpected_system_load_telemetry_enabled\", false);\ndefaultPref(\"identity.fxaccounts.telemetry.clientAssociationPing.enabled\", false);\ndefaultPref(\"network.trr.confirmation_telemetry_enabled\", false);\ndefaultPref(\"nimbus.telemetry.targetingContextEnabled\", false);\ndefaultPref(\"reader.parse-on-load.enabled\", false);\ndefaultPref(\"telemetry.fog.init_on_shutdown\", false);\ndefaultPref(\"default-browser-agent.enabled\", false);\ndefaultPref(\"widget.windows.mica\", true);\ndefaultPref(\"widget.windows.mica.popups\", 1);\ndefaultPref(\"widget.windows.mica.toplevel-backdrop\", 0);"), () => Firefox == true),
             ("Optimizing Firefox settings", async () => File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Mozilla Firefox", "distribution", "policies.json"), "{\r\n  \"policies\": {}\r\n}"), () => Firefox == true),
-
-            // download arkenfox user.js
-            ("Downloading Arkenfox user.js", async () => await DownloadHelper.Download("https://raw.githubusercontent.com/arkenfox/user.js/refs/heads/master/user.js", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Mozilla Firefox"), "user.js", reporter ?? new InstallPageReporter()), () => Firefox == true),
 
             // install ublock origin extension
             ("Installing uBlock Origin Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Mozilla Firefox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin"), () => Firefox == true && uBlock == true),
@@ -650,7 +651,7 @@ public static class BrowsersStage
             ("Pinning Zen to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $"-Type Link -Path \"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Zen.lnk")}\""), () => Zen == true),
 
             // disable zen startup entry
-            ("Disabling Zen startup entry", async () => TaskSchedulerHelper.Toggle(@"\Mozilla\Zen Default Browser Agent F0DC299D809B9700", false), () => Zen == true),
+            ("Disabling Zen startup entry", async () => TaskSchedulerHelper.Toggle(@"\Mozilla\Zen Default Browser Agent", false), () => Zen == true),
             ("Disabling Zen startup entry", async () => TaskSchedulerHelper.Toggle(@"\Mozilla\Zen Background Update", false), () => Zen == true),
 
             // optimize zen settings
@@ -658,9 +659,6 @@ public static class BrowsersStage
             ("Optimizing Zen settings", async () => File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Zen Browser", "defaults", "pref", "autoconfig.js"), "pref(\"general.config.filename\", \"zen.cfg\");\npref(\"general.config.obscure_value\", 0);"), () => Zen == true),
             ("Optimizing Zen settings", async () => File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Zen Browser", "zen.cfg"), "defaultPref(\"app.shield.optoutstudies.enabled\", false);\ndefaultPref(\"browser.search.serpEventTelemetryCategorization.enabled\", false);\ndefaultPref(\"dom.security.unexpected_system_load_telemetry_enabled\", false);\ndefaultPref(\"identity.fxaccounts.telemetry.clientAssociationPing.enabled\", false);\ndefaultPref(\"network.trr.confirmation_telemetry_enabled\", false);\ndefaultPref(\"nimbus.telemetry.targetingContextEnabled\", false);\ndefaultPref(\"reader.parse-on-load.enabled\", false);\ndefaultPref(\"telemetry.fog.init_on_shutdown\", false);\ndefaultPref(\"default-browser-agent.enabled\", false);\ndefaultPref(\"zen.view.use-single-toolbar\", false);\ndefaultPref(\"zen.theme.accent-color\", \"#2c34fb\");\ndefaultPref(\"zen.urlbar.behavior\", \"float\");\ndefaultPref(\"zen.view.grey-out-inactive-windows\", false);\ndefaultPref(\"widget.windows.mica.popups\", 1);\ndefaultPref(\"widget.windows.mica.toplevel-backdrop\", 0);"), () => Zen == true),
             ("Optimizing Zen settings", async () => File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Zen Browser", "distribution", "policies.json"), "{\r\n  \"policies\": {}\r\n}"), () => Zen == true),
-
-            // download arkenfox user.js
-            ("Downloading Arkenfox user.js", async () => await DownloadHelper.Download("https://raw.githubusercontent.com/arkenfox/user.js/refs/heads/master/user.js", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Zen Browser"), "user.js", reporter ?? new InstallPageReporter()), () => Zen == true),
 
             // install ublock origin extension
             ("Installing uBlock Origin Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Zen Browser", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin"), () => Zen == true && uBlock == true),
@@ -697,6 +695,114 @@ public static class BrowsersStage
 
             // install 1password extension
             ("Installing 1Password Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Zen Browser", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/1password-x-password-manager"), () => Zen == true && OnePassword == true),
+
+            // download waterfox
+            ("Downloading Waterfox", async () => await DownloadHelper.Download("https://cdn.waterfox.com/waterfox/releases/6.6.13/WINNT_x86_64/Waterfox%20Setup%206.6.13.exe", Path.GetTempPath(), "WaterfoxSetup.exe", reporter ?? new InstallPageReporter()), () => Waterfox == true),
+
+            // install waterfox
+            ("Installing Waterfox", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "WaterfoxSetup.exe"), Arguments = "/S /MaintenanceService=false /DesktopShortcut=false /StartMenuShortcut=true", WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => Waterfox == true),
+            ("Cleaning up Waterfox files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "WaterfoxSetup.exe")), () => Waterfox == true),
+
+            // pin waterfox to the taskbar
+            ("Pinning Waterfox to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @$"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Waterfox.lnk")}"), () => Waterfox == true),
+
+			// disable waterfox startup entry
+            ("Disabling Waterfox startup entry", async () => TaskSchedulerHelper.Toggle(@"\BrowserWorks\Waterfox Default Browser Agent", false), () => Waterfox == true),
+			//("Disabling Waterfox startup entry", async () => TaskSchedulerHelper.Toggle(@"\BrowserWorks\Waterfox Background Update", false), () => Waterfox == true),
+
+            // optimize waterfox settings
+            ("Optimizing Waterfox settings", async () => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution")), () => Waterfox == true),
+            ("Optimizing Waterfox settings", async () => File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "defaults", "pref", "autoconfig.js"), "pref(\"general.config.filename\", \"waterfox.cfg\");\npref(\"general.config.obscure_value\", 0);"), () => Waterfox == true),
+            ("Optimizing Waterfox settings", async () => File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "waterfox.cfg"), "defaultPref(\"app.shield.optoutstudies.enabled\", false);\ndefaultPref(\"browser.search.serpEventTelemetryCategorization.enabled\", false);\ndefaultPref(\"dom.security.unexpected_system_load_telemetry_enabled\", false);\ndefaultPref(\"identity.fxaccounts.telemetry.clientAssociationPing.enabled\", false);\ndefaultPref(\"network.trr.confirmation_telemetry_enabled\", false);\ndefaultPref(\"nimbus.telemetry.targetingContextEnabled\", false);\ndefaultPref(\"reader.parse-on-load.enabled\", false);\ndefaultPref(\"telemetry.fog.init_on_shutdown\", false);\ndefaultPref(\"default-browser-agent.enabled\", false);\ndefaultPref(\"widget.windows.mica\", true);\ndefaultPref(\"widget.windows.mica.popups\", 1);\ndefaultPref(\"widget.windows.mica.toplevel-backdrop\", 0);"), () => Waterfox == true),
+            ("Optimizing Waterfox settings", async () => File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "{\r\n  \"policies\": {}\r\n}"), () => Waterfox == true),
+
+            // install ublock origin extension
+            ("Installing uBlock Origin Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin"), () => Waterfox == true && uBlock == true),
+
+            // install privacy badger extension
+            ("Installing Privacy Badger Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/privacy-badger17"), () => Waterfox == true && PrivacyBadger == true),
+
+            // install decentraleyes extension
+            ("Installing Decentraleyes Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/decentraleyes"), () => Waterfox == true && Decentraleyes == true),
+
+            // install i still don't care about cookies extension
+            ("Installing I still don't care about cookies Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/istilldontcareaboutcookies"), () => Waterfox == true && Cookies == true),
+
+            // install violentmonkey extension
+            ("Installing Violentmonkey Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/violentmonkey"), () => Waterfox == true && Violentmonkey == true),
+
+            // install tampermonkey extension
+            ("Installing Tampermonkey Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/tampermonkey"), () => Waterfox == true && Tampermonkey == true),
+
+            // install sponsorblock extension
+            ("Installing SponsorBlock Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/sponsorblock"), () => Waterfox == true && SponsorBlock == true),
+
+            // install return youtube dislike extension
+            ("Installing Return YouTube Dislike Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/return-youtube-dislikes"), () => Waterfox == true && ReturnYouTubeDislike == true),
+
+            // install dark reader extension
+            ("Installing Dark Reader Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/darkreader"), () => Waterfox == true && DarkReader == true),
+
+            // install icloud passwords extension
+            ("Installing iCloud Passwords Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/icloud-passwords"), () => Waterfox == true && iCloud == true),
+
+            // install bitwarden extension
+            ("Installing Bitwarden Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/bitwarden-password-manager"), () => Waterfox == true && Bitwarden == true),
+
+            // install 1password extension
+            ("Installing 1Password Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/1password-x-password-manager"), () => Waterfox == true && OnePassword == true),
+
+            // download librewolf
+            ("Downloading LibreWolf", async () => await DownloadHelper.Download("https://dl.librewolf.net/librewolf/151.0.2-1/librewolf-151.0.2-1-windows-x86_64-setup.exe", Path.GetTempPath(), "librewolf-windows-x86_64-setup.exe", reporter ?? new InstallPageReporter()), () => LibreWolf == true),
+
+            // install librewolf
+            ("Installing LibreWolf", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "librewolf-windows-x86_64-setup.exe"), Arguments = "/S /MaintenanceService=false /DesktopShortcut=false /StartMenuShortcut=true", WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => LibreWolf == true),
+            ("Cleaning up LibreWolf files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "librewolf-windows-x86_64-setup.exe")), () => LibreWolf == true),
+
+            // pin librewolf to the taskbar
+            ("Pinning LibreWolf to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @$"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "LibreWolf.lnk")}"), () => LibreWolf == true),
+
+            // optimize librewolf settings
+            ("Optimizing LibreWolf settings", async () => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution")), () => LibreWolf == true),
+            ("Optimizing LibreWolf settings", async () => File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "defaults", "pref", "autoconfig.js"), "pref(\"general.config.filename\", \"librewolf.cfg\");\npref(\"general.config.obscure_value\", 0);"), () => LibreWolf == true),
+            ("Optimizing LibreWolf settings", async () => File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "librewolf.cfg"), "defaultPref(\"app.shield.optoutstudies.enabled\", false);\ndefaultPref(\"browser.search.serpEventTelemetryCategorization.enabled\", false);\ndefaultPref(\"dom.security.unexpected_system_load_telemetry_enabled\", false);\ndefaultPref(\"identity.fxaccounts.telemetry.clientAssociationPing.enabled\", false);\ndefaultPref(\"network.trr.confirmation_telemetry_enabled\", false);\ndefaultPref(\"nimbus.telemetry.targetingContextEnabled\", false);\ndefaultPref(\"reader.parse-on-load.enabled\", false);\ndefaultPref(\"telemetry.fog.init_on_shutdown\", false);\ndefaultPref(\"default-browser-agent.enabled\", false);\ndefaultPref(\"widget.windows.mica\", true);\ndefaultPref(\"widget.windows.mica.popups\", 1);\ndefaultPref(\"widget.windows.mica.toplevel-backdrop\", 0);"), () => LibreWolf == true),
+            ("Optimizing LibreWolf settings", async () => File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "{\r\n  \"policies\": {}\r\n}"), () => LibreWolf == true),
+
+            // install ublock origin extension
+            ("Installing uBlock Origin Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin"), () => LibreWolf == true && uBlock == true),
+
+            // install privacy badger extension
+            ("Installing Privacy Badger Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/privacy-badger17"), () => LibreWolf == true && PrivacyBadger == true),
+
+            // install decentraleyes extension
+            ("Installing Decentraleyes Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/decentraleyes"), () => LibreWolf == true && Decentraleyes == true),
+
+            // install i still don't care about cookies extension
+            ("Installing I still don't care about cookies Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/istilldontcareaboutcookies"), () => LibreWolf == true && Cookies == true),
+
+            // install violentmonkey extension
+            ("Installing Violentmonkey Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/violentmonkey"), () => LibreWolf == true && Violentmonkey == true),
+
+            // install tampermonkey extension
+            ("Installing Tampermonkey Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/tampermonkey"), () => LibreWolf == true && Tampermonkey == true),
+
+            // install sponsorblock extension
+            ("Installing SponsorBlock Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/sponsorblock"), () => LibreWolf == true && SponsorBlock == true),
+
+            // install return youtube dislike extension
+            ("Installing Return YouTube Dislike Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/return-youtube-dislikes"), () => LibreWolf == true && ReturnYouTubeDislike == true),
+
+            // install dark reader extension
+            ("Installing Dark Reader Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/darkreader"), () => LibreWolf == true && DarkReader == true),
+
+            // install icloud passwords extension
+            ("Installing iCloud Passwords Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/icloud-passwords"), () => LibreWolf == true && iCloud == true),
+
+            // install bitwarden extension
+            ("Installing Bitwarden Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/bitwarden-password-manager"), () => LibreWolf == true && Bitwarden == true),
+
+            // install 1password extension
+            ("Installing 1Password Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/1password-x-password-manager"), () => LibreWolf == true && OnePassword == true),
         };
 
         if (selection != null)

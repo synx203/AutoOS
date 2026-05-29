@@ -36,7 +36,9 @@ public sealed partial class BrowsersPage : Page
             new() { Text = "Arc", ImageSource = "ms-appx:///Assets/Fluent/Arc.png", IsInstalled = Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "TheBrowserCompany.Arc_ttt1ap7aakyb4")) },
             new() { Text = "Comet", ImageSource = "ms-appx:///Assets/Fluent/Comet.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Perplexity", "Comet", "Application", "comet.exe")) },
             new() { Text = "Firefox", ImageSource = "ms-appx:///Assets/Fluent/Firefox.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Mozilla Firefox", "firefox.exe")) },
-            new() { Text = "Zen", ImageSource = "ms-appx:///Assets/Fluent/Zen.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Zen Browser", "zen.exe")) }
+            new() { Text = "Zen", ImageSource = "ms-appx:///Assets/Fluent/Zen.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Zen Browser", "zen.exe")) },
+            new() { Text = "Waterfox", ImageSource = "ms-appx:///Assets/Fluent/Waterfox.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "waterfox.exe")) },
+            new() { Text = "LibreWolf", ImageSource = "ms-appx:///Assets/Fluent/Librewolf.png", IsInstalled = Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "31856maltejur.LibreWolf_ssmwz6s360tct")) }
         };
         foreach (var item in browsers.Where(item => !item.IsInstalled))
             browserItems.Add(item);
@@ -87,6 +89,8 @@ public sealed partial class BrowsersPage : Page
             Comet = selectedBrowsers.Contains("Comet"),
             Firefox = selectedBrowsers.Contains("Firefox"),
             Zen = selectedBrowsers.Contains("Zen"),
+            Waterfox = selectedBrowsers.Contains("Waterfox"),
+            LibreWolf = selectedBrowsers.Contains("LibreWolf"),
 
             uBlock = selectedExtensions.Contains("uBlock Origin"),
             SponsorBlock = selectedExtensions.Contains("SponsorBlock"),

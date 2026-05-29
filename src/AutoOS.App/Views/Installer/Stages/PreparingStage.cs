@@ -36,6 +36,8 @@ public static partial class PreparingStage
     public static bool Comet;
     public static bool Firefox;
     public static bool Zen;
+    public static bool Waterfox;
+    public static bool LibreWolf;
     public static bool uBlock;
     public static bool PrivacyBadger;
     public static bool Decentraleyes;
@@ -197,6 +199,8 @@ public static partial class PreparingStage
             Comet = (localSettings.Values["Browsers"]?.ToString().Contains("Comet") ?? false);
             Firefox = (localSettings.Values["Browsers"]?.ToString().Contains("Firefox") ?? false);
             Zen = (localSettings.Values["Browsers"]?.ToString().Contains("Zen") ?? false);
+            Waterfox = (localSettings.Values["Browsers"]?.ToString().Contains("Waterfox") ?? false);
+            LibreWolf = (localSettings.Values["Browsers"]?.ToString().Contains("LibreWolf") ?? false);
 
             uBlock = (localSettings.Values["Extensions"]?.ToString().Contains("uBlock Origin") ?? false);
             PrivacyBadger = (localSettings.Values["Extensions"]?.ToString().Contains("Privacy Badger") ?? false);

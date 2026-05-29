@@ -335,7 +335,15 @@ if ($ExistingPartitions.Count -gt 0) {
 else {
     foreach ($Partition in $Partitions) {
         if (-not $Partition.DriveLetter) { continue }
-        $Supported = Get-PartitionSupportedSize -DriveLetter $Partition.DriveLetter
+        try {
+            $Supported = Get-PartitionSupportedSize -DriveLetter $Partition.DriveLetter
+        } catch {
+            Write-Host "Failed to query supported partition sizes.`nDownload Minitool Partition Wizard from here (https://cdn2.minitool.com/?p=pw&e=pw-free-offline) and use the 'Split' function with at least 64GB then rerun this script."
+            if ($Host.Name -eq 'ConsoleHost') {
+                [void][System.Console]::ReadLine()
+            }
+            return
+        }
         $MaxShrinkMB = [math]::Floor(($Partition.Size - $Supported.SizeMin) / 1MB)
         Write-Host "Partition $($Partition.DriveLetter): $MaxShrinkMB MB shrinkable"
         $Partition | Add-Member -NotePropertyName MaxShrinkMB -NotePropertyValue $MaxShrinkMB
@@ -360,7 +368,7 @@ else {
         $TargetDrive  = "$($NewPartition.DriveLetter):"
     }
     else {
-        Write-Host "No partition with at least 64GB of free space or shrinkable space found. Use the 'Split' function in Minitool Partition Wizard Free and rerun this script."
+        Write-Host "No partition with at least 64GB of free space or shrinkable space found.`nDownload Minitool Partition Wizard from here (https://cdn2.minitool.com/?p=pw&e=pw-free-offline) and use the 'Split' function with at least 64GB then rerun this script."
         Write-Host "Press Enter to exit..."
         if ($Host.Name -eq 'ConsoleHost') {
             [void][System.Console]::ReadLine()

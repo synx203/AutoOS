@@ -36,7 +36,9 @@ public sealed partial class BrowsersPage : Page
             new() { Text = "Arc", ImageSource = "ms-appx:///Assets/Fluent/Arc.png" },
             new() { Text = "Comet", ImageSource = "ms-appx:///Assets/Fluent/Comet.png" },
             new() { Text = "Firefox", ImageSource = "ms-appx:///Assets/Fluent/Firefox.png" },
-            new() { Text = "Zen", ImageSource = "ms-appx:///Assets/Fluent/Zen.png" }
+            new() { Text = "Zen", ImageSource = "ms-appx:///Assets/Fluent/Zen.png" },
+            new() { Text = "Waterfox", ImageSource = "ms-appx:///Assets/Fluent/Waterfox.png" },
+            new() { Text = "LibreWolf", ImageSource = "ms-appx:///Assets/Fluent/Librewolf.png" }
         };
 
         Extensions.ItemsSource = new List<GridViewItem>

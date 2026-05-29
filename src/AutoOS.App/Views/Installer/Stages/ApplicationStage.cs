@@ -1289,14 +1289,14 @@ public static class ApplicationStage
             // install minitool partition wizard
             ("Installing MiniTool Partition Wizard", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "pw-free-offline.exe"), Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => MinitoolPartitionWizard == true),
             ("Installing MiniTool Partition Wizard", async () => { foreach (Process process in new[] { "partitionwizard", "OpenWith", "msedge" }.SelectMany(Process.GetProcessesByName)) { process.Kill(); process.WaitForExit(); }}, () => MinitoolPartitionWizard == true),
-			      ("Cleaning up MiniTool Partition Wizard files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "pw-free-offline.exe")), () => MinitoolPartitionWizard == true),
+            ("Cleaning up MiniTool Partition Wizard files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "pw-free-offline.exe")), () => MinitoolPartitionWizard == true),
 
             // disable minitool partition wizard notifications
-			      ("Disabling MiniTool Partition Wizard notifications", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\MiniTool Software Limited\MiniTool Partition Wizard", "00cfb691-7786-46e4-a4af-7e2cb0eb10c5", "2", RegistryValueKind.DWord), () => MinitoolPartitionWizard == true),
+            ("Disabling MiniTool Partition Wizard notifications", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\MiniTool Software Limited\MiniTool Partition Wizard", "00cfb691-7786-46e4-a4af-7e2cb0eb10c5", "2", RegistryValueKind.DWord), () => MinitoolPartitionWizard == true),
 
-			      // disable minitool partition wizard startup entries
-			      ("Disabling MiniTool Partition Wizard startup entries", async () => TaskSchedulerHelper.Toggle(@"MiniToolPartitionWizard", false), () => MinitoolPartitionWizard == true),
-			      ("Disabling MiniTool Partition Wizard startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "MTPW", new byte[] { 0x01 }, RegistryValueKind.Binary), () => MinitoolPartitionWizard == true),
+            // disable minitool partition wizard startup entries
+            ("Disabling MiniTool Partition Wizard startup entries", async () => TaskSchedulerHelper.Toggle(@"MiniToolPartitionWizard", false), () => MinitoolPartitionWizard == true),
+            ("Disabling MiniTool Partition Wizard startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "MTPW", new byte[] { 0x01 }, RegistryValueKind.Binary), () => MinitoolPartitionWizard == true),
 
             // download aomei partition assistant
             ("Downloading AOMEI Partition Assistant", async () => await DownloadHelper.Download("https://www2.aomeisoftware.com/download/pa/PAssist_ProDemo.exe", Path.GetTempPath(), "PAssist_ProDemo.exe", reporter: reporter), () => AomeiPartitionAssistant == true),
@@ -1319,7 +1319,7 @@ public static class ApplicationStage
             // download bulk crap uninstaller
             ("Downloading Bulk Crap Uninstaller", async () => await DownloadHelper.Download(JsonDocument.Parse(await new HttpClient { DefaultRequestHeaders = { { "User-Agent", "AutoOS" } } }.GetStringAsync("https://api.github.com/repos/Klocman/Bulk-Crap-Uninstaller/releases/latest")).RootElement.GetProperty("assets").EnumerateArray().First(a => a.GetProperty("name").GetString().Contains("setup.exe")).GetProperty("browser_download_url").GetString(), Path.GetTempPath(), "BCUninstaller_setup.exe", reporter: reporter), () => BulkCrapUninstaller == true),
             
-			      // install bulk crap uninstaller
+            // install bulk crap uninstaller
             ("Installing Bulk Crap Uninstaller", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "BCUninstaller_setup.exe"), Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => BulkCrapUninstaller == true),
             ("Cleaning up Bulk Crap Uninstaller files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "BCUninstaller_setup.exe")), () => BulkCrapUninstaller == true),
           
