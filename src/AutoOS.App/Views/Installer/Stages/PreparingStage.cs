@@ -111,8 +111,9 @@ public static partial class PreparingStage
     public static bool OneDrive;
 
     public static bool MinitoolPartitionWizard;
-    public static bool BulkCrapUninstaller;
-    public static bool WizTree;
+    public static bool AomeiPartitionAssistant;
+	public static bool WizTree;
+	public static bool BulkCrapUninstaller;
 
     public static List<GpuInfo> GPUs { get; set; } = [];
     public static bool MSI;
@@ -262,8 +263,9 @@ public static partial class PreparingStage
             OneDrive = (localSettings.Values["Office"]?.ToString().Contains("OneDrive") ?? false);
 
             MinitoolPartitionWizard = (localSettings.Values["Miscellaneous"]?.ToString().Contains("Minitool Partition Wizard") ?? false);
-            BulkCrapUninstaller = (localSettings.Values["Miscellaneous"]?.ToString().Contains("Bulk Crap Uninstaller") ?? false);
-            WizTree = (localSettings.Values["Miscellaneous"]?.ToString().Contains("WizTree") ?? false);
+            AomeiPartitionAssistant = (localSettings.Values["Miscellaneous"]?.ToString().Contains("AOMEI Partition Assistant") ?? false);
+			WizTree = (localSettings.Values["Miscellaneous"]?.ToString().Contains("WizTree") ?? false);
+			BulkCrapUninstaller = (localSettings.Values["Miscellaneous"]?.ToString().Contains("Bulk Crap Uninstaller") ?? false);
 
             var gpuArray = JsonNode.Parse(localSettings.Values["GPUs"]?.ToString() ?? "[]")?.AsArray();
             if (gpuArray != null)

@@ -116,8 +116,9 @@ public sealed partial class ApplicationsPage : Page
         Miscellaneous.ItemsSource = new List<GridViewItem>
         {
             new() { Text = "MiniTool Partition Wizard", ImageSource = "ms-appx:///Assets/Fluent/MiniToolPartitionWizard.png" },
-            new() { Text = "Bulk Crap Uninstaller", ImageSource = "ms-appx:///Assets/Fluent/BulkCrapUninstaller.png" },
-            new() { Text = "WizTree", ImageSource = "ms-appx:///Assets/Fluent/WizTree.png" }
+            new() { Text = "AOMEI Partition Assistant", ImageSource = "ms-appx:///Assets/Fluent/AomeiPartitionAssistant.png" },
+			new() { Text = "WizTree", ImageSource = "ms-appx:///Assets/Fluent/WizTree.png" },
+			new() { Text = "Bulk Crap Uninstaller", ImageSource = "ms-appx:///Assets/Fluent/BulkCrapUninstaller.png" }
         };
     }
 

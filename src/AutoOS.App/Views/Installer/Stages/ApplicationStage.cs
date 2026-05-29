@@ -74,8 +74,9 @@ public class ApplicationSelection
     public bool Outlook { get; set; }
     public bool OneDrive { get; set; }
     public bool MinitoolPartitionWizard { get; set; }
-    public bool BulkCrapUninstaller { get; set; }
-    public bool WizTree { get; set; }
+    public bool AomeiPartitionAssistant { get; set; }
+	public bool WizTree { get; set; }
+	public bool BulkCrapUninstaller { get; set; }
     
 }
 
@@ -161,8 +162,9 @@ public static class ApplicationStage
         bool OneDrive = selection?.OneDrive ?? PreparingStage.OneDrive;
 
         bool MinitoolPartitionWizard = selection?.MinitoolPartitionWizard ?? PreparingStage.MinitoolPartitionWizard;
-        bool BulkCrapUninstaller = selection?.BulkCrapUninstaller ?? PreparingStage.BulkCrapUninstaller;
-        bool WizTree = selection?.WizTree ?? PreparingStage.WizTree;
+        bool AomeiPartitionAssistant = selection?.AomeiPartitionAssistant ?? PreparingStage.AomeiPartitionAssistant;
+		bool WizTree = selection?.WizTree ?? PreparingStage.WizTree;
+		bool BulkCrapUninstaller = selection?.BulkCrapUninstaller ?? PreparingStage.BulkCrapUninstaller;
         
         string icloudVersion = "";
         string bitwardenVersion = "";
@@ -1262,19 +1264,30 @@ public static class ApplicationStage
 			("Disabling MiniTool Partition Wizard startup entries", async () => TaskSchedulerHelper.Toggle(@"MiniToolPartitionWizard", false), () => MinitoolPartitionWizard == true),
 			("Disabling MiniTool Partition Wizard startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "MTPW", new byte[] { 0x01 }, RegistryValueKind.Binary), () => MinitoolPartitionWizard == true),
 
-            // download bulk crap uninstaller
-            ("Downloading Bulk Crap Uninstaller", async () => await DownloadHelper.Download(JsonDocument.Parse(await new HttpClient { DefaultRequestHeaders = { { "User-Agent", "AutoOS" } } }.GetStringAsync("https://api.github.com/repos/Klocman/Bulk-Crap-Uninstaller/releases/latest")).RootElement.GetProperty("assets").EnumerateArray().First(a => a.GetProperty("name").GetString().Contains("setup.exe")).GetProperty("browser_download_url").GetString(), Path.GetTempPath(), "BCUninstaller_setup.exe", reporter: reporter), () => BulkCrapUninstaller == true),
-            
-			// install bulk crap uninstaller
-            ("Installing Bulk Crap Uninstaller", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "BCUninstaller_setup.exe"), Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => BulkCrapUninstaller == true),
-            ("Cleaning up Bulk Crap Uninstaller files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "BCUninstaller_setup.exe")), () => BulkCrapUninstaller == true),
+            // download aomei partition assistant
+            ("Downloading AOMEI Partition Assistant", async () => await DownloadHelper.Download("https://www2.aomeisoftware.com/download/pa/PAssist_ProDemo.exe", Path.GetTempPath(), "PAssist_ProDemo.exe", reporter: reporter), () => AomeiPartitionAssistant == true),
 
+            // install aomei partition assistant
+            ("Installing AOMEI Partition Assistant", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "PAssist_ProDemo.exe"), Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => AomeiPartitionAssistant == true),
+            ("Installing AOMEI Partition Assistant", async () => { foreach (Process process in new[] { "OpenWith", "msedge" }.SelectMany(Process.GetProcessesByName)) { process.Kill(); process.WaitForExit(); }}, () => AomeiPartitionAssistant == true),
+            ("Cleaning up AOMEI Partition Assistant files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "PAssist_ProDemo.exe")), () => AomeiPartitionAssistant == true),
+
+            // activate aomei partition assistant
+            ("Activating AOMEI Partition Assistant", async () => { var iniHelper = new InIHelper(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "AOMEI Partition Assistant", "cfg.ini")); iniHelper.AddValue("KEY", "AOPR-CM948-83ZJZ-4NQW1", "CONFIG"); }, () => AomeiPartitionAssistant == true),
+			
             // download wiztree
             ("Downloading WizTree", async () => await DownloadHelper.Download("https://diskanalyzer.com/files/wiztree_4_31_setup.exe", Path.GetTempPath(), "wiztree_setup.exe", reporter: reporter), () => WizTree == true),
 
             // install wiztree
             ("Installing WizTree", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "wiztree_setup.exe"), Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /MERGETASKS=!desktopicon" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => WizTree == true),
-            ("Cleaning up WizTree files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "wiztree_setup.exe")), () => WizTree == true)
+			("Cleaning up WizTree files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "wiztree_setup.exe")), () => WizTree == true),
+
+            // download bulk crap uninstaller
+            ("Downloading Bulk Crap Uninstaller", async () => await DownloadHelper.Download(JsonDocument.Parse(await new HttpClient { DefaultRequestHeaders = { { "User-Agent", "AutoOS" } } }.GetStringAsync("https://api.github.com/repos/Klocman/Bulk-Crap-Uninstaller/releases/latest")).RootElement.GetProperty("assets").EnumerateArray().First(a => a.GetProperty("name").GetString().Contains("setup.exe")).GetProperty("browser_download_url").GetString(), Path.GetTempPath(), "BCUninstaller_setup.exe", reporter: reporter), () => BulkCrapUninstaller == true),
+            
+			// install bulk crap uninstaller
+            ("Installing Bulk Crap Uninstaller", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "BCUninstaller_setup.exe"), Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => BulkCrapUninstaller == true),
+            ("Cleaning up Bulk Crap Uninstaller files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "BCUninstaller_setup.exe")), () => BulkCrapUninstaller == true)
         };
 
         if (selection != null)
