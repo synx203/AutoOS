@@ -341,8 +341,8 @@ public static partial class LogHelper
             }
         }
 
-         var epicAccounts = EpicGamesHelper.GetEpicGamesAccounts();
-         var steamAccounts = SteamHelper.GetSteamAccounts();
+        var epicAccounts = EpicGamesHelper.GetEpicGamesAccounts();
+        var steamAccounts = SteamHelper.GetSteamAccounts();
 
 		string cpuName = Microsoft.Win32.Registry.GetValue(@"HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\CentralProcessor\0", "ProcessorNameString", "")?.ToString() ?? "";
         string manufacturer = Microsoft.Win32.Registry.GetValue(@"HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\BIOS", "BaseBoardManufacturer", "")?.ToString() ?? "";
