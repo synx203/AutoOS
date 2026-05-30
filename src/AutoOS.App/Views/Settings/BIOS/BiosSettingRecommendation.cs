@@ -183,7 +183,7 @@ public static class BiosSettingRecommendationsList
         new BiosSettingRecommendation { SetupQuestion = "Disable Fast PKG C State Ramp for VccIn Domain", Type = "Option", RecommendedOption = "FALSE" },
         new BiosSettingRecommendation { SetupQuestion = "Disable Gen2 Pll Shutdown and L1 Controller Power gating", Type = "Option", RecommendedOption = "Enabled" },
         new BiosSettingRecommendation { SetupQuestion = "Disable PCIE Tunneling Over USB4", Type = "Option", RecommendedOption = "Enabled" },
-        new BiosSettingRecommendation { SetupQuestion = "Disable VR Thermal Alert", Type = "Option", RecommendedOption = "Enabled" },
+        new BiosSettingRecommendation { SetupQuestion = "Disable VR Thermal Alert", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Download & Install ASUS DriverHub app", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Dual Tau Boost", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Dynamic Memory Boost", Type = "Option", RecommendedOption = "Disabled" },
@@ -342,7 +342,7 @@ public static class BiosSettingRecommendationsList
         new BiosSettingRecommendation { SetupQuestion = "OS IDLE Mode", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Onboard LED", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Overclocking TVB", Type = "Option", RecommendedOption = "Disabled" },
-        new BiosSettingRecommendation { SetupQuestion = "Opportunistic Self Refresh", Type = "Option", RecommendedOption = "Enabled" },
+        new BiosSettingRecommendation { SetupQuestion = "Opportunistic Self Refresh", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "P-core Power Density Throttle", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "P2P Support", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "PAVP Enable", Type = "Option", RecommendedOption = "Disabled" },
@@ -450,7 +450,7 @@ public static class BiosSettingRecommendationsList
         new BiosSettingRecommendation { SetupQuestion = "PS4 Enable", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "PS_ON Enable", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "PTID Support", Type = "Value", RecommendedOption = "0" },
-        new BiosSettingRecommendation { SetupQuestion = "PTT", Type = "Option", RecommendedOption = "Disable" }, // hard to disable
+        //new BiosSettingRecommendation { SetupQuestion = "PTT", Type = "Option", RecommendedOption = "Disable" }, // hard to disable
         new BiosSettingRecommendation { SetupQuestion = "PUIS Enable", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Package C State Limit", Type = "Option", RecommendedOption = "C0" },
         new BiosSettingRecommendation { SetupQuestion = "Package C State Limit", Type = "Option", RecommendedOption = "C0/C1" },
@@ -524,7 +524,7 @@ public static class BiosSettingRecommendationsList
         new BiosSettingRecommendation { SetupQuestion = "Security Device Support", Type = "Option", RecommendedOption = "Enabled" }, // required for TPM
         //new BiosSettingRecommendation { SetupQuestion = "SelfRefresh Enable", Type = "Option", RecommendedOption = "Disabled" }, // breaks shutdown
         //new BiosSettingRecommendation { SetupQuestion = "selfrefresh enable", Type = "Value", RecommendedOption = "0" }, // breaks shutdown
-        new BiosSettingRecommendation { SetupQuestion = "SelfRefresh IdleTimer", Type = "Value", RecommendedOption = "65535" },
+        //new BiosSettingRecommendation { SetupQuestion = "SelfRefresh IdleTimer", Type = "Value", RecommendedOption = "65535" },
         //new BiosSettingRecommendation { SetupQuestion = "Sensor Standby", Type = "Option", RecommendedOption = "Disabled" }, // already disabled by default
         new BiosSettingRecommendation { SetupQuestion = "Serial Debug Messages", Type = "Option", RecommendedOption = "Disabled" },
         new BiosSettingRecommendation { SetupQuestion = "Serial IO UART", Type = "Value", RecommendedOption = "0" },

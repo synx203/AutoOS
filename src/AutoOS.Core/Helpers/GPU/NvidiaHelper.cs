@@ -175,10 +175,10 @@ namespace AutoOS.Core.Helpers.GPU
             var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
             {
 				// download nvidia control panel
-				("Downloading NVIDIA Control Panel", async () => await StoreHelper.Download("NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj", 0), null),
+				("Downloading NVIDIA Control Panel", async () => await StoreHelper.Download("NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj", 0), () => gpu.CurrentVersion.StartsWith("6")),
 
 				// install nvidia control panel
-				("Installing NVIDIA Control Panel", async () => await StoreHelper.Install("NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj"), null),
+				("Installing NVIDIA Control Panel", async () => await StoreHelper.Install("NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj"), () => gpu.CurrentVersion.StartsWith("6")),
 
                 // disable nvidia tray icon
                 (@"Disabling ""Show Notification Tray Icon""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\NvTray", "StartOnLogin", 0, RegistryValueKind.DWord), null),
@@ -292,10 +292,10 @@ namespace AutoOS.Core.Helpers.GPU
                 ("Configuring color settings", async () => { foreach (string key in Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"System\CurrentControlSet\Services\nvlddmkm\State\DisplayDatabase")?.GetSubKeyNames() ?? []) RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\nvlddmkm\State\DisplayDatabase\{key}", "ColorformatConfig", new byte[] { 0xDB, 0x02, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x03, 0x01, 0x00, 0x00 }, RegistryValueKind.Binary); }, null),
 
                 // rmpowerfeature
-                ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RmPowerFeature", 1073741888, RegistryValueKind.DWord), null),
+                ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RmPowerFeature", 1413829989, RegistryValueKind.DWord), null),
                 
                 // rmpowerfeature2
-                ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RmPowerFeature2", 64, RegistryValueKind.DWord), null),
+                ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RmPowerFeature2", 89478485, RegistryValueKind.DWord), null),
 
                 // enable d3 pc latency
                 ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "D3PCLatency", 1, RegistryValueKind.DWord), null),
@@ -307,7 +307,7 @@ namespace AutoOS.Core.Helpers.GPU
                 ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "EnableRuntimePowerManagement", 0, RegistryValueKind.DWord), null),
 
                 // rmelcg
-                ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMElcg", 1431655765, RegistryValueKind.DWord), null),
+                ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMElcg", 1431655764, RegistryValueKind.DWord), null),
 
                 // disable gc6
                 ("Configuring Miscellaneous NVIDIA Settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "RMGC6Feature", 699050, RegistryValueKind.DWord), null),
