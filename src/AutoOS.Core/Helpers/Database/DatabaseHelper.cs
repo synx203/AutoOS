@@ -1,7 +1,7 @@
-using IronLevelDB;
 using LevelDB;
 using System.Text;
 using System.Text.Json.Nodes;
+using System.Runtime.InteropServices;
 
 namespace AutoOS.Core.Helpers.Database;
 
@@ -26,7 +26,7 @@ public static partial class DatabaseHelper
         {
             result = ReadFromDatabase(databasePath, finalKeyBytes);
         }
-        catch (IOException)
+        catch
         {
             string tempDatabasePath = databasePath + " - Copy";
             try
@@ -38,7 +38,15 @@ public static partial class DatabaseHelper
                     File.Copy(file, Path.Combine(tempDatabasePath, Path.GetFileName(file)), true);
                 }
 
-                result = ReadFromDatabase(tempDatabasePath, finalKeyBytes);
+                try
+                {
+                    result = ReadFromDatabase(tempDatabasePath, finalKeyBytes);
+                }
+                catch
+                {
+                    Repair(tempDatabasePath);
+                    result = ReadFromDatabase(tempDatabasePath, finalKeyBytes);
+                }
             }
             catch
             {
@@ -52,22 +60,19 @@ public static partial class DatabaseHelper
                 }
             }
         }
-        catch
-        {
-            return null;
-        }
 
         return result;
     }
 
     private static JsonNode ReadFromDatabase(string databasePath, byte[] finalKeyBytes)
     {
-        using var database = IronLeveldbBuilder.BuildFromPath(databasePath);
-        IReadOnlyList<byte> valueBytes = database.Get(finalKeyBytes);
+        var options = new Options { CreateIfMissing = false };
+        using var database = new DB(options, databasePath);
+        byte[] valueBytes = database.Get(finalKeyBytes);
 
         if (valueBytes != null)
         {
-            string value = Encoding.UTF8.GetString(valueBytes.ToArray());
+            string value = Encoding.UTF8.GetString(valueBytes);
 
             if (value.Length > 0 && value[0] == '\x01')
             {
@@ -118,4 +123,22 @@ public static partial class DatabaseHelper
         database.Delete(finalKeyBytes);
         return true;
     }
+
+    public static void Repair(string databasePath)
+    {
+        var options = new Options { CreateIfMissing = false };
+		leveldb_repair_db(options.Handle, databasePath, out nint errptr);
+		if (errptr != IntPtr.Zero)
+        {
+            leveldb_free(errptr);
+        }
+    }
+
+    [LibraryImport("leveldb", StringMarshalling = StringMarshalling.Utf8)]
+    [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    private static partial void leveldb_repair_db(IntPtr options, string name, out IntPtr errptr);
+
+    [LibraryImport("leveldb")]
+    [UnmanagedCallConv(CallConvs = new Type[] { typeof(System.Runtime.CompilerServices.CallConvCdecl) })]
+    private static partial void leveldb_free(IntPtr ptr);
 }
