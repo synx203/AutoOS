@@ -662,6 +662,26 @@ public static partial class EpicGamesHelper
                         itemObj["StagingLocation"] = staging.Replace(oldRoot, newRoot);
                     }
 
+                    if (itemObj.ContainsKey("CompleteManifestPath"))
+                    {
+                        string completeManifest = itemObj["CompleteManifestPath"]!.ToString();
+                        if (!string.IsNullOrWhiteSpace(completeManifest))
+                        {
+                            completeManifest = completeManifest.Replace('\\', '/');
+                            itemObj["CompleteManifestPath"] = completeManifest.Replace(oldRoot, newRoot);
+                        }
+                    }
+
+                    if (itemObj.ContainsKey("PendingManifestPath"))
+                    {
+                        string pendingManifest = itemObj["PendingManifestPath"]!.ToString();
+                        if (!string.IsNullOrWhiteSpace(pendingManifest))
+                        {
+                            pendingManifest = pendingManifest.Replace('\\', '/');
+                            itemObj["PendingManifestPath"] = pendingManifest.Replace(oldRoot, newRoot);
+                        }
+                    }
+
                     await File.WriteAllTextAsync(file, itemObj.ToJsonString(new JsonSerializerOptions
                     {
                         WriteIndented = true,
@@ -674,41 +694,10 @@ public static partial class EpicGamesHelper
         // launch epic games to get new token
         Process.Start(new ProcessStartInfo(EpicGamesPath) { WindowStyle = ProcessWindowStyle.Hidden });
 
-        // wait for token to get used
-        while (true)
-        {
-            await Task.Delay(500);
-
-            if (!ValidateData(ActiveEpicGamesAccountPath))
-            {
-                await UpdateInvalidEpicGamesToken();
-                return;
-            }
-
-            if (GetAccountData(ActiveEpicGamesAccountPath).TokenUseCount == 1)
-                break;
-        }
-
-        // wait for new token
-        while (true)
-        {
-            await Task.Delay(500);
-
-            if (!ValidateData(ActiveEpicGamesAccountPath))
-            {
-                await UpdateInvalidEpicGamesToken();
-                return;
-            }
-
-            if (GetAccountData(ActiveEpicGamesAccountPath).TokenUseCount == 0)
-                break;
-        }
+        await Task.Delay(5000);
 
         // close epic games launcher
         CloseEpicGames();
-
-        // update the backed up config
-        File.Copy(ActiveEpicGamesAccountPath, Path.Combine(EpicGamesAccountDir, GetAccountData(ActiveEpicGamesAccountPath).AccountId, "GameUserSettings.ini"), true);
     }
 
     public static async Task<List<GameModel>> GetGames()
