@@ -110,8 +110,10 @@ public static partial class DownloadHelper
             var errorDetails = new StringBuilder();
             var package = download.Package;
 
-            errorDetails.AppendLine($"Primary download failed for: {url}");
-            errorDetails.AppendLine($"Package: Status={package?.Status}, SaveComplete={package?.IsSaveComplete}, FileName={package?.FileName}");
+            errorDetails.AppendLine($"Download URL: {url}");
+            errorDetails.AppendLine(
+                $"Package: Status={package?.Status}, SaveComplete={package?.IsSaveComplete}, FileName={package?.FileName}, " +
+                $"TotalFileSize={package?.TotalFileSize}, ReceivedBytes={package?.ReceivedBytesSize}, SupportsRange={package?.IsSupportDownloadInRange}");
             if (downloaderError != null)
                 errorDetails.AppendLine($"Downloader error: {downloaderError.GetType().Name}: {downloaderError.Message}");
             var files = Directory.Exists(path) ? Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly) : [];
@@ -120,29 +122,39 @@ public static partial class DownloadHelper
             HttpStatusCode? statusCode = null;
             try
             {
-                using var headRequest = new HttpRequestMessage(HttpMethod.Head, url);
-                if (config.RequestConfiguration?.Headers != null)
-                {
-                    foreach (string headerName in config.RequestConfiguration.Headers.AllKeys)
-                        headRequest.Headers.TryAddWithoutValidation(headerName, config.RequestConfiguration.Headers[headerName]);
-                }
+                using var headRequest = CreateProbeRequest(HttpMethod.Head, url, config);
                 using var response = await httpClient.SendAsync(headRequest, HttpCompletionOption.ResponseHeadersRead);
                 statusCode = response.StatusCode;
+                AppendResponseHeaders(errorDetails, "HEAD", response);
             }
-            catch { }
-            errorDetails.AppendLine(statusCode.HasValue ? $"HTTP Status Code: {(int)statusCode.Value} ({statusCode.Value})" : "HTTP status unknown");
+            catch (Exception ex)
+            {
+                errorDetails.AppendLine($"HEAD probe failed: {ex.GetType().Name}: {ex.Message}");
+            }
+
+            if (!statusCode.HasValue)
+                errorDetails.AppendLine("HTTP status unknown");
+            else
+                errorDetails.AppendLine($"HTTP Status Code: {(int)statusCode.Value} ({statusCode.Value})");
+
+            try
+            {
+                using var rangeRequest = CreateProbeRequest(HttpMethod.Get, url, config);
+                rangeRequest.Headers.Range = new RangeHeaderValue(0, 0);
+                using var rangeResponse = await httpClient.SendAsync(rangeRequest, HttpCompletionOption.ResponseHeadersRead);
+                AppendResponseHeaders(errorDetails, "GET Range bytes=0-0", rangeResponse);
+            }
+            catch (Exception ex)
+            {
+                errorDetails.AppendLine($"Range probe failed: {ex.GetType().Name}: {ex.Message}");
+            }
 
             Exception fallbackError = null;
             if (statusCode.HasValue && (int)statusCode.Value >= 200 && (int)statusCode.Value <= 299)
             {
                 try
                 {
-                    using var request = new HttpRequestMessage(HttpMethod.Get, url);
-                    if (config.RequestConfiguration?.Headers != null)
-                    {
-                        foreach (string headerName in config.RequestConfiguration.Headers.AllKeys)
-                            request.Headers.TryAddWithoutValidation(headerName, config.RequestConfiguration.Headers[headerName]);
-                    }
+                    using var request = CreateProbeRequest(HttpMethod.Get, url, config);
                     using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
                     if (response.IsSuccessStatusCode)
                     {
@@ -202,5 +214,51 @@ public static partial class DownloadHelper
         }
 
         reporter?.Report(progress: 100, isIndeterminate: true);
+    }
+
+    private static HttpRequestMessage CreateProbeRequest(HttpMethod method, string url, DownloadConfiguration config)
+    {
+        var request = new HttpRequestMessage(method, url);
+        var requestConfig = config.RequestConfiguration;
+        if (!string.IsNullOrWhiteSpace(requestConfig?.UserAgent))
+            request.Headers.TryAddWithoutValidation("User-Agent", requestConfig.UserAgent);
+
+        if (requestConfig?.Headers == null)
+            return request;
+
+        foreach (string headerName in requestConfig.Headers.AllKeys)
+            request.Headers.TryAddWithoutValidation(headerName, requestConfig.Headers[headerName]);
+
+        return request;
+    }
+
+    private static void AppendResponseHeaders(StringBuilder errorDetails, string probeName, HttpResponseMessage response)
+    {
+        errorDetails.AppendLine($"{probeName} response: {(int)response.StatusCode} ({response.StatusCode})");
+        errorDetails.AppendLine($"  Content-Length: {FormatHeaderValue(response.Content.Headers.ContentLength)}");
+        errorDetails.AppendLine($"  Accept-Ranges: {FormatHeaderValue(response.Headers.AcceptRanges)}");
+        errorDetails.AppendLine($"  Content-Range: {FormatContentRange(response.Content.Headers.ContentRange)}");
+    }
+
+    private static string FormatHeaderValue(object value) =>
+        value switch
+        {
+            null => "(not present)",
+            long l => l.ToString(),
+            _ => value.ToString() ?? "(not present)"
+        };
+
+    private static string FormatContentRange(ContentRangeHeaderValue contentRange)
+    {
+        if (contentRange == null)
+            return "(not present)";
+
+        if (contentRange.HasLength && contentRange.HasRange)
+            return $"bytes {contentRange.From}-{contentRange.To}/{contentRange.Length}";
+
+        if (contentRange.HasRange)
+            return $"bytes {contentRange.From}-{contentRange.To}/*";
+
+        return contentRange.ToString() ?? "(not present)";
     }
 }

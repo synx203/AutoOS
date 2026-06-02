@@ -735,27 +735,23 @@ public static partial class EpicGamesHelper
             } while (!string.IsNullOrEmpty(nextCursor));
 
             // get build data
+            JsonArray buildData = null;
             var buildResponse = await loginClient.GetAsync("https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/public/assets/Windows?label=Live");
 
-            if (buildResponse.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                return [.. games];
-            }
-
-            var buildData = JsonNode.Parse(await buildResponse.Content.ReadAsStringAsync()) as JsonArray;
+            if (buildResponse.IsSuccessStatusCode)
+                buildData = JsonNode.Parse(await buildResponse.Content.ReadAsStringAsync()) as JsonArray;
 
             // get playtime data
+            Dictionary<string, int> playTimeData = null;
             var playTimeResponse = await loginClient.GetAsync($"https://library-service.live.use1a.on.epicgames.com/library/api/public/playtime/account/{GetAccountData(ActiveEpicGamesAccountPath).AccountId}/all");
 
-            if (playTimeResponse.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            if (playTimeResponse.IsSuccessStatusCode)
             {
-                return [.. games];
+                playTimeData = (JsonNode.Parse(await playTimeResponse.Content.ReadAsStringAsync()) as JsonArray)?.ToDictionary(
+                    p => p["artifactId"]?.GetValue<string>(),
+                    p => p["totalTime"]?.GetValue<int>() ?? 0
+                );
             }
-
-            var playTimeData = (JsonNode.Parse(await playTimeResponse.Content.ReadAsStringAsync()) as JsonArray)?.ToDictionary(
-                p => p["artifactId"]?.GetValue<string>(),
-                p => p["totalTime"]?.GetValue<int>() ?? 0
-            );
 
             string region = RegionInfo.CurrentRegion.TwoLetterISORegionName.ToUpper();
             string ratingKey = region switch
