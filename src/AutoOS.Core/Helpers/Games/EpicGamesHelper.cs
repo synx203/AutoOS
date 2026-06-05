@@ -768,7 +768,7 @@ public static partial class EpicGamesHelper
 				_ => "PEGI"
 			};
 
-			var manifestFiles = Directory.GetFiles(EpicGamesManifestDir, "*.item", SearchOption.TopDirectoryOnly).Select(f => new FileInfo(f)).ToList();
+			var manifestFiles = Directory.Exists(EpicGamesManifestDir) ? Directory.GetFiles(EpicGamesManifestDir, "*.item", SearchOption.TopDirectoryOnly).Select(file => new FileInfo(file)).ToList() : [];
 
 			var latestManifests = new Dictionary<string, FileInfo>();
 
