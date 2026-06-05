@@ -184,15 +184,15 @@ namespace AutoOS.Core.Helpers.GPU
 			return actions;
 		}
 
-		public static List<(string Title, Func<Task> Action, Func<bool> Condition)> TweakActions(GpuInfo gpu)
+		public static List<(string Title, Func<Task> Action, Func<bool> Condition)> TweakActions(GpuInfo gpu, string newestVersion)
 		{
 			var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
 			{
 				// download nvidia control panel
-				("Downloading NVIDIA Control Panel", async () => await StoreHelper.Download("NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj", 0), null),
+				("Downloading NVIDIA Control Panel", async () => await StoreHelper.Download("NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj", 0), () => newestVersion.StartsWith("6")),
 
 				// install nvidia control panel
-				("Installing NVIDIA Control Panel", async () => await StoreHelper.Install("NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj"), null),
+				("Installing NVIDIA Control Panel", async () => await StoreHelper.Install("NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj"), () => newestVersion.StartsWith("6")),
 
 				// disable nvidia tray icon
 				(@"Disabling ""Show Notification Tray Icon""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\NvTray", "StartOnLogin", 0, RegistryValueKind.DWord), null),

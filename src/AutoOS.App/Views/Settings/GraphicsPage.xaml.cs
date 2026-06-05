@@ -116,7 +116,7 @@ public sealed partial class GraphicsPage : Page
 					{
 						case "10de":
 							(newestVersion, newestDownloadUrl) = await NvidiaHelper.CheckUpdate(gpu);
-							var nvidiaActions = NvidiaHelper.InstallActions(gpu, newestVersion, newestDownloadUrl, new ProgressButtonReporter(progressButton)).Concat(NvidiaHelper.TweakActions(gpu)).ToList();
+							var nvidiaActions = NvidiaHelper.InstallActions(gpu, newestVersion, newestDownloadUrl, new ProgressButtonReporter(progressButton)).Concat(NvidiaHelper.TweakActions(gpu, newestVersion)).ToList();
 							await RunActions(progressButton, nvidiaActions);
 							break;
 						case "1002":
@@ -186,7 +186,7 @@ public sealed partial class GraphicsPage : Page
 					{
 						case "10de":
 							(newestVersion, newestDownloadUrl) = await NvidiaHelper.CheckUpdate(gpu);
-							var nvidiaActions = NvidiaHelper.InstallActions(gpu, newestVersion, newestDownloadUrl, new ProgressButtonReporter(progressButton)).Concat(NvidiaHelper.TweakActions(gpu)).ToList();
+							var nvidiaActions = NvidiaHelper.InstallActions(gpu, newestVersion, newestDownloadUrl, new ProgressButtonReporter(progressButton)).Concat(NvidiaHelper.TweakActions(gpu, newestVersion)).ToList();
 							await RunActions(progressButton, nvidiaActions);
 							break;
 						case "1002":

@@ -323,7 +323,7 @@ public static class ApplicationStage
 			("Removing Everything desktop shortcut", async () => File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Everything 1.5a.lnk")), () => selection == null),
 
 			// download windhawk
-			("Downloading Windhawk", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/1id8mn7onjmyvd5ky1hka/Windhawk.zip?rlkey=0y77dk0u8crd34gnhszpt4nqc&st=dn11ts0o&dl=0", Path.GetTempPath(), "Windhawk.zip", reporter: reporter), () => selection == null),
+			("Downloading Windhawk", async () => await DownloadHelper.Download("https://github.com/tinodin/AutoOS-Resources/releases/download/v1.0.0.0/Windhawk.zip", Path.GetTempPath(), "Windhawk.zip", reporter: reporter), () => selection == null),
 
 			// install windhawk
 			("Installing Windhawk", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "Windhawk.zip"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Windhawk")), () => selection == null),
@@ -355,7 +355,7 @@ public static class ApplicationStage
 			("Activating StartAllBack", async () => await Task.Delay(2000), () => selection == null),
 
 			// download autoruns
-			("Downloading Autoruns", async () => await DownloadHelper.Download("https://dl.dropboxusercontent.com/scl/fi/8ze0we0fhe44xifzl6wj1/Autoruns64.exe?rlkey=798kd1lnap1d9zi24kfomdsos&st=thxzzmni&dl=0", Path.GetTempPath(), "Autoruns64.exe", reporter: reporter), () => selection == null),
+			("Downloading Autoruns", async () => await DownloadHelper.Download("https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/Files/Autoruns/Autoruns64.exe", Path.GetTempPath(), "Autoruns64.exe", reporter: reporter), () => selection == null),
 			// ("Downloading Autoruns", async () => await DownloadHelper.Download("https://download.sysinternals.com/files/Autoruns.zip", Path.GetTempPath(), "Autoruns.zip", reporter: reporter), () => selection == null),
 
 			// install autoruns
@@ -388,7 +388,7 @@ public static class ApplicationStage
 			("Cleaning up Process Monitor files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "ProcessMonitor.zip")), () => selection == null),
 
 			// download process explorer
-			("Downloading Process Explorer", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/a8l16rp3cpcvkkryavix1/procexp64.exe?rlkey=5fec8mcmkfcxlum9a95o1xn3t&st=mjkrpc1f&dl=0", Path.GetTempPath(), "procexp64.exe", reporter: reporter), () => selection == null),
+			("Downloading Process Explorer", async () => await DownloadHelper.Download("https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/Files/Process%20Explorer/procexp64.exe", Path.GetTempPath(), "procexp64.exe", reporter: reporter), () => selection == null),
 			//("Downloading Process Explorer", async () => await DownloadHelper.Download("https://download.sysinternals.com/files/ProcessExplorer.zip", Path.GetTempPath(), "ProcessExplorer.zip", new InstallPageReporter()), () => selection == null),
 
 			// install process explorer
@@ -556,7 +556,7 @@ public static class ApplicationStage
 			("Disabling Steam startup entry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "Steam", new byte[] { 0x01 }, RegistryValueKind.Binary), () => Steam == true),
 
 			// download riot client
-			("Downloading Riot Client", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/lhjc10gc9i31bptzw6ism/Riot-Games.zip?rlkey=07n3ek47oaus1olu86u08yw04&st=t0vspqv4&dl=0", Path.GetTempPath(), "Riot Games.zip", reporter: reporter), () => RiotClient == true),
+			("Downloading Riot Client", async () => await DownloadHelper.Download("https://github.com/tinodin/AutoOS-Resources/releases/download/v1.0.0.0/Riot-Games.zip", Path.GetTempPath(), "Riot Games.zip", reporter: reporter), () => RiotClient == true),
 
 			// install riot client
 			("Installing Riot Client", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "Riot Games.zip"), Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System))), () => RiotClient == true),
@@ -581,7 +581,7 @@ public static class ApplicationStage
 			("Disabling Riot Client startup entry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "RiotClient", new byte[] { 0x01 }, RegistryValueKind.Binary), () => RiotClient == true),
 
 			// download vanguard
-			("Downloading Vanguard", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/emynbdc0oimyqtgh8ormc/setup.exe?rlkey=o4yii06fxauvaurqcdsgn8hna&st=3r4gvxt8&dl=0", Path.GetTempPath(), "setup.exe", new InstallPageReporter()), () => RiotClient == true),
+			("Downloading Vanguard", async () => await DownloadHelper.Download("https://github.com/tinodin/AutoOS-Resources/releases/download/v1.0.0.0/setup.exe", Path.GetTempPath(), "setup.exe", new InstallPageReporter()), () => RiotClient == true),
 
 			// install vanguard
 			("Installing Vanguard", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "setup.exe"), WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => RiotClient == true),
@@ -762,7 +762,7 @@ public static class ApplicationStage
 			("Please log in to your Rockstar Games Launcher account (Close to continue)", async () => { while (Process.GetProcessesByName("Launcher").Length == 1) await Task.Delay(500); }, () => RockstarGamesLauncher == true),
 		
 			// download fivem
-			("Downloading FiveM", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/tn48g2m1qisdsir80ixu8/FiveM.zip?rlkey=c54qzh36fr3p8yb09q4zlt0gi&st=ca6wjcgx&dl=0", Path.GetTempPath(), "FiveM.zip", new InstallPageReporter()), () => FiveM == true),
+			("Downloading FiveM", async () => await DownloadHelper.Download("https://github.com/tinodin/AutoOS-Resources/releases/download/v1.0.0.0/FiveM.zip", Path.GetTempPath(), "FiveM.zip", new InstallPageReporter()), () => FiveM == true),
 
 			// install fivem
 			("Installing FiveM", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "FiveM.zip"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FiveM")), () => FiveM == true),
@@ -1007,8 +1007,8 @@ public static class ApplicationStage
 			// download razer synapse
 			("Downloading Razer Synapse", async () => await DownloadHelper.Download("https://manifest-assets.razersynapse.com/1773727105qjG1koNDRazerAppEngineSetup-v4.0.662.exe", Path.GetTempPath(), "RazerAppEngineSetup.exe", reporter: reporter), () => RazerSynapse == true),
 			("Downloading Razer Synapse", async () => await DownloadHelper.Download("https://manifest-assets.razersynapse.com/1773727025T17d7NVXRazerSynapse4-Web-v4.0.662.exe", Path.GetTempPath(), "RazerSynapse4-Web.exe", reporter: reporter), () => RazerSynapse == true),
-			("Downloading Razer Synapse", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/ztob6pr106j39eqfpeyjs/Razer.zip?rlkey=mc5ry2nzyb7t2emt5nx53db9o&st=v4lkkua1&dl=0", Path.GetTempPath(), "Razer.zip", reporter: reporter), () => RazerSynapse == true),
-			("Downloading Razer Synapse", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/il4e4pi2fkb2lb4pex2qq/leveldb.zip?rlkey=ub50jftdqjl1zau2qb58kiz2f&st=vcy6td1a&dl=0", Path.GetTempPath(), "leveldb.zip", reporter: reporter), () => RazerSynapse == true),
+			("Downloading Razer Synapse", async () => await DownloadHelper.Download("https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/Files/Razer/Razer.zip", Path.GetTempPath(), "Razer.zip", reporter: reporter), () => RazerSynapse == true),
+			("Downloading Razer Synapse", async () => await DownloadHelper.Download("https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/Files/Razer/leveldb.zip", Path.GetTempPath(), "leveldb.zip", reporter: reporter), () => RazerSynapse == true),
 
 			// install razer synapse
 			("Installing Razer Synapse", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "RazerAppEngineSetup.exe"), Arguments = "/S" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => RazerSynapse == true),
@@ -1123,9 +1123,9 @@ public static class ApplicationStage
 			// optimize visual studio
 			("Optimizing Visual Studio", async () => { while (Process.GetProcessesByName("VSNgenRunner").Length == 1) await Task.Delay(500); }, () => VisualStudio == true),
 
-				  // disable visual studio startup entry
+			// disable visual studio startup entry
 			("Disabling Visual Studio startup entry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\VSStandardCollectorService150", "Start", 4, RegistryValueKind.DWord), () => VisualStudio == true),
-				  ("Disabling Visual Studio startup entry", async () => ServicesHelper.StopService("VSStandardCollectorService150"), () => VisualStudio == true),
+			("Disabling Visual Studio startup entry", async () => ServicesHelper.StopService("VSStandardCollectorService150"), () => VisualStudio == true),
 
 			// pin visual studio to the taskbar
 			("Pinning Visual Studio to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Visual Studio.lnk")}"""), () => VisualStudio == true),

@@ -50,7 +50,7 @@ public static class AudioStage
 			("Disabling Multimedia Class Scheduler Service (MMCSS)", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\MMCSS", "Start", 4, RegistryValueKind.DWord), () => NetAdapterCx == true),
 
 			// download dolby ac-3 feature on demand
-			("Downloading Dolby AC-3 Feature on Demand", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/g7qcrrpxt3o3gudzk1icg/Dolby-AC-3-FoD.zip?rlkey=i9koe4r0cu0nemf1f4j7pm026&st=bhgsaiec&dl=0", Path.GetTempPath(), "Dolby-AC-3-FoD.zip"), null),
+			("Downloading Dolby AC-3 Feature on Demand", async () => await DownloadHelper.Download("https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/Files/Dolby/Dolby-AC-3-FoD.zip", Path.GetTempPath(), "Dolby-AC-3-FoD.zip"), null),
 
 			// install dolby ac-3 feature on demand
 			("Installing Dolby AC-3 Feature on Demand", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "Dolby-AC-3-FoD.zip"), Path.Combine(Path.GetTempPath(), "Dolby-AC-3-FoD")), null),

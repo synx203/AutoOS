@@ -26,7 +26,7 @@ public static partial class GamesStage
 		var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
 		{
 			// download gameusersettings.ini for fortnite
-			("Downloading GameUserSettings.ini for Fortnite", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/x7ymbpu9hf6myle0an2ef/GameUserSettings.ini?rlkey=i9v5oc1nccx7k58g12dd1k33j&st=hwo4v2du&dl=0", fortniteIniPath, "GameUserSettings.ini"), () => Fortnite == true),
+			("Downloading GameUserSettings.ini for Fortnite", async () => await DownloadHelper.Download("https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/Files/Fortnite/GameUserSettings.ini", fortniteIniPath, "GameUserSettings.ini"), () => Fortnite == true),
 			
 			// cap frame rate for fortnite
 			($"Capping Frame Rate for Fortnite to {maxRefreshRate}fps", async () => new InIHelper(Path.Combine(fortniteIniPath, "GameUserSettings.ini")).AddValue("FrameRateLimit", $"{maxRefreshRate}.000000", "/Script/FortniteGame.FortGameUserSettings"), () => Fortnite == true),
@@ -42,7 +42,7 @@ public static partial class GamesStage
 			("Installing EasyAntiCheat", async () => await Task.Delay(1000), () => Fortnite == true),
 
 			// download gameusersettings.ini for valorant
-			("Downloading GameUserSettings.ini for Valorant", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/v8t7zr92smdwp6c0u43li/GameUserSettings.ini?rlkey=9utj5hcekf4ddvpvvxbzzhbua&st=y7q4r3hm&dl=0", valorantIniPath, "GameUserSettings.ini"), () => Valorant == true),
+			("Downloading GameUserSettings.ini for Valorant", async () => await DownloadHelper.Download("https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/Files/Valorant/GameUserSettings.ini", valorantIniPath, "GameUserSettings.ini"), () => Valorant == true),
 			
 			//// cap frame rate for valorant
 			//($"Capping Frame Rate for Valorant to {maxRefreshRate}fps", async () => new InIHelper(Path.Combine(valorantIniPath, "GameUserSettings.ini")).AddValue("FrameRateLimit", $"{maxRefreshRate}.000000", "/Script/ShooterGame.ShooterGameUserSettings"), () => Valorant == true),

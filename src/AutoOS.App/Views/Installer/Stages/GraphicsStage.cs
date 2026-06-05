@@ -53,7 +53,7 @@ public static class GraphicsStage
 			("Setting the highest supported refresh rate for every monitor", async () => await Task.Delay(3000), null),
 
 			// download msi afterburner
-			("Downloading MSI Afterburner", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/6dvl62kgm3z38x49752bt/MSI-Afterburner.zip?rlkey=h2m2riyjisrb3ph0i8j0q4eu5&st=l87whmmi&dl=0", Path.GetTempPath(), "MSI Afterburner.zip", new InstallPageReporter()), null),
+			("Downloading MSI Afterburner", async () => await DownloadHelper.Download("https://github.com/tinodin/AutoOS-Resources/releases/download/v1.0.0.0/MSI-Afterburner.zip", Path.GetTempPath(), "MSI Afterburner.zip", new InstallPageReporter()), null),
 
 			// install msi afterburner
 			("Installing MSI Afterburner", async () => { await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "MSI Afterburner.zip"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "MSI Afterburner")); File.Delete(Path.Combine(Path.GetTempPath(), "MSI Afterburner.zip")); }, null),
@@ -74,8 +74,8 @@ public static class GraphicsStage
 		
 			// download obs studio
 			("Downloading OBS Studio", async () => await DownloadHelper.Download(JsonDocument.Parse(await new HttpClient { DefaultRequestHeaders = { { "User-Agent", "AutoOS" } } }.GetStringAsync("https://api.github.com/repos/obsproject/obs-studio/releases/latest")).RootElement.GetProperty("assets").EnumerateArray().First(a => a.GetProperty("name").GetString().Contains("Windows-x64-Installer.exe")).GetProperty("browser_download_url").GetString(), Path.GetTempPath(), "OBS-Studio-Windows-x64-Installer.exe", new InstallPageReporter()), null),
-			("Downloading OBS Studio", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/gkhuws75qnckr63lnfbzn/obs-studio.zip?rlkey=6ziow6s1a85a7s5snrdi7v1x2&st=db3yzo4m&dl=0", Path.GetTempPath(), "obs-studio.zip", new InstallPageReporter()), null),
-			("Downloading OBS Studio", async () => await DownloadHelper.Download("https://www.dl.dropboxusercontent.com/scl/fi/k8dboxunne9wk5j955n0u/uninstall.exe?rlkey=4egb9y4mbsg7pboczrrulto98&st=xmldubc2&dl=0", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "obs-studio"), "uninstall.exe", new InstallPageReporter()), null),
+			("Downloading OBS Studio", async () => await DownloadHelper.Download("https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/Files/OBS/obs-studio.zip", Path.GetTempPath(), "obs-studio.zip", new InstallPageReporter()), null),
+			("Downloading OBS Studio", async () => await DownloadHelper.Download("https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/Files/OBS/uninstall.exe", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "obs-studio"), "uninstall.exe", new InstallPageReporter()), null),
 
 			// install obs studio
 			("Installing OBS Studio", async () => { await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "OBS-Studio-Windows-x64-Installer.exe"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "obs-studio")); File.Delete(Path.Combine(Path.GetTempPath(), "OBS-Studio-Windows-x64-Installer.exe")); }, null),
@@ -131,7 +131,7 @@ public static class GraphicsStage
 			switch (gpu.VendorId)
 			{
 				case "10de":
-					driverTweakActions.AddRange(NvidiaHelper.TweakActions(gpu));
+					driverTweakActions.AddRange(NvidiaHelper.TweakActions(gpu, newestVersion));
 					break;
 				case "1002":
 					driverTweakActions.AddRange(AmdHelper.TweakActions(gpu));
