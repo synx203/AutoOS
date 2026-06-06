@@ -53,7 +53,7 @@ public static class GraphicsStage
 			("Setting the highest supported refresh rate for every monitor", async () => await Task.Delay(3000), null),
 
 			// download msi afterburner
-			("Downloading MSI Afterburner", async () => await DownloadHelper.Download("https://github.com/tinodin/AutoOS-Resources/releases/download/v1.0.0.0/MSI-Afterburner.zip", Path.GetTempPath(), "MSI Afterburner.zip", new InstallPageReporter()), null),
+			("Downloading MSI Afterburner", async () => await DownloadHelper.Download("https://github.com/tinodin/AutoOS-Resources/releases/download/v1.0.0.0/MSI.Afterburner.zip", Path.GetTempPath(), "MSI Afterburner.zip", new InstallPageReporter()), null),
 
 			// install msi afterburner
 			("Installing MSI Afterburner", async () => { await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "MSI Afterburner.zip"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "MSI Afterburner")); File.Delete(Path.Combine(Path.GetTempPath(), "MSI Afterburner.zip")); }, null),

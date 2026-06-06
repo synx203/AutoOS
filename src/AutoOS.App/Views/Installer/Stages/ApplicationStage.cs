@@ -556,7 +556,7 @@ public static class ApplicationStage
 			("Disabling Steam startup entry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "Steam", new byte[] { 0x01 }, RegistryValueKind.Binary), () => Steam == true),
 
 			// download riot client
-			("Downloading Riot Client", async () => await DownloadHelper.Download("https://github.com/tinodin/AutoOS-Resources/releases/download/v1.0.0.0/Riot-Games.zip", Path.GetTempPath(), "Riot Games.zip", reporter: reporter), () => RiotClient == true),
+			("Downloading Riot Client", async () => await DownloadHelper.Download("https://github.com/tinodin/AutoOS-Resources/releases/download/v1.0.0.0/Riot.Games.zip", Path.GetTempPath(), "Riot Games.zip", reporter: reporter), () => RiotClient == true),
 
 			// install riot client
 			("Installing Riot Client", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "Riot Games.zip"), Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System))), () => RiotClient == true),
