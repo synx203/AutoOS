@@ -88,17 +88,11 @@ public static partial class StoreHelper
 			var mainPath = allFiles.FirstOrDefault(f => Path.GetFileName(f).StartsWith(namePart, StringComparison.OrdinalIgnoreCase)) ?? allFiles.First();
 
 			var manager = new PackageManager();
-			var progress = manager.AddPackageAsync(new Uri(mainPath), null, DeploymentOptions.ForceApplicationShutdown);
+			var packageUri = new Uri(mainPath);
 
-			var tcs = new TaskCompletionSource<bool>();
-			progress.Completed = (info, status) =>
-			{
-				if (status == Windows.Foundation.AsyncStatus.Completed) tcs.SetResult(true);
-				else if (status == Windows.Foundation.AsyncStatus.Error) tcs.SetException(info.ErrorCode);
-				else tcs.SetResult(false);
-			};
-
-			await tcs.Task;
+			await manager.StagePackageAsync(packageUri, null);
+			await manager.ProvisionPackageForAllUsersAsync(identifier);
+			await manager.RegisterPackageByFamilyNameAsync(identifier, null, DeploymentOptions.None, null, null);
 		}
 		catch (Exception ex)
 		{

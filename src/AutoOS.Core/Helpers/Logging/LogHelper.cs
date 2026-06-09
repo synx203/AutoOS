@@ -242,7 +242,16 @@ public static partial class LogHelper
 		try { allGames.AddRange(await RyujinxHelper.GetGames(localSettings.Values["RyujinxLocation"]?.ToString(), localSettings.Values["RyujinxDataLocation"]?.ToString())); } catch { }
 
 		var sortedGames = allGames.OrderByDescending(g => ParsePlaytimeMinutes(g.PlayTime)).ToList();
-		var gamesList = sortedGames.Select(g => $"{g.Title} ({g.Launcher}) ({g.PlayTime})").ToList();
+		var gamesList = sortedGames.Select(game =>
+		{
+			string lastPlayedGame = "";
+			if (localSettings.Values.TryGetValue($"LastPlayed_{game.Title}", out var val) && val is long ts && ts > 0)
+			{
+				DateTimeOffset lastPlayedDate = DateTimeOffset.FromUnixTimeSeconds(ts);
+				lastPlayedGame = $" ({lastPlayedDate:dd MMM yyyy — HH:mm:ss})";
+			}
+			return $"{game.Title} ({game.Launcher}) ({game.PlayTime}){lastPlayedGame}";
+		}).ToList();
 		string games = gamesList.Count > 0 ? string.Join("\n", gamesList) : "N/A";
 
 		string startStr = localSettings.Values["Install_Start"]?.ToString();
