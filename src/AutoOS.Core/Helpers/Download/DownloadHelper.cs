@@ -234,40 +234,43 @@ public static partial class DownloadHelper
 
 	public static async Task<Dictionary<string, string>> BypassAwsWaf(string url)
 	{
-		var options = new EdgeOptions();
-
-		options.AddArgument("--headless=new");
-		options.AddArgument("--disable-blink-features=AutomationControlled");
-		options.AddArgument("--disable-dev-shm-usage");
-		options.AddArgument("--no-sandbox");
-		options.AddArgument("--disable-gpu");
-		options.AddArgument("--disable-web-security");
-		options.AddArgument("--disable-features=VizDisplayCompositor");
-		options.AddArgument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-		options.AddArgument("--disable-infobars");
-		options.AddExcludedArgument("enable-automation");
-
-		using var driver = new EdgeDriver(options);
-
-		var cdpParameters = new Dictionary<string, object>
+		return await Task.Run(() =>
 		{
-			{ "behavior", "deny" }
-		};
-		driver.ExecuteCdpCommand("Browser.setDownloadBehavior", cdpParameters);
+			var options = new EdgeOptions();
 
-		driver.Navigate().GoToUrl(url);
+			options.AddArgument("--headless=new");
+			options.AddArgument("--disable-blink-features=AutomationControlled");
+			options.AddArgument("--disable-dev-shm-usage");
+			options.AddArgument("--no-sandbox");
+			options.AddArgument("--disable-gpu");
+			options.AddArgument("--disable-web-security");
+			options.AddArgument("--disable-features=VizDisplayCompositor");
+			options.AddArgument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+			options.AddArgument("--disable-infobars");
+			options.AddExcludedArgument("enable-automation");
 
-		var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(15));
-		wait.Until(webDriver => webDriver.Manage().Cookies.GetCookieNamed("aws-waf-token") != null);
+			using var driver = new EdgeDriver(options);
 
-		var cookies = driver.Manage().Cookies.AllCookies;
-		var cookieDict = new Dictionary<string, string>();
+			var cdpParameters = new Dictionary<string, object>
+			{
+				{ "behavior", "deny" }
+			};
+			driver.ExecuteCdpCommand("Browser.setDownloadBehavior", cdpParameters);
 
-		foreach (var cookie in cookies)
-		{
-			cookieDict[cookie.Name] = cookie.Value;
-		}
+			driver.Navigate().GoToUrl(url);
 
-		return cookieDict;
+			var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(15));
+			wait.Until(webDriver => webDriver.Manage().Cookies.GetCookieNamed("aws-waf-token") != null);
+
+			var cookies = driver.Manage().Cookies.AllCookies;
+			var cookieDict = new Dictionary<string, string>();
+
+			foreach (var cookie in cookies)
+			{
+				cookieDict[cookie.Name] = cookie.Value;
+			}
+
+			return cookieDict;
+		});
 	}
 }

@@ -529,6 +529,10 @@ public static class ApplicationStage
 			// pin zoom to taskbar
 			("Pinning Zoom Workplace to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Microsoft\Windows\Start Menu\Programs\Zoom\Zoom Workplace.lnk")}"""), () => ZoomWorkplace == true),
 
+			// disable zoom service
+			("Disabling Zoom service", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\ZoomCptService", "Start", 3, RegistryValueKind.DWord), () => ZoomWorkplace == true),
+			("Disabling Zoom service", async () => ServicesHelper.StopService("ZoomCptService"), () => ZoomWorkplace == true),
+
 			// download thunderbird
 			("Downloading Thunderbird", async () => await DownloadHelper.Download("https://download.mozilla.org/?product=thunderbird-151.0.1-msi-SSL&os=win64&lang=en-US", Path.GetTempPath(), "Thunderbird Setup.msi", reporter: reporter), () => Thunderbird == true),
 
@@ -538,6 +542,10 @@ public static class ApplicationStage
 
 			// pin thunderbird to taskbar
 			("Pinning Thunderbird to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Microsoft\Windows\Start Menu\Programs\Thunderbird.lnk")}"""), () => Thunderbird == true),
+
+			// disable thunderbird service
+			("Disabling Thunderbird service", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\MozillaMaintenance", "Start", 4, RegistryValueKind.DWord), () => Thunderbird == true),
+			("Disabling Thunderbird service", async () => ServicesHelper.StopService("MozillaMaintenance"), () => Thunderbird == true),
 
 			// download epic games launcher
 			("Downloading Epic Games Launcher", async () => await DownloadHelper.Download("https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", Path.GetTempPath(), "EpicGamesLauncherInstaller.msi", reporter: reporter), () => EpicGames == true),
