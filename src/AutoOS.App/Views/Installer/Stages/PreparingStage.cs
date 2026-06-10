@@ -46,6 +46,7 @@ public static partial class PreparingStage
 	public static bool ReturnYouTubeDislike;
 	public static bool DarkReader;
 	public static bool Shazam;
+	public static bool WaybackMachine;
 	public static bool iCloud;
 	public static bool Bitwarden;
 	public static bool OnePassword;
@@ -211,6 +212,7 @@ public static partial class PreparingStage
 			ReturnYouTubeDislike = (localSettings.Values["Extensions"]?.ToString().Contains("Return YouTube Dislike") ?? false);
 			DarkReader = (localSettings.Values["Extensions"]?.ToString().Contains("Dark Reader") ?? false);
 			Shazam = (localSettings.Values["Extensions"]?.ToString().Contains("Shazam") ?? false);
+			WaybackMachine = (localSettings.Values["Extensions"]?.ToString().Contains("Wayback Machine") ?? false);
 			iCloud = (localSettings.Values["Extensions"]?.ToString().Contains("iCloud Passwords") ?? false);
 			Bitwarden = (localSettings.Values["Extensions"]?.ToString().Contains("Bitwarden") ?? false);
 			OnePassword = (localSettings.Values["Extensions"]?.ToString().Contains("1Password") ?? false);

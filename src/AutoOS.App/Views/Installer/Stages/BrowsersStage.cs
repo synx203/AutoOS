@@ -37,6 +37,7 @@ public class BrowserSelection
 	public bool ReturnYouTubeDislike { get; set; }
 	public bool DarkReader { get; set; }
 	public bool Shazam { get; set; }
+	public bool WaybackMachine { get; set; }
 	public bool iCloud { get; set; }
 	public bool Bitwarden { get; set; }
 	public bool OnePassword { get; set; }
@@ -72,6 +73,7 @@ public static class BrowsersStage
 		bool? ReturnYouTubeDislike = selection?.ReturnYouTubeDislike ?? PreparingStage.ReturnYouTubeDislike;
 		bool? DarkReader = selection?.DarkReader ?? PreparingStage.DarkReader;
 		bool? Shazam = selection?.Shazam ?? PreparingStage.Shazam;
+		bool? WaybackMachine = selection?.WaybackMachine ?? PreparingStage.WaybackMachine;
 		bool? iCloud = selection?.iCloud ?? PreparingStage.iCloud;
 		bool? Bitwarden = selection?.Bitwarden ?? PreparingStage.Bitwarden;
 		bool? OnePassword = selection?.OnePassword ?? PreparingStage.OnePassword;
@@ -175,6 +177,9 @@ public static class BrowsersStage
 			// install shazam extension
 			("Installing Shazam Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\ExtensionInstallForcelist", "mmioliijnhnoblpgimnlajmefafdfilb"), () => Chrome == true && Shazam == true),
 
+			// install wayback machine extension
+			("Installing Wayback Machine Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\ExtensionInstallForcelist", "fpnmgdkabkmnadcjpehmlllkndpkmiak"), () => Chrome == true && WaybackMachine == true),
+
 			// install icloud passwords extension
 			("Installing iCloud Passwords Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\ExtensionInstallForcelist", "pejdijmoenmkgeppbflobdenhhabjlaj"), () => Chrome == true && iCloud == true),
 
@@ -260,6 +265,9 @@ public static class BrowsersStage
 			// install shazam extension
 			("Installing Shazam Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium\ExtensionInstallForcelist", "mmioliijnhnoblpgimnlajmefafdfilb"), () => Thorium == true && Shazam == true),
 
+			// install wayback machine extension
+			("Installing Wayback Machine Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium\ExtensionInstallForcelist", "fpnmgdkabkmnadcjpehmlllkndpkmiak"), () => Thorium == true && WaybackMachine == true),
+
 			// install icloud passwords extension
 			("Installing iCloud Passwords Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium\ExtensionInstallForcelist", "pejdijmoenmkgeppbflobdenhhabjlaj"), () => Thorium == true && iCloud == true),
 
@@ -322,6 +330,9 @@ public static class BrowsersStage
 			
 			// install shazam extension
 			("Installing Shazam Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Helium\ExtensionInstallForcelist", "mmioliijnhnoblpgimnlajmefafdfilb"), () => Helium == true && Shazam == true),
+
+			// install wayback machine extension
+			("Installing Wayback Machine Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Helium\ExtensionInstallForcelist", "fpnmgdkabkmnadcjpehmlllkndpkmiak"), () => Helium == true && WaybackMachine == true),
 
 			// install icloud passwords extension
 			("Installing iCloud Passwords Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Helium\ExtensionInstallForcelist", "pejdijmoenmkgeppbflobdenhhabjlaj"), () => Helium == true && iCloud == true),
@@ -403,6 +414,9 @@ public static class BrowsersStage
 			// install shazam extension
 			("Installing Shazam Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\BraveSoftware\Brave\ExtensionInstallForcelist", "mmioliijnhnoblpgimnlajmefafdfilb"), () => Brave == true && Shazam == true),
 
+			// install wayback machine extension
+			("Installing Wayback Machine Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\BraveSoftware\Brave\ExtensionInstallForcelist", "fpnmgdkabkmnadcjpehmlllkndpkmiak"), () => Brave == true && WaybackMachine == true),
+
 			// install icloud passwords extension
 			("Installing iCloud Passwords Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\BraveSoftware\Brave\ExtensionInstallForcelist", "pejdijmoenmkgeppbflobdenhhabjlaj"), () => Brave == true && iCloud == true),
 
@@ -452,6 +466,9 @@ public static class BrowsersStage
 			
 			// install shazam extension
 			("Installing Shazam Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Vivaldi\ExtensionInstallForcelist", "mmioliijnhnoblpgimnlajmefafdfilb"), () => Vivaldi == true && Shazam == true),
+
+			// install wayback machine extension
+			("Installing Wayback Machine Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Vivaldi\ExtensionInstallForcelist", "fpnmgdkabkmnadcjpehmlllkndpkmiak"), () => Vivaldi == true && WaybackMachine == true),
 
 			// install icloud passwords extension
 			("Installing iCloud Passwords Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Vivaldi\ExtensionInstallForcelist", "pejdijmoenmkgeppbflobdenhhabjlaj"), () => Vivaldi == true && iCloud == true),
@@ -521,6 +538,9 @@ public static class BrowsersStage
 			// install shazam extension
 			("Installing Shazam Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium\ExtensionInstallForcelist", "mmioliijnhnoblpgimnlajmefafdfilb"), () => Arc == true && Shazam == true),
 
+			// install wayback machine extension
+			("Installing Wayback Machine Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium\ExtensionInstallForcelist", "fpnmgdkabkmnadcjpehmlllkndpkmiak"), () => Arc == true && WaybackMachine == true),
+
 			// install icloud passwords extension
 			("Installing iCloud Passwords Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium\ExtensionInstallForcelist", "pejdijmoenmkgeppbflobdenhhabjlaj"), () => Arc == true && iCloud == true),
 
@@ -573,6 +593,9 @@ public static class BrowsersStage
 			
 			// install shazam extension
 			("Installing Shazam Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium\ExtensionInstallForcelist", "mmioliijnhnoblpgimnlajmefafdfilb"), () => Comet == true && Shazam == true),
+
+			// install wayback machine extension
+			("Installing Wayback Machine Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium\ExtensionInstallForcelist", "fpnmgdkabkmnadcjpehmlllkndpkmiak"), () => Comet == true && WaybackMachine == true),
 
 			// install icloud passwords extension
 			("Installing iCloud Passwords Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium\ExtensionInstallForcelist", "pejdijmoenmkgeppbflobdenhhabjlaj"), () => Comet == true && iCloud == true),
@@ -642,6 +665,9 @@ public static class BrowsersStage
 			// install dark reader extension
 			("Installing Dark Reader Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Mozilla Firefox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/darkreader"), () => Firefox == true && DarkReader == true),
 
+			// install wayback machine extension
+			("Installing Wayback Machine Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Mozilla Firefox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/wayback-machine_new"), () => Firefox == true && WaybackMachine == true),
+
 			// install icloud passwords extension
 			("Installing iCloud Passwords Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Mozilla Firefox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/icloud-passwords"), () => Firefox == true && iCloud == true),
 
@@ -697,6 +723,9 @@ public static class BrowsersStage
 
 			// install dark reader extension
 			("Installing Dark Reader Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Zen Browser", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/darkreader"), () => Zen == true && DarkReader == true),
+
+			// install wayback machine extension
+			("Installing Wayback Machine Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Zen Browser", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/wayback-machine_new"), () => Zen == true && WaybackMachine == true),
 
 			// install icloud passwords extension
 			("Installing iCloud Passwords Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Zen Browser", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/icloud-passwords"), () => Zen == true && iCloud == true),
@@ -754,6 +783,9 @@ public static class BrowsersStage
 			// install dark reader extension
 			("Installing Dark Reader Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/darkreader"), () => Waterfox == true && DarkReader == true),
 
+			// install wayback machine extension
+			("Installing Wayback Machine Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/wayback-machine_new"), () => Waterfox == true && WaybackMachine == true),
+
 			// install icloud passwords extension
 			("Installing iCloud Passwords Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Waterfox", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/icloud-passwords"), () => Waterfox == true && iCloud == true),
 
@@ -805,6 +837,9 @@ public static class BrowsersStage
 
 			// install dark reader extension
 			("Installing Dark Reader Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/darkreader"), () => LibreWolf == true && DarkReader == true),
+
+			// install wayback machine extension
+			("Installing Wayback Machine Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/wayback-machine_new"), () => LibreWolf == true && WaybackMachine == true),
 
 			// install icloud passwords extension
 			("Installing iCloud Passwords Extension", async () => UpdatePolicies(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution", "policies.json"), "https://addons.mozilla.org/firefox/downloads/latest/icloud-passwords"), () => LibreWolf == true && iCloud == true),

@@ -53,6 +53,7 @@ public sealed partial class BrowsersPage : Page
 			new() { Text = "Return YouTube Dislike", ImageSource = "ms-appx:///Assets/Fluent/ReturnYouTubeDislike.png" },
 			new() { Text = "Dark Reader", ImageSource = "ms-appx:///Assets/Fluent/Darkreader.png" },
 			new() { Text = "Shazam", ImageSource = "ms-appx:///Assets/Fluent/Shazam.png" },
+			new() { Text = "Wayback Machine", ImageSource = "ms-appx:///Assets/Fluent/WaybackMachine.png" },
 			new() { Text = "iCloud Passwords", ImageSource = "ms-appx:///Assets/Fluent/IcloudPasswords.png" },
 			new() { Text = "Bitwarden", ImageSource = "ms-appx:///Assets/Fluent/Bitwarden.png" },
 			new() { Text = "1Password", ImageSource = "ms-appx:///Assets/Fluent/1Password.png" }

@@ -441,6 +441,7 @@ public static class ApplicationStage
 			("Installing Autoruns", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Autoruns", "Publisher", "Sysinternals", RegistryValueKind.String), () => selection == null),
 			("Installing Autoruns", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = $@"load HKU\DefaultUser ""{Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "NTUSER.DAT")}""", CreateNoWindow = true })!.WaitForExitAsync(), () => selection == null),
 			("Installing Autoruns", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Sysinternals\Autoruns", "EulaAccepted", 1, RegistryValueKind.DWord, true), () => selection == null),
+			("Installing Autoruns", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Sysinternals\Autoruns", "MainWindowPlacement", new byte[] { 0x2c, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff }, RegistryValueKind.Binary, true), () => selection == null),
 			("Installing Autoruns", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = @"unload HKU\DefaultUser", CreateNoWindow = true })!.WaitForExitAsync(), () => selection == null),
 			//("Cleaning up Autoruns files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "Autoruns.zip")), () => selection == null),
 
@@ -1386,6 +1387,9 @@ public static class ApplicationStage
 			("Installing WinMerge", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "WinMerge-x64-Setup.exe"), Arguments = "/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => WinMerge == true),
 			("Cleaning up WinMerge files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "WinMerge-x64-Setup.exe")), () => WinMerge == true),
 
+			// set winmerge color mode to follow system
+			(@"Setting WinMerge ""Color mode"" to ""Follow system""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Thingamahoochie\WinMerge\Settings", "ColorMode", 2, RegistryValueKind.DWord), () => WinMerge == true),
+
 			// download git
 			("Downloading Git", async () => await DownloadHelper.Download(JsonDocument.Parse(await new HttpClient { DefaultRequestHeaders = { { "User-Agent", "AutoOS" } } }.GetStringAsync("https://api.github.com/repos/git-for-windows/git/releases")).RootElement.EnumerateArray().First(release => release.GetProperty("assets").EnumerateArray().Any(asset => asset.GetProperty("name").GetString().Contains("64-bit.exe"))).GetProperty("assets").EnumerateArray().First(asset => asset.GetProperty("name").GetString().Contains("64-bit.exe")).GetProperty("browser_download_url").GetString(), Path.GetTempPath(), "Git64-bit.exe", reporter: reporter), () => Git == true),
 
@@ -1450,11 +1454,11 @@ public static class ApplicationStage
 			("Please log in to your Trello account (Close to continue)", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WindowsApps", $"45273LiamForsyth.PawsforTrello_{trelloVersion}_x64__7pb5ddty8z1pa", "app", "Trello.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => Trello == true),
 			
 			// download hwinfo
-            ("Downloading HWiNFO® 64", async () => await DownloadHelper.Download("https://www.hwinfo.com/files/hwi64_848.exe", Path.GetTempPath(), "hwi64.exe", reporter: reporter), () => HWInfo == true),
+            ("Downloading HWiNFO® 64", async () => await DownloadHelper.Download("https://www.sac.sk/download/utildiag/hwi_848x.exe", Path.GetTempPath(), "hwi64.exe", reporter: reporter), () => HWInfo == true),
 
             // install hwinfo
-            ("Installing HWiNFO® 64", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "hwi64.exe"), Arguments = "" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => HWInfo == true),
-			("Installing HWiNFO® 64", async () => { foreach (Process process in Process.GetProcessesByName("hwi64")) { process.Kill(); process.WaitForExit(); } }, () => HWInfo == true),
+            ("Installing HWiNFO® 64", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "hwi64.exe"), Arguments = "/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => HWInfo == true),
+			("Installing HWiNFO® 64", async () => { while (Process.GetProcessesByName("HWiNFO64").Length == 0) await Task.Delay(100); foreach (Process process in Process.GetProcessesByName("HWiNFO64")) { process.Kill(); process.WaitForExit(); } }, () => HWInfo == true),
 			("Cleaning up HWiNFO® 64", async () => File.Delete(Path.Combine(Path.GetTempPath(), "hwi64.exe")), () => HWInfo == true),
 
 			// download zentimings
@@ -1463,20 +1467,20 @@ public static class ApplicationStage
 			// install zentimings
 			("Installing ZenTimings", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "ZenTimings.zip"), Path.Combine(Path.GetTempPath(), "ZenTimings")), () => ZenTimings == true),
 			("Installing ZenTimings", async () => Directory.Move(Path.Combine(Path.GetTempPath(), "ZenTimings", "ZenTimings_v1.39"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "ZenTimings")), () => ZenTimings == true),
-			("Installing ZenTimings", async () => ShortcutHelper.Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "ZenTimings", "ZenTimings.exe"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "ZenTimings.lnk")), () => ZenTimings == true),
+			("Installing ZenTimings", async () => ShortcutHelper.Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "ZenTimings.lnk"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "ZenTimings", "ZenTimings.exe")), () => ZenTimings == true),
 			("Installing ZenTimings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZenTimings", "DisplayName", "ZenTimings", RegistryValueKind.String), () => ZenTimings == true),
 			("Installing ZenTimings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZenTimings", "UninstallString", $@"cmd /c rd /s /q ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "ZenTimings")}"" & del ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Microsoft\Windows\Start Menu\Programs\ZenTimings.lnk")}"" & reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZenTimings"" /f", RegistryValueKind.String), () => ZenTimings == true),
 			("Installing ZenTimings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZenTimings", "DisplayIcon", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"ZenTimings\ZenTimings.exe"), RegistryValueKind.String), () => ZenTimings == true),
 			("Installing ZenTimings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZenTimings", "Publisher", "Irusanov", RegistryValueKind.String), () => ZenTimings == true),
-			("Installing ZenTimings", async () => await Task.Delay(500), () => ZenTimings == true),
 			("Cleaning up ZenTimings files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "ZenTimings.zip")), () => ZenTimings == true),
+			("Cleaning up ZenTimings files", async () => Directory.Delete(Path.Combine(Path.GetTempPath(), "ZenTimings")), () => ZenTimings == true),
 
 			// download prime95
 			("Downloading Prime95", async () => await DownloadHelper.Download("https://download.mersenne.ca/gimps/v30/30.19/p95v3019b20.win64.zip", Path.GetTempPath(), "Prime95.zip"), () => Prime95 == true),
 
 			// install prime95
 			("Installing Prime95", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "Prime95.zip"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Prime95")), () => Prime95 == true),
-			("Installing Prime95", async () => ShortcutHelper.Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Prime95", "prime95.exe"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Prime95.lnk")), () => Prime95 == true),
+			("Installing Prime95", async () => ShortcutHelper.Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Prime95.lnk"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Prime95", "prime95.exe")), () => Prime95 == true),
 			("Installing Prime95", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Prime95", "DisplayName", "Prime95", RegistryValueKind.String), () => Prime95 == true),
 			("Installing Prime95", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Prime95", "UninstallString", $@"cmd /c rd /s /q ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Prime95")}"" & del ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Microsoft\Windows\Start Menu\Programs\Prime95.lnk")}"" & reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Prime95"" /f", RegistryValueKind.String), () => Prime95 == true),
 			("Installing Prime95", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Prime95", "DisplayIcon", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Prime95\prime95.exe"), RegistryValueKind.String), () => Prime95 == true),
@@ -1489,7 +1493,7 @@ public static class ApplicationStage
 			// install occt
 			("Installing OCCT", async () => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "OCCT")), () => OCCT == true),
 			("Installing OCCT", async () => File.Move(Path.Combine(Path.GetTempPath(), "OCCT.exe"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "OCCT", "OCCT.exe"), true), () => OCCT == true),
-			("Installing OCCT", async () => ShortcutHelper.Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "OCCT", "OCCT.exe"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "OCCT.lnk")), () => OCCT == true),
+			("Installing OCCT", async () => ShortcutHelper.Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "OCCT.lnk"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "OCCT", "OCCT.exe")), () => OCCT == true),
 			("Installing OCCT", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\OCCT", "DisplayName", "OCCT", RegistryValueKind.String), () => OCCT == true),
 			("Installing OCCT", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\OCCT", "UninstallString", $@"cmd /c rd /s /q ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "OCCT")}"" & del ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Microsoft\Windows\Start Menu\Programs\OCCT.lnk")}"" & reg delete ""HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\OCCT"" /f", RegistryValueKind.String), () => OCCT == true),
 			("Installing OCCT", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\OCCT", "DisplayIcon", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"OCCT\OCCT.exe"), RegistryValueKind.String), () => OCCT == true),
