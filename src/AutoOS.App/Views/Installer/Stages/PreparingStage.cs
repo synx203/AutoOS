@@ -113,10 +113,10 @@ public static partial class PreparingStage
 	public static bool Go;
 	public static bool Trello;
 
-	public static bool ZenTimings;
-	public static bool OCCT;
 	public static bool HWInfo;
+	public static bool ZenTimings;
 	public static bool Prime95;
+	public static bool OCCT;
 
 	public static bool Word;
 	public static bool Excel;
@@ -272,10 +272,10 @@ public static partial class PreparingStage
 			Go = (localSettings.Values["Development"]?.ToString().Contains("Go") ?? false);
 			Trello = (localSettings.Values["Development"]?.ToString().Contains("Trello") ?? false);
 
-			ZenTimings = (localSettings.Values["Overclocking"]?.ToString().Contains("ZenTimings") ?? false);
-			OCCT = (localSettings.Values["Overclocking"]?.ToString().Contains("OCCT") ?? false);
 			HWInfo = (localSettings.Values["Overclocking"]?.ToString().Contains("HWiNFO® 64") ?? false);
+			ZenTimings = (localSettings.Values["Overclocking"]?.ToString().Contains("ZenTimings") ?? false);
 			Prime95 = (localSettings.Values["Overclocking"]?.ToString().Contains("Prime95") ?? false);
+			OCCT = (localSettings.Values["Overclocking"]?.ToString().Contains("OCCT") ?? false);
 
 			Word = (localSettings.Values["Office"]?.ToString().Contains("Word") ?? false);
 			Excel = (localSettings.Values["Office"]?.ToString().Contains("Excel") ?? false);

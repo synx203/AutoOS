@@ -5,14 +5,14 @@ namespace AutoOS.Views.Installer;
 
 public sealed partial class ApplicationsPage : Page
 {
-	private bool isInitializingOfficeState = true;
-	private bool isInitializingDevelopmentState = true;
-	private bool isInitializingOverclockingState = true;
+	private bool isInitializingMessagingState = true;
+	private bool isInitializingLaunchersState = true;
 	private bool isInitializingMusicState = true;
 	private bool isInitializingPeripheralsState = true;
 	private bool isInitializingControllersState = true;
-	private bool isInitializingMessagingState = true;
-	private bool isInitializingLaunchersState = true;
+	private bool isInitializingDevelopmentState = true;
+	private bool isInitializingOverclockingState = true;
+	private bool isInitializingOfficeState = true;
 	private bool isInitializingMiscellaneousState = true;
 
 	private readonly ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
@@ -118,10 +118,10 @@ public sealed partial class ApplicationsPage : Page
 
 		Overclocking.ItemsSource = new List<GridViewItem>
 		{
-			new() { Text = "ZenTimings", ImageSource = "ms-appx:///Assets/Fluent/ZenTimings.png" },
-			new() { Text = "OCCT", ImageSource = "ms-appx:///Assets/Fluent/OCCT.png" },
 			new() { Text = "HWiNFO® 64", ImageSource = "ms-appx:///Assets/Fluent/HWInfo.png" },
+			new() { Text = "ZenTimings", ImageSource = "ms-appx:///Assets/Fluent/ZenTimings.png" },
 			new() { Text = "Prime95", ImageSource = "ms-appx:///Assets/Fluent/Prime95.png" },
+			new() { Text = "OCCT", ImageSource = "ms-appx:///Assets/Fluent/OCCT.png" }
 		};
 
 		Office.ItemsSource = new List<GridViewItem>
