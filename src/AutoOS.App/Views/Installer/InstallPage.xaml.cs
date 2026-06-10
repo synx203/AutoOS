@@ -76,10 +76,9 @@ public sealed partial class InstallPage : Page
 		}
 		currentStageCounter = 1;
 		await RunStage("Configuring Powerplans...", PowerStage.GetActions(), 5);
-		await RunStage("Configuring Registry...", RegistryStage.GetActions(), 5);
 		await RunStage("Configuring Security...", await SecurityStage.GetActions(), 5);
 		await RunStage("Configuring Windows Activation...", ActivationStage.GetActions(), 2);
-		await RunStage("Configuring Graphics Cards...", await GraphicsStage.GetActions(), 5);
+		await RunStage("Configuring Graphics Cards...", await GraphicsStage.GetActions(), 10);
 		await RunStage("Configuring Network Adapters...", NetworkStage.GetActions(), 5);
 		await RunStage("Configuring Audio Devices...", AudioStage.GetActions(), 5);
 		await RunStage("Configuring Affinities...", SchedulingStage.GetActions(), 5);

@@ -54,17 +54,10 @@ public static partial class RegistryHelper
 			{
 				if (sc.Status != ServiceControllerStatus.Running)
 				{
-					try
-					{
-						sc.Start();
-					}
-					catch
-					{
-						ServicesHelper.SetStartupType("seclogon", SERVICE_START_TYPE.SERVICE_DEMAND_START);
-						sc.Start();
-					}
+					ServicesHelper.SetStartupType("seclogon", SERVICE_START_TYPE.SERVICE_DEMAND_START);
+					sc.Start();
+					sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(5));
 				}
-				sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(10));
 			}
 
 			var si = new STARTUPINFOW();
@@ -101,8 +94,8 @@ public static partial class RegistryHelper
 			}
 		});
 	}
-	
-	public static void SetValue(Identity identity, string keyPath, string valueName, object value, RegistryValueKind valueKind = RegistryValueKind.Unknown)
+
+	public static void SetValue(Identity identity, string keyPath, string valueName, object value, RegistryValueKind valueKind = RegistryValueKind.Unknown, bool applyToDefault = false)
 	{
 		RunAs(identity, () =>
 		{
@@ -124,6 +117,19 @@ public static partial class RegistryHelper
 					key.SetValue(valueName, value);
 				else
 					key.SetValue(valueName, value, valueKind);
+			}
+
+			if (applyToDefault && identity == Identity.CurrentUser)
+			{
+				var (defaultRoot, defaultSubKeyPath) = ParseKeyPath(keyPath.Replace("HKEY_CURRENT_USER", @"HKEY_USERS\DefaultUser"));
+				using var defaultKey = defaultRoot.CreateSubKey(defaultSubKeyPath, true);
+				if (defaultKey != null)
+				{
+					if (valueKind == RegistryValueKind.Unknown)
+						defaultKey.SetValue(valueName, value);
+					else
+						defaultKey.SetValue(valueName, value, valueKind);
+				}
 			}
 		});
 	}
@@ -202,22 +208,22 @@ public static partial class RegistryHelper
 	}
 
 	private static (RegistryKey root, string subKey) ParseKeyPath(string fullPath)
-			{
+	{
 		int firstBackslash = fullPath.IndexOf('\\');
 		if (firstBackslash == -1) return (null!, fullPath);
 
 		string rootName = fullPath.Substring(0, firstBackslash).ToUpperInvariant();
 		string subKey = fullPath.Substring(firstBackslash + 1);
 
-			RegistryKey root = rootName switch
-			{
-				"HKEY_CURRENT_USER" or "HKCU" => Microsoft.Win32.Registry.CurrentUser,
-				"HKEY_LOCAL_MACHINE" or "HKLM" => Microsoft.Win32.Registry.LocalMachine,
-				"HKEY_CLASSES_ROOT" or "HKCR" => Microsoft.Win32.Registry.ClassesRoot,
-				"HKEY_USERS" or "HKU" => Microsoft.Win32.Registry.Users,
-				"HKEY_CURRENT_CONFIG" or "HKCC" => Microsoft.Win32.Registry.CurrentConfig,
-				_ => throw new ArgumentException($"Unsupported registry root: {rootName}")
-			};
+		RegistryKey root = rootName switch
+		{
+			"HKEY_CURRENT_USER" or "HKCU" => Microsoft.Win32.Registry.CurrentUser,
+			"HKEY_LOCAL_MACHINE" or "HKLM" => Microsoft.Win32.Registry.LocalMachine,
+			"HKEY_CLASSES_ROOT" or "HKCR" => Microsoft.Win32.Registry.ClassesRoot,
+			"HKEY_USERS" or "HKU" => Microsoft.Win32.Registry.Users,
+			"HKEY_CURRENT_CONFIG" or "HKCC" => Microsoft.Win32.Registry.CurrentConfig,
+			_ => throw new ArgumentException($"Unsupported registry root: {rootName}")
+		};
 
 		return (root, subKey);
 	}
@@ -265,7 +271,7 @@ public static partial class RegistryHelper
 		{
 			if (!PInvoke.DuplicateTokenEx(hToken, (TOKEN_ACCESS_MASK)0x01FF, null, SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, TOKEN_TYPE.TokenPrimary, out SafeFileHandle hNewToken))
 				throw new Win32Exception(Marshal.GetLastWin32Error());
-			
+
 			IntPtr handle = hNewToken.DangerousGetHandle();
 			hNewToken.SetHandleAsInvalid();
 			return new SafeAccessTokenHandle(handle);
@@ -297,7 +303,7 @@ public static partial class RegistryHelper
 			{
 				if (!PInvoke.DuplicateTokenEx(tiToken, (TOKEN_ACCESS_MASK)0x01FF, null, SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, TOKEN_TYPE.TokenPrimary, out SafeFileHandle hNewToken))
 					throw new Win32Exception(Marshal.GetLastWin32Error());
-				
+
 				IntPtr handle = hNewToken.DangerousGetHandle();
 				hNewToken.SetHandleAsInvalid();
 				return new SafeAccessTokenHandle(handle);

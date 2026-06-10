@@ -99,35 +99,35 @@ public static partial class AmdHelper
 		var actions = new List<(string Title, Func<Task> Action, Func<bool> Condition)>
 		{
 			// accept eula
-			("Accepting EULA", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\DisplayOverride", "EulaAccepted", "true", RegistryValueKind.String), null),
+			("Accepting EULA", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\DisplayOverride", "EulaAccepted", "true", RegistryValueKind.String, true), null),
 
 			// settings -> system
-			(@"Disabling ""Issue detection""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\AIM", "LaunchBugTool", 0, RegistryValueKind.DWord), null),
+			(@"Disabling ""Issue detection""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\AIM", "LaunchBugTool", 0, RegistryValueKind.DWord, true), null),
 
 			// settings -> hotkeys
-			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\R3DBk", "ChillHk", 4730, RegistryValueKind.DWord), null),
-			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "ChillHk", 4730, RegistryValueKind.DWord), null),
-			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\R3DBk", "DelagHk", 4684, RegistryValueKind.DWord), null),
-			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "DelagHk", 4684, RegistryValueKind.DWord), null),
-			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\R3DBk", "BoostHk", 4683, RegistryValueKind.DWord), null),
-			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "BoostHk", 4683, RegistryValueKind.DWord), null),
-			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\R3DBk", "DelagBoostIndicatorHk", 1053260, RegistryValueKind.DWord), null),
-			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "DelagBoostIndicatorHk", 1053260, RegistryValueKind.DWord), null),
-			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\DVR", "HotkeysDisabled", 1, RegistryValueKind.DWord), null),
+			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\R3DBk", "ChillHk", 4730, RegistryValueKind.DWord, true), null),
+			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "ChillHk", 4730, RegistryValueKind.DWord, true), null),
+			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\R3DBk", "DelagHk", 4684, RegistryValueKind.DWord, true), null),
+			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "DelagHk", 4684, RegistryValueKind.DWord, true), null),
+			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\R3DBk", "BoostHk", 4683, RegistryValueKind.DWord, true), null),
+			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "BoostHk", 4683, RegistryValueKind.DWord, true), null),
+			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\R3DBk", "DelagBoostIndicatorHk", 1053260, RegistryValueKind.DWord, true), null),
+			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "DelagBoostIndicatorHk", 1053260, RegistryValueKind.DWord, true), null),
+			(@"Disabling ""Use Hotkeys""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\DVR", "HotkeysDisabled", 1, RegistryValueKind.DWord, true), null),
 
 			// settings -> general
-			(@"Disabling ""In-Game Overlay""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\DVR", "ShowRSOverlay", "false", RegistryValueKind.String), null),
-			(@"Disabling ""In-Game Overlay""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\Performance", "MetricsOverlayState", 0, RegistryValueKind.DWord), null),
-			(@"Disabling ""Web Browser""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "AllowWebContent", "false", RegistryValueKind.String), null),
-			(@"Disabling ""Web Browser""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "RSXBrowserUnavailable", "true", RegistryValueKind.String), null), // older versions not sure
-			(@"Disabling ""System Tray Menu""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "SystemTray", "false", RegistryValueKind.String), null),
-			(@"Disabling ""Tutorials""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "CN_Hide_Tutorials", "true", RegistryValueKind.String), null),
-			(@"Disabling ""Advertisements""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "CN_Hide_FeatureData", "true", RegistryValueKind.String), null),
-			(@"Disabling ""Toast Notifications""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "CN_Hide_Toast_Notification", "true", RegistryValueKind.String), null),
-			(@"Disabling ""Animations & effects""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "AnimationEffect", "false", RegistryValueKind.String), null),
+			(@"Disabling ""In-Game Overlay""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\DVR", "ShowRSOverlay", "false", RegistryValueKind.String, true), null),
+			(@"Disabling ""In-Game Overlay""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN\Performance", "MetricsOverlayState", 0, RegistryValueKind.DWord, true), null),
+			(@"Disabling ""Web Browser""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "AllowWebContent", "false", RegistryValueKind.String, true), null),
+			(@"Disabling ""Web Browser""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "RSXBrowserUnavailable", "true", RegistryValueKind.String, true), null), // older versions not sure
+			(@"Disabling ""System Tray Menu""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "SystemTray", "false", RegistryValueKind.String, true), null),
+			(@"Disabling ""Tutorials""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "CN_Hide_Tutorials", "true", RegistryValueKind.String, true), null),
+			(@"Disabling ""Advertisements""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "CN_Hide_FeatureData", "true", RegistryValueKind.String, true), null),
+			(@"Disabling ""Toast Notifications""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "CN_Hide_Toast_Notification", "true", RegistryValueKind.String, true), null),
+			(@"Disabling ""Animations & effects""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "AnimationEffect", "false", RegistryValueKind.String, true), null),
 
 			// set theme to system
-			(@"Setting ""Theme"" to ""System""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "RSXColorScheme", 0, RegistryValueKind.DWord), null),
+			(@"Setting ""Theme"" to ""System""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\AMD\CN", "RSXColorScheme", 0, RegistryValueKind.DWord, true), null),
 
 			// disable "radeon™ super resolution"
 			(@"Disabling ""Radeon™ Super Resolution""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, gpu.RegistryPath, "KMD_RadeonUpscalingEnabled", 0, RegistryValueKind.DWord), null),

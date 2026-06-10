@@ -125,12 +125,6 @@ public static class SecurityStage
 			// remove "securityhealthsystray" from startup
 			(@"Removing ""SecurityHealthSystray"" from startup", async () => RegistryHelper.DeleteValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run", "SecurityHealth"), null),
 
-			// enable "do not preserve zone information in file attachments"
-			(@"Enabling ""Do not preserve zone information in file attachments""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments", "SaveZoneInformation", 1, RegistryValueKind.DWord), null),
-			
-			// set "inclusion list for moderate risk file types"" policy to ".bat;.cmd;.vbs;.ps1;.reg;.js;.exe;.msi;"
-			(@"Setting ""Inclusion list for moderate risk file types"" policy to "".bat;.cmd;.vbs;.ps1;.reg;.js;.exe;.msi;""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Associations", "ModRiskFileTypes", ".bat;.cmd;.vbs;.reg;.js;.exe;.msi;", RegistryValueKind.String), null),
-
 			// set execution policy to unrestricted
 			("Setting execution policy to unrestricted", async () => await ProcessActions.RunPowerShell("Set-ExecutionPolicy Unrestricted -Force"), null),
 
