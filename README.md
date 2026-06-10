@@ -70,7 +70,7 @@ Pressing **Install AutoOS** in the **AutoOS Installer** does the following:
 - Disables some unneeded Optional Features
 - Removes some unneeded Capabilities
 - Uninstalls and deprovisions unneeded AppX packages and updates all installed AppX to their latest version
-- Installs Visual C++ Redistributable, Microsoft Edge WebView2, .NET 10 Desktop Runtime, Microsoft Windows App Runtime and DirectX
+- Installs Visual C++ Redistributable, Microsoft Edge WebView2, .NET Desktop Runtimes, Microsoft Windows App Runtime and DirectX
 - Installs selected Browsers with selected Browser Extensions
 - Installs additional Image / Video Extensions
 - Installs NanaZip, Everything, StartAllBack and Windhawk with Mods for Start Menu, Taskbar, File Explorer etc.

@@ -28,6 +28,20 @@ public static class RuntimesStage
 			("Installing Microsoft Edge WebView2 Runtime", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MicrosoftEdgeUpdate.exe", "Debugger", @"%windir%\System32\taskkill.exe", RegistryValueKind.String), null),
 			("Cleaning up Microsoft Edge WebView2 Runtime files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "MicrosoftEdgeWebView2RuntimeInstallerX64.exe")), null),
 
+			// download .net 6 desktop runtime
+			("Downloading .NET 6 Desktop Runtime", async () => await DownloadHelper.Download("https://aka.ms/dotnet/8.0/windowsdesktop-runtime-win-x64.exe", Path.GetTempPath(), "windowsdesktop-runtime-win-x64.exe", new InstallPageReporter()), null),
+
+			// install .net 6 desktop runtime
+			("Installing .NET 6 Desktop Runtime", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "windowsdesktop-runtime-win-x64.exe"), Arguments = "/install /quiet /norestart" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), null),
+			("Cleaning up .NET 6 Desktop Runtime files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "windowsdesktop-runtime-win-x64.exe")), null),
+
+			// download .net 8 desktop runtime
+			("Downloading .NET 8 Desktop Runtime", async () => await DownloadHelper.Download("https://aka.ms/dotnet/8.0/windowsdesktop-runtime-win-x64.exe", Path.GetTempPath(), "windowsdesktop-runtime-win-x64.exe", new InstallPageReporter()), null),
+
+			// install .net 8 desktop runtime
+			("Installing .NET 8 Desktop Runtime", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "windowsdesktop-runtime-win-x64.exe"), Arguments = "/install /quiet /norestart" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), null),
+			("Cleaning up .NET 8 Desktop Runtime files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "windowsdesktop-runtime-win-x64.exe")), null),
+
 			// download .net 10 desktop runtime
 			("Downloading .NET 10 Desktop Runtime", async () => await DownloadHelper.Download("https://aka.ms/dotnet/10.0/windowsdesktop-runtime-win-x64.exe", Path.GetTempPath(), "windowsdesktop-runtime-win-x64.exe", new InstallPageReporter()), null),
 
