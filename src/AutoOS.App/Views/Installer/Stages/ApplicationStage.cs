@@ -399,8 +399,8 @@ public static class ApplicationStage
 			("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings", "ScheduleMode", scheduleMode, RegistryValueKind.String), () => selection == null),
 			("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings", "CustomLight", LightTime, RegistryValueKind.String), () => selection == null),
 			("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings", "CustomDark", DarkTime, RegistryValueKind.String), () => selection == null),
-			("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\taskbar-fluent-media-player\Settings", "MainSettings.PlayerSetting.position", "tray_left", RegistryValueKind.String), () => LeftTaskbarAlignment == true),
-			("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\taskbar-notification-icons-show-all", "Disabled", 1, RegistryValueKind.DWord), () => AlwaysShowTrayIcons == false),
+			("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\taskbar-fluent-media-player\Settings", "MainSettings.PlayerSetting.position", "tray_left", RegistryValueKind.String), () => selection == null && LeftTaskbarAlignment == true),
+			("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\taskbar-notification-icons-show-all", "Disabled", 1, RegistryValueKind.DWord), () => selection == null && AlwaysShowTrayIcons == false),
 			("Installing Windhawk", async () => ShortcutHelper.Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Windhawk.lnk"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Windhawk", "windhawk.exe")), () => selection == null),
 			("Installing Windhawk", async () => ShortcutHelper.Create(Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Roaming", "Microsoft", "Windows", "Start Menu", "Programs", "Windhawk.lnk"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Windhawk", "windhawk.exe")), () => selection == null),
 			("Installing Windhawk", async () => ServicesHelper.CreateService("Windhawk", $@"""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Windhawk", "windhawk.exe")}"" -service"), () => selection == null),
@@ -1700,7 +1700,7 @@ public static class ApplicationStage
 		
 			// disable anydesk startup entries 
 			("Disabling AnyDesk startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AnyDesk", "Start", 4, RegistryValueKind.DWord), () => AnyDesk == true),
-            ("Disabling AnyDesk startup entries", async () => ServicesHelper.StopService("AnyDesk"), () => AnyDesk == true),
+			("Disabling AnyDesk startup entries", async () => ServicesHelper.StopService("AnyDesk"), () => AnyDesk == true),
 			("Disabling AnyDesk startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder", "AnyDesk.lnk", new byte[] { 0x03 }, RegistryValueKind.Binary), () => AnyDesk == true),
 
 			// download apollo
