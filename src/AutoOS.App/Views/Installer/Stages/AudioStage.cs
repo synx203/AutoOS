@@ -3,6 +3,7 @@ using AutoOS.Core.Helpers.Device;
 using AutoOS.Core.Helpers.Download;
 using AutoOS.Core.Helpers.Extract;
 using AutoOS.Core.Helpers.Registry;
+using AutoOS.Core.Helpers.Services;
 using Microsoft.Win32;
 using System.Diagnostics;
 
@@ -48,6 +49,8 @@ public static class AudioStage
 
 			// install dolby ac-3 feature on demand
 			("Installing Dolby AC-3 Feature on Demand", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "Dolby-AC-3-FoD.zip"), Path.Combine(Path.GetTempPath(), "Dolby-AC-3-FoD")), null),
+			("Installing Dolby AC-3 Feature on Demand", async () => ServicesHelper.StopService("TiWorker"), null),
+			("Installing Dolby AC-3 Feature on Demand", async () => ServicesHelper.StopService("TrustedInstaller"), null),
 			("Installing Dolby AC-3 Feature on Demand", async () => await Process.Start(new ProcessStartInfo { FileName = "dism.exe", Arguments = $@"/online /Add-Package /PackagePath:""{Path.Combine(Path.GetTempPath(), @"Dolby-AC-3-FoD\update.mum")}"" /norestart", UseShellExecute = false, CreateNoWindow = true })!.WaitForExitAsync(), null),
 			("Cleaning up Dolby AC-3 Feature on Demand files", async () => { var zipPath = Path.Combine(Path.GetTempPath(), "Dolby-AC-3-FoD.zip"); if (File.Exists(zipPath)) File.Delete(zipPath); }, null),
 			("Cleaning up Dolby AC-3 Feature on Demand files", async () => { var dirPath = Path.Combine(Path.GetTempPath(), "Dolby-AC-3-FoD"); if (Directory.Exists(dirPath)) Directory.Delete(dirPath, true); }, null)

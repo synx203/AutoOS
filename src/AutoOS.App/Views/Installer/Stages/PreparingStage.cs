@@ -24,7 +24,7 @@ public static partial class PreparingStage
 	public static string DarkTime = string.Empty;
 	public static bool LegacyContextMenu;
 	public static bool AlwaysShowTrayIcons;
-	public static bool TaskbarAlignment;
+	public static bool LeftTaskbarAlignment;
 	public static bool Chrome;
 	public static bool Thorium;
 	public static bool Helium;
@@ -188,7 +188,7 @@ public static partial class PreparingStage
 
 			LegacyContextMenu = (localSettings.Values["LegacyContextMenu"]?.ToString() == "1");
 			AlwaysShowTrayIcons = (localSettings.Values["AlwaysShowTrayIcons"]?.ToString() == "1");
-			TaskbarAlignment = (localSettings.Values["TaskbarAlignment"]?.ToString() == "Left");
+			LeftTaskbarAlignment = (localSettings.Values["LeftTaskbarAlignment"]?.ToString() == "1");
 
 			Chrome = (localSettings.Values["Browsers"]?.ToString().Contains("Chrome") ?? false);
 			Thorium = (localSettings.Values["Browsers"]?.ToString().Contains("Thorium") ?? false);

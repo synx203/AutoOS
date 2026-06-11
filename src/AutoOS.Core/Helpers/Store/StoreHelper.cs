@@ -55,6 +55,11 @@ public static partial class StoreHelper
 		try
 		{
 			var files = await GetFiles(identifier, category, index);
+			if (files.Count == 0)
+			{
+				await LogHelper.LogError(new Exception($"[StoreHelper] No files found for {identifier}"), actionTitle: $"[StoreHelper] Download failed for {identifier}");
+				return;
+			}
 			var main = files.First();
 			Debug.WriteLine($"[StoreHelper] Selected Package: {main.Name}");
 

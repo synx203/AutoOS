@@ -91,7 +91,7 @@ namespace AutoOS.Views.Settings
 				RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Start", "AllAppsViewMode", 2, RegistryValueKind.DWord);
 				RegistryHelper.DeleteKey(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FeatureManagement\Overrides\8\3036241548");
 
-				if (ubr >= 8521 && (Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\windows-11-start-menu-styler", "Version", null) as string) != "1.6")
+				if (Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\windows-11-start-menu-styler", "Version", null) as string != "1.6")
 				{
 					var restartDialog = new ContentDialog
 					{
@@ -115,6 +115,16 @@ namespace AutoOS.Views.Settings
 					}
 					return;
 				}
+			}
+
+			// enable "low latency profile"
+			if (ubr >= 8524)
+			{
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\FeatureManagement\Overrides\8\3650112648", "EnabledState", 2, RegistryValueKind.DWord);
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\FeatureManagement\Overrides\8\3650112648", "EnabledStateOptions", 0, RegistryValueKind.DWord);
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\FeatureManagement\Overrides\8\3650112648", "Variant", 0, RegistryValueKind.DWord);
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\FeatureManagement\Overrides\8\3650112648", "VariantPayload", 0, RegistryValueKind.DWord);
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\FeatureManagement\Overrides\8\3650112648", "VariantPayloadKind", 0, RegistryValueKind.DWord);
 			}
 
 			Version currentVersion = new(ProcessInfoHelper.Version);

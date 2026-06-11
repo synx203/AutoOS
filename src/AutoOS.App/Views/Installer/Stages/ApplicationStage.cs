@@ -12,6 +12,7 @@ using AutoOS.Core.Helpers.Store;
 using AutoOS.Core.Helpers.TaskScheduler;
 using AutoOS.Views.Installer.Actions;
 using Microsoft.Win32;
+using Microsoft.VisualBasic.FileIO;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -118,6 +119,7 @@ public static class ApplicationStage
 		bool Bitwarden = selection?.Bitwarden ?? PreparingStage.Bitwarden;
 		bool OnePassword = selection?.OnePassword ?? PreparingStage.OnePassword;
 		bool AlwaysShowTrayIcons = selection != null ? true : PreparingStage.AlwaysShowTrayIcons;
+		bool LeftTaskbarAlignment = selection != null ? true : PreparingStage.LeftTaskbarAlignment;
 
 		bool Discord = selection?.Discord ?? PreparingStage.Discord;
 		bool DiscordAccount = selection != null ? false : PreparingStage.DiscordAccount;
@@ -235,9 +237,8 @@ public static class ApplicationStage
 			("Optimizing Notepad settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_USERS\TEMP\LocalState", "WordWrap", RegistryHelper.ApplicationDataBoolean, new byte[] { 0x00, 0xce, 0x88, 0x91, 0xac, 0x84, 0x8c, 0xdc, 0x01 }), () => selection == null),
 			("Optimizing Notepad settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_USERS\TEMP\LocalState", "SpellCheckState", RegistryHelper.ApplicationDataString, new byte[] { 0x7b, 0x00, 0x22, 0x00, 0x45, 0x00, 0x6e, 0x00, 0x61, 0x00, 0x62, 0x00, 0x6c, 0x00, 0x65, 0x00, 0x64, 0x00, 0x22, 0x00, 0x3a, 0x00, 0x66, 0x00, 0x61, 0x00, 0x6c, 0x00, 0x73, 0x00, 0x65, 0x00, 0x2c, 0x00, 0x22, 0x00, 0x46, 0x00, 0x69, 0x00, 0x6c, 0x00, 0x65, 0x00, 0x45, 0x00, 0x78, 0x00, 0x74, 0x00, 0x65, 0x00, 0x6e, 0x00, 0x73, 0x00, 0x69, 0x00, 0x6f, 0x00, 0x6e, 0x00, 0x73, 0x00, 0x4f, 0x00, 0x76, 0x00, 0x65, 0x00, 0x72, 0x00, 0x72, 0x00, 0x69, 0x00, 0x64, 0x00, 0x65, 0x00, 0x73, 0x00, 0x22, 0x00, 0x3a, 0x00, 0x5b, 0x00, 0x5b, 0x00, 0x22, 0x00, 0x2e, 0x00, 0x6d, 0x00, 0x64, 0x00, 0x22, 0x00, 0x2c, 0x00, 0x74, 0x00, 0x72, 0x00, 0x75, 0x00, 0x65, 0x00, 0x5d, 0x00, 0x2c, 0x00, 0x5b, 0x00, 0x22, 0x00, 0x2e, 0x00, 0x61, 0x00, 0x73, 0x00, 0x73, 0x00, 0x22, 0x00, 0x2c, 0x00, 0x74, 0x00, 0x72, 0x00, 0x75, 0x00, 0x65, 0x00, 0x5d, 0x00, 0x2c, 0x00, 0x5b, 0x00, 0x22, 0x00, 0x2e, 0x00, 0x6c, 0x00, 0x69, 0x00, 0x63, 0x00, 0x22, 0x00, 0x2c, 0x00, 0x74, 0x00, 0x72, 0x00, 0x75, 0x00, 0x65, 0x00, 0x5d, 0x00, 0x2c, 0x00, 0x5b, 0x00, 0x22, 0x00, 0x2e, 0x00, 0x73, 0x00, 0x72, 0x00, 0x74, 0x00, 0x22, 0x00, 0x2c, 0x00, 0x74, 0x00, 0x72, 0x00, 0x75, 0x00, 0x65, 0x00, 0x5d, 0x00, 0x2c, 0x00, 0x5b, 0x00, 0x22, 0x00, 0x2e, 0x00, 0x6c, 0x00, 0x72, 0x00, 0x63, 0x00, 0x22, 0x00, 0x2c, 0x00, 0x74, 0x00, 0x72, 0x00, 0x75, 0x00, 0x65, 0x00, 0x5d, 0x00, 0x2c, 0x00, 0x5b, 0x00, 0x22, 0x00, 0x2e, 0x00, 0x74, 0x00, 0x78, 0x00, 0x74, 0x00, 0x22, 0x00, 0x2c, 0x00, 0x74, 0x00, 0x72, 0x00, 0x75, 0x00, 0x65, 0x00, 0x5d, 0x00, 0x5d, 0x00, 0x7d, 0x00, 0x00, 0x00, 0x02, 0xde, 0x19, 0xb1, 0x84, 0x8c, 0xdc, 0x01 }), () => selection == null),
 			("Optimizing Notepad settings", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = @"unload HKU\TEMP", CreateNoWindow = true })!.WaitForExitAsync(), () => selection == null),
-			("Optimizing Notepad settings", async () => Directory.CreateDirectory(Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Local", "Packages", "Microsoft.WindowsNotepad_8wekyb3d8bbwe", "Settings")), () => selection == null),
-			("Optimizing Notepad settings", async () => File.Copy(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "Microsoft.WindowsNotepad_8wekyb3d8bbwe", "Settings", "settings.dat"), Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Local", "Packages", "Microsoft.WindowsNotepad_8wekyb3d8bbwe", "Settings", "settings.dat"), true), () => selection == null),
-
+			("Optimizing Notepad settings", async () => { try { FileSystem.CopyDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "Microsoft.WindowsNotepad_8wekyb3d8bbwe"), Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Local", "Packages", "Microsoft.WindowsNotepad_8wekyb3d8bbwe"), true); } catch { } }, () => selection == null),
+			
 			// optimize xbox gaming overlay settings
 			("Optimizing Xbox Gaming Overlay settings", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = $@"load HKU\TEMP ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "Microsoft.XboxGamingOverlay_8wekyb3d8bbwe", "Settings", "settings.dat")}""", CreateNoWindow = true })!.WaitForExitAsync(), () => selection == null),
 			("Optimizing Xbox Gaming Overlay settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_USERS\TEMP\LocalState", "AppTheme", RegistryHelper.ApplicationDataInt32, new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1f, 0x43, 0x21, 0xaf, 0xc9, 0xd4, 0xdc, 0x01 }), () => selection == null),
@@ -250,9 +251,8 @@ public static class ApplicationStage
 			("Optimizing Xbox Gaming Overlay settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_USERS\TEMP\LocalState", "SuppressEnableCompactModeFlyout", RegistryHelper.ApplicationDataBoolean, new byte[] { 0x01, 0xa9, 0x17, 0x87, 0xdc, 0xc9, 0xd4, 0xdc, 0x01 }), () => selection == null),
 			("Optimizing Xbox Gaming Overlay settings", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_USERS\TEMP\LocalState", "SuppressFullscreenNotifications", RegistryHelper.ApplicationDataBoolean, new byte[] { 0x01, 0x81, 0x23, 0x85, 0x97, 0xc9, 0xd4, 0xdc, 0x01 }), () => selection == null),
 			("Optimizing Xbox Gaming Overlay settings", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = @"unload HKU\TEMP", CreateNoWindow = true })!.WaitForExitAsync(), () => selection == null),
-			("Optimizing Xbox Gaming Overlay settings", async () => Directory.CreateDirectory(Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Local", "Packages", "Microsoft.XboxGamingOverlay_8wekyb3d8bbwe", "Settings")), () => selection == null),
-			("Optimizing Xbox Gaming Overlay settings", async () => File.Copy(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "Microsoft.XboxGamingOverlay_8wekyb3d8bbwe", "Settings", "settings.dat"), Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Local", "Packages", "Microsoft.XboxGamingOverlay_8wekyb3d8bbwe", "Settings", "settings.dat"), true), () => selection == null),
-
+			("Optimizing Xbox Gaming Overlay settings", async () => { try { FileSystem.CopyDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "Microsoft.XboxGamingOverlay_8wekyb3d8bbwe"), Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Local", "Packages", "Microsoft.XboxGamingOverlay_8wekyb3d8bbwe"), true); } catch { } }, () => selection == null),
+			
 			// download heif image extension
 			("Downloading HEIF Image Extension", async () => await StoreHelper.Download("Microsoft.HEIFImageExtension_8wekyb3d8bbwe", reporter: reporter), () => selection == null),
 
@@ -367,6 +367,8 @@ public static class ApplicationStage
 			("Installing Everything", async () => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Everything")), () => selection == null),
 			("Installing Everything", async () => await DownloadHelper.Download("https://raw.githubusercontent.com/tinodin/AutoOS-Resources/main/Files/Everything/Everything-1.5a.ini", Path.GetTempPath(), "Everything-1.5a.ini", reporter: reporter), () => selection == null),
 			("Installing Everything", async () => File.Copy(Path.Combine(Path.GetTempPath(), "Everything-1.5a.ini"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Everything", "Everything-1.5a.ini"), true), () => selection == null),
+			("Installing Everything", async () => Directory.CreateDirectory(Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Roaming", "Everything")), () => selection == null),
+			("Installing Everything", async () => File.Move(Path.Combine(Path.GetTempPath(), "Everything-1.5a.ini"), Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Roaming", "Everything", "Everything-1.5a.ini"), true), () => selection == null),
 			("Installing Everything", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Everything 1.5a", "Everything.exe"), WindowStyle = ProcessWindowStyle.Hidden, Arguments = "-install-run-on-system-startup"})!.WaitForExitAsync(), () => selection == null),
 			("Installing Everything", async () => Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Everything 1.5a", "Everything.exe"), WindowStyle = ProcessWindowStyle.Hidden, Arguments = "-startup" }), () => selection == null),
 			("Cleaning up Everything files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "Everything.exe")), () => selection == null),
@@ -397,12 +399,14 @@ public static class ApplicationStage
 			("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings", "ScheduleMode", scheduleMode, RegistryValueKind.String), () => selection == null),
 			("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings", "CustomLight", LightTime, RegistryValueKind.String), () => selection == null),
 			("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\auto-theme-switcher\Settings", "CustomDark", DarkTime, RegistryValueKind.String), () => selection == null),
+			("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\taskbar-fluent-media-player\Settings", "MainSettings.PlayerSetting.position", "tray_left", RegistryValueKind.String), () => LeftTaskbarAlignment == true),
 			("Installing Windhawk", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Windhawk\Engine\Mods\taskbar-notification-icons-show-all", "Disabled", 1, RegistryValueKind.DWord), () => AlwaysShowTrayIcons == false),
 			("Installing Windhawk", async () => ShortcutHelper.Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Windhawk.lnk"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Windhawk", "windhawk.exe")), () => selection == null),
 			("Installing Windhawk", async () => ShortcutHelper.Create(Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Roaming", "Microsoft", "Windows", "Start Menu", "Programs", "Windhawk.lnk"), Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Windhawk", "windhawk.exe")), () => selection == null),
 			("Installing Windhawk", async () => ServicesHelper.CreateService("Windhawk", $@"""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Windhawk", "windhawk.exe")}"" -service"), () => selection == null),
 			("Installing Windhawk", async () => ServicesHelper.StartService("Windhawk"), () => selection == null),
 			("Cleaning up Windhawk files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "Windhawk.zip")), () => selection == null),
+			("Cleaning up Windhawk files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "windhawk.reg")), () => selection == null),
 			
 			// download startallback
 			("Downloading StartAllBack", async () => await DownloadHelper.Download("https://www.startallback.com/download.php", Path.GetTempPath(), "StartAllBackSetup.exe", reporter: reporter), () => selection == null),
@@ -545,7 +549,7 @@ public static class ApplicationStage
 			("Cleaning up Discord files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "DiscordSetup.exe")), () => Discord == true),
 
 			// pin discord to the taskbar
-			("Pinning Discord to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Start Menu\Programs\Discord Inc\Discord.lnk")}"""), () => Discord == true),
+			("Pinning Discord to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Discord Inc", "Discord.lnk")), () => Discord == true),
 
 			// remove discord desktop shortcut 
 			("Removing Discord desktop shortcut", async () => File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Discord.lnk")), () => Discord == true),
@@ -603,11 +607,10 @@ public static class ApplicationStage
 			(@"Disabling ""Minimize to system tray""", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = $@"load HKU\TEMP ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "5319275A.WhatsAppDesktop_cv1g1gvanyjgm", "Settings", "settings.dat")}""", CreateNoWindow = true })!.WaitForExitAsync(), () => WhatsApp == true),
 			(@"Disabling ""Minimize to system tray""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_USERS\TEMP\LocalState\web_preferences", "WindowsIsSystemTrayEnabled", RegistryHelper.ApplicationDataString, new byte[] { 0x66, 0x00, 0x61, 0x00, 0x6c, 0x00, 0x73, 0x00, 0x65, 0x00, 0x00, 0x00, 0x2d, 0xb8, 0x83, 0xd6, 0xf4, 0x98, 0xdc, 0x01 }), () => WhatsApp == true),
 			(@"Disabling ""Minimize to system tray""", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = @"unload HKU\TEMP", CreateNoWindow = true })!.WaitForExitAsync(), () => WhatsApp == true),
-			(@"Disabling ""Minimize to system tray""", async () => Directory.CreateDirectory(Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Local", "Packages", "5319275A.WhatsAppDesktop_cv1g1gvanyjgm", "Settings")), () => WhatsApp == true),
-			(@"Disabling ""Minimize to system tray""", async () => File.Copy(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "5319275A.WhatsAppDesktop_cv1g1gvanyjgm", "Settings", "settings.dat"), Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Local", "Packages", "5319275A.WhatsAppDesktop_cv1g1gvanyjgm", "Settings", "settings.dat"), true), () => WhatsApp == true),
+			(@"Disabling ""Minimize to system tray""", async () => { try { FileSystem.CopyDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "5319275A.WhatsAppDesktop_cv1g1gvanyjgm"), Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Local", "Packages", "5319275A.WhatsAppDesktop_cv1g1gvanyjgm"), true); } catch { } }, () => WhatsApp == true),
 
 			// pin whatsapp to the taskbar
-			("Pinning WhatsApp to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path 5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App"), () => WhatsApp == true),
+			("Pinning WhatsApp to the taskbar", async () => await ProcessActions.PinToTaskbar("UWA", "5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App"), () => WhatsApp == true),
 
 			// log in to whatsapp
 			("Please log in to your WhatsApp account (Close to continue)", async () => await Task.Delay(1000), () => WhatsApp == true),
@@ -623,7 +626,7 @@ public static class ApplicationStage
 			("Installing Telegram Desktop", async () => await StoreHelper.Install("TelegramMessengerLLP.TelegramDesktop_t4vj0pshhgkwm"), () => Telegram == true),
 
 			// pin telegram desktop to the taskbar
-			("Pinning Telegram Desktop to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path TelegramMessengerLLP.TelegramDesktop_t4vj0pshhgkwm!Telegram.TelegramDesktop.Store"), () => Telegram == true),
+			("Pinning Telegram Desktop to the taskbar", async () => await ProcessActions.PinToTaskbar("UWA", "TelegramMessengerLLP.TelegramDesktop_t4vj0pshhgkwm!Telegram.TelegramDesktop.Store"), () => Telegram == true),
 
 			// download unigram
 			("Downloading Unigram", async () => await StoreHelper.Download("38833FF26BA1D.UnigramPreview_g9c9v27vpyspw", reporter: reporter), () => Unigram == true),
@@ -632,7 +635,7 @@ public static class ApplicationStage
 			("Installing Unigram", async () => await StoreHelper.Install("38833FF26BA1D.UnigramPreview_g9c9v27vpyspw"), () => Unigram == true),
 
 			// pin unigram to the taskbar
-			("Pinning Unigram to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path 38833FF26BA1D.UnigramPreview_g9c9v27vpyspw!App"), () => Unigram == true),
+			("Pinning Unigram to the taskbar", async () => await ProcessActions.PinToTaskbar("UWA", "38833FF26BA1D.UnigramPreview_g9c9v27vpyspw!App"), () => Unigram == true),
 
 			// download zoom workplace
 			("Downloading Zoom Workplace", async () => await DownloadHelper.Download("https://cdn.zoom.us/prod/7.0.5.38856/x64/ZoomInstallerFull.msi", Path.GetTempPath(), "ZoomInstallerFull.msi", reporter: reporter), () => ZoomWorkplace == true),
@@ -642,7 +645,7 @@ public static class ApplicationStage
 			("Cleaning up Zoom Workplace files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "ZoomInstallerFull.msi")), () => ZoomWorkplace ==  true),
 
 			// pin zoom to taskbar
-			("Pinning Zoom Workplace to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Microsoft\Windows\Start Menu\Programs\Zoom\Zoom Workplace.lnk")}"""), () => ZoomWorkplace == true),
+			("Pinning Zoom Workplace to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Zoom", "Zoom Workplace.lnk")), () => ZoomWorkplace == true),
 
 			// disable zoom service
 			("Disabling Zoom service", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\ZoomCptService", "Start", 3, RegistryValueKind.DWord), () => ZoomWorkplace == true),
@@ -656,7 +659,7 @@ public static class ApplicationStage
 			("Cleaning up Thunderbird files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "Thunderbird Setup.msi")), () => Thunderbird ==  true),
 
 			// pin thunderbird to taskbar
-			("Pinning Thunderbird to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Microsoft\Windows\Start Menu\Programs\Thunderbird.lnk")}"""), () => Thunderbird == true),
+			("Pinning Thunderbird to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Thunderbird.lnk")), () => Thunderbird == true),
 
 			// disable thunderbird service
 			("Disabling Thunderbird service", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\MozillaMaintenance", "Start", 4, RegistryValueKind.DWord), () => Thunderbird == true),
@@ -995,11 +998,10 @@ public static class ApplicationStage
 			(@"Enabling ""Keep Miniplayer on top of all other windows""", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = $@"load HKU\TEMP ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "AppleInc.AppleMusicWin_nzyj5cx40ttqa", "Settings", "settings.dat")}""", CreateNoWindow = true })!.WaitForExitAsync(), () => AppleMusic == true),
 			(@"Enabling ""Keep Miniplayer on top of all other windows""", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_USERS\TEMP\LocalState", "KeepMiniplayerOnTop", RegistryHelper.ApplicationDataBoolean, new byte[] { 0x01, 0xb9, 0x5d, 0xcc, 0xe4, 0x9a, 0x13, 0xdc, 0x01 }), () => AppleMusic == true),
 			(@"Enabling ""Keep Miniplayer on top of all other windows""", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = @"unload HKU\TEMP", CreateNoWindow = true })!.WaitForExitAsync(), () => AppleMusic == true),
-			(@"Enabling ""Keep Miniplayer on top of all other windows""", async () => Directory.CreateDirectory(Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Local", "Packages", "AppleInc.AppleMusicWin_nzyj5cx40ttqa", "Settings")), () => AppleMusic == true),
-			(@"Enabling ""Keep Miniplayer on top of all other windows""", async () => File.Copy(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "AppleInc.AppleMusicWin_nzyj5cx40ttqa", "Settings", "settings.dat"), Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Local", "Packages", "AppleInc.AppleMusicWin_nzyj5cx40ttqa", "Settings", "settings.dat"), true), () => AppleMusic == true),
+			(@"Enabling ""Keep Miniplayer on top of all other windows""", async () => { try { FileSystem.CopyDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "AppleInc.AppleMusicWin_nzyj5cx40ttqa"), Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "Users", "Default", "AppData", "Local", "Packages", "AppleInc.AppleMusicWin_nzyj5cx40ttqa"), true); } catch { } }, () => AppleMusic == true),
 
 			// pin apple music to the taskbar
-			("Pinning Apple Music to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path AppleInc.AppleMusicWin_nzyj5cx40ttqa!App"), () => AppleMusic == true),
+			("Pinning Apple Music to the taskbar", async () => await ProcessActions.PinToTaskbar("UWA", "AppleInc.AppleMusicWin_nzyj5cx40ttqa!App"), () => AppleMusic == true),
 
 			// log in to apple music
 			("Please log in to your Apple Music account (Close to continue)", async () => await Task.Delay(1000), () => AppleMusic == true),
@@ -1013,7 +1015,7 @@ public static class ApplicationStage
 			("Installing TIDAL", async () => tidalVersion = StoreHelper.GetVersion("WiMPMusic.27241E05630EA_kn85bz84x7te4"), () => Tidal == true),
 
 			// pin tidal to the taskbar
-			("Pinning TIDAL to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path WiMPMusic.27241E05630EA_kn85bz84x7te4!TIDAL"), () => Tidal == true),
+			("Pinning TIDAL to the taskbar", async () => await ProcessActions.PinToTaskbar("UWA", "WiMPMusic.27241E05630EA_kn85bz84x7te4!TIDAL"), () => Tidal == true),
 
 			// log in to tidal
 			("Please log in to your TIDAL account (Close to continue)", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WindowsApps", $"WiMPMusic.27241E05630EA_{tidalVersion}_x86__kn85bz84x7te4", "app", "TIDAL.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => Tidal == true),
@@ -1026,7 +1028,7 @@ public static class ApplicationStage
 			("Cleaning up Qobuz files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "Qobuz_Installer.exe")), () => Qobuz == true),
 
 			// pin qobuz to the taskbar
-			("Pinning Qobuz to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Start Menu\Programs\Qobuz\Qobuz.lnk")}"""), () => Qobuz == true),
+			("Pinning Qobuz to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Qobuz", "Qobuz.lnk")), () => Qobuz == true),
 
 			// log in to qobuz
 			("Please log in to your Qobuz account (Close to continue)", async () => await Task.Delay(1000), () => Qobuz == true),
@@ -1041,7 +1043,7 @@ public static class ApplicationStage
 			("Installing Amazon Music", async () => amazonMusicVersion = StoreHelper.GetVersion("AmazonMobileLLC.AmazonMusic_kc6t79cpj4tp0"), () => AmazonMusic == true),
 
 			// pin amazon music to the taskbar
-			("Pinning Amazon Music to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path AmazonMobileLLC.AmazonMusic_kc6t79cpj4tp0!AmazonMobileLLC.AmazonMusic"), () => AmazonMusic == true),
+			("Pinning Amazon Music to the taskbar", async () => await ProcessActions.PinToTaskbar("UWA", "AmazonMobileLLC.AmazonMusic_kc6t79cpj4tp0!AmazonMobileLLC.AmazonMusic"), () => AmazonMusic == true),
 
 			// log in to amazon music
 			("Please log in to your Amazon Music account (Close to continue)", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WindowsApps", $"AmazonMobileLLC.AmazonMusic_{amazonMusicVersion}_x86__kc6t79cpj4tp0", "Amazon Music.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => AmazonMusic == true),
@@ -1054,7 +1056,7 @@ public static class ApplicationStage
 			("Installing Deezer Music", async () => deezerMusicVersion = StoreHelper.GetVersion("Deezer.62021768415AF_q7m17pa7q8kj0"), () => DeezerMusic == true),
 
 			// pin deezer music to the taskbar
-			("Pinning Deezer Music to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path Deezer.62021768415AF_q7m17pa7q8kj0!Deezer.Music"), () => DeezerMusic == true),
+			("Pinning Deezer Music to the taskbar", async () => await ProcessActions.PinToTaskbar("UWA", "Deezer.62021768415AF_q7m17pa7q8kj0!Deezer.Music"), () => DeezerMusic == true),
 
 			// log in to deezer music
 			("Please log in to your Deezer Music account (Close to continue)", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WindowsApps", $"Deezer.62021768415AF_{deezerMusicVersion}_x86__q7m17pa7q8kj0", "app", "Deezer.exe"), WindowStyle = ProcessWindowStyle.Maximized }) !.WaitForExitAsync(), () => DeezerMusic == true),
@@ -1081,7 +1083,7 @@ public static class ApplicationStage
 			("Cleaning up Spotify files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "SpotifyFullSetupX64.exe")), () => Spotify == true),
 
 			// pin spotify to the taskbar
-			("Pinning Spotify to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Spotify.lnk")}"""), () => Spotify == true),
+			("Pinning Spotify to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Spotify.lnk")), () => Spotify == true),
 
 			// disable spotify hardware acceleration
 			("Disabling Spotify hardware acceleration", async () => await File.WriteAllTextAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Spotify", "prefs"), "ui.hardware_acceleration=false"), () => Spotify == true),
@@ -1109,7 +1111,7 @@ public static class ApplicationStage
 			("Installing MusicBee", async () => await StoreHelper.Install("50072StevenMayall.MusicBee_kcr266et74avj"), () => MusicBee == true),
 
 			// pin musicbee to the taskbar
-			("Pinning MusicBee to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path 50072StevenMayall.MusicBee_kcr266et74avj!MusicBeePackage"), () => MusicBee == true),
+			("Pinning MusicBee to the taskbar", async () => await ProcessActions.PinToTaskbar("UWA", "50072StevenMayall.MusicBee_kcr266et74avj!MusicBeePackage"), () => MusicBee == true),
 
 			// download logitech g hub
 			("Downloading Logitech G HUB", async () => await DownloadHelper.Download("https://download01.logi.com/web/ftp/pub/techsupport/gaming/lghub_installer.exe", Path.GetTempPath(), "lghub_installer.exe", reporter: reporter), () => LogitechGHub == true),
@@ -1324,7 +1326,7 @@ public static class ApplicationStage
 			("Disabling Visual Studio startup entry", async () => ServicesHelper.StopService("VSStandardCollectorService150"), () => VisualStudio == true),
 
 			// pin visual studio to the taskbar
-			("Pinning Visual Studio to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Visual Studio.lnk")}"""), () => VisualStudio == true),
+			("Pinning Visual Studio to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Visual Studio.lnk")), () => VisualStudio == true),
 
 			// download mica visual studio
 			("Downloading Mica Visual Studio", async () => await DownloadHelper.Download("https://github.com/Tech5G5G/Mica-Visual-Studio/releases/latest/download/MicaVisualStudio.vsix", Path.GetTempPath(), "MicaVisualStudio.vsix", reporter: reporter), () => VisualStudio == true),
@@ -1348,7 +1350,7 @@ public static class ApplicationStage
 			("Cleaning up Visual Studio Code files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "VSCodeUserSetup-x64.exe")), () => VisualStudioCode ==  true),
 
 			// pin visual studio code to the taskbar
-			("Pinning Visual Studio Code to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Start Menu\Programs\Visual Studio Code\Visual Studio Code.lnk")}"""), () => VisualStudioCode == true),
+			("Pinning Visual Studio Code to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Visual Studio Code", "Visual Studio Code.lnk")), () => VisualStudioCode == true),
 
 			// download antigravity
 			("Downloading Antigravity", async () => await DownloadHelper.Download("https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/2.0.4-6381998290370560/windows-x64/Antigravity%20IDE.exe", Path.GetTempPath(), "Antigravity.exe", reporter: reporter), () => Antigravity == true),
@@ -1358,7 +1360,7 @@ public static class ApplicationStage
 			("Cleaning up Antigravity files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "Antigravity.exe")), () => Antigravity == true),
 
 			// pin antigravity to the taskbar
-			("Pinning Antigravity to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Start Menu\Programs\Antigravity\Antigravity IDE.lnk")}"""), () => Antigravity == true),
+			("Pinning Antigravity to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Antigravity", "Antigravity IDE.lnk")), () => Antigravity == true),
 
 			// download cursor
 			("Downloading Cursor", async () => await DownloadHelper.Download("https://api2.cursor.sh/updates/download/golden/win32-x64/cursor/3.5", Path.GetTempPath(), "CursorSetup-x64.exe", reporter: reporter), () => Cursor == true),
@@ -1368,7 +1370,7 @@ public static class ApplicationStage
 			("Cleaning up Cursor files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "CursorSetup-x64.exe")), () => Cursor == true),
 
 			// pin cursor to the taskbar
-			("Pinning Cursor to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), @"Microsoft\Windows\Start Menu\Programs\Cursor\Cursor.lnk")}"""), () => Cursor == true),
+			("Pinning Cursor to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Cursor", "Cursor.lnk")), () => Cursor == true),
 
 			// download devin
 			("Downloading Devin", async () => await DownloadHelper.Download("https://windsurf.com/api/windsurf/download-redirect?build=win32-x64-user&isNext=false", Path.GetTempPath(), "DevinUserSetup-x64.exe", reporter: reporter), () => Devin == true),
@@ -1378,7 +1380,7 @@ public static class ApplicationStage
 			("Cleaning up Devin files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "DevinUserSetup-x64.exe")), () => Devin == true),
 
 			// pin devin to the taskbar
-			("Pinning Devin to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Start Menu\Programs\Devin\Devin.lnk")}"""), () => Devin == true),
+			("Pinning Devin to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Devin", "Devin.lnk")), () => Devin == true),
 
 			// download winmerge
 			("Downloading WinMerge", async () => await DownloadHelper.Download(JsonDocument.Parse(await new HttpClient { DefaultRequestHeaders = { { "User-Agent", "AutoOS" } } }.GetStringAsync("https://api.github.com/repos/WinMerge/winmerge/releases/latest")).RootElement.GetProperty("assets").EnumerateArray().First(a => a.GetProperty("name").GetString().Contains("x64-Setup.exe")).GetProperty("browser_download_url").GetString(), Path.GetTempPath(), "WinMerge-x64-Setup.exe", reporter: reporter), () => WinMerge == true),
@@ -1447,7 +1449,7 @@ public static class ApplicationStage
 			("Installing Trello", async () => trelloVersion = StoreHelper.GetVersion("45273LiamForsyth.PawsforTrello_7pb5ddty8z1pa"), () => Trello == true),
 
 			// pin trello to the taskbar
-			("Pinning Trello to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path 45273LiamForsyth.PawsforTrello_7pb5ddty8z1pa!trello"), () => Trello == true),
+			("Pinning Trello to the taskbar", async () => await ProcessActions.PinToTaskbar("UWA", "45273LiamForsyth.PawsforTrello_7pb5ddty8z1pa!trello"), () => Trello == true),
 
 			// log in to trello
 			("Please log in to your Trello account (Close to continue)", async () => await Task.Delay(1000), () => Trello == true),

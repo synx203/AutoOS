@@ -1,6 +1,5 @@
 using DevWinUI;
 using System.Collections.Concurrent;
-using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 

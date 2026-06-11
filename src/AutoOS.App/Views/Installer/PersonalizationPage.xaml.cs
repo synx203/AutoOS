@@ -290,6 +290,11 @@ public sealed partial class PersonalizationPage : Page
 
 	private void GetTaskbarAlignmentState()
 	{
+		if (!localSettings.Values.TryGetValue("LeftTaskbarAlignment", out object value))
+		{
+			localSettings.Values["LeftTaskbarAlignment"] = 0;
+		}
+
 		using var key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced");
 		var obj = key?.GetValue("TaskbarAl");
 		int alignment = obj is int i && (i == 0 || i == 1) ? i : 1;
@@ -308,6 +313,7 @@ public sealed partial class PersonalizationPage : Page
 		Symbol icon = TaskbarAlignment.SelectedIndex == 0 ? Symbol.AlignLeft : Symbol.AlignCenter;
 
 		Registry.SetValue(@"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarAl", Convert.ToInt32(value), RegistryValueKind.DWord);
+		localSettings.Values["LeftTaskbarAlignment"] = TaskbarAlignment.SelectedIndex == 0 ? 1 : 0;
 
 		TaskbarIcon.HeaderIcon = new SymbolIcon(icon);
 	}

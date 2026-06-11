@@ -2,7 +2,9 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Net.Http.Headers;
+using System.Xml;
 using WinRT.Interop;
+using AutoOS.Core.Helpers.Registry;
 
 namespace AutoOS.Views.Installer.Actions;
 
@@ -51,9 +53,41 @@ public static class ProcessActions
 		}
 	}
 
-	public static async Task RunPowerShellScript(string script, string arguments)
+	public static async Task PinToTaskbar(string type, string path)
 	{
-		await Process.Start(new ProcessStartInfo("powershell.exe", @$"-ExecutionPolicy Bypass -File ""{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Scripts", script)}"" {arguments}") { CreateNoWindow = true, UseShellExecute = false })!.WaitForExitAsync();
+		string xmlPath = @"C:\Windows\Setup\Scripts\TaskbarLayoutModification.xml";
+		var xmlDoc = new XmlDocument();
+		xmlDoc.Load(xmlPath);
+
+		XmlNamespaceManager nsMgr = new(xmlDoc.NameTable);
+		nsMgr.AddNamespace("taskbar", "http://schemas.microsoft.com/Start/2014/TaskbarLayout");
+		
+		XmlNode pinList = xmlDoc.SelectSingleNode("//taskbar:TaskbarPinList", nsMgr);
+		string nsUri = nsMgr.LookupNamespace("taskbar");
+		
+		XmlNode newNode;
+		if (type == "UWA")
+		{
+			newNode = xmlDoc.CreateElement("taskbar", "UWA", nsUri);
+			((XmlElement)newNode).SetAttribute("AppUserModelID", path);
+		}
+		else
+		{
+			newNode = xmlDoc.CreateElement("taskbar", "DesktopApp", nsUri);
+			((XmlElement)newNode).SetAttribute("DesktopApplicationLinkPath", path);
+		}
+		
+		pinList.AppendChild(newNode);
+		xmlDoc.Save(xmlPath);
+		
+		RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer", "StartLayoutFile", xmlPath, RegistryValueKind.ExpandString);
+		RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer", "LockedStartLayout", 1, RegistryValueKind.DWord);
+		
+		foreach (var process in Process.GetProcessesByName("explorer"))
+		{
+			process.Kill();
+			process.WaitForExit();
+		}
 	}
 
 	public static async Task PatchStartAllBack()

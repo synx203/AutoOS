@@ -145,7 +145,7 @@ public static class BrowsersStage
 			("Cleaning up Google Chrome files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "ChromeSetup.exe")), () => Chrome == true),
 
 			// pin google chrome to the taskbar
-			("Pinning Google Chrome to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Google Chrome.lnk")}"""), () => Chrome == true),
+			("Pinning Google Chrome to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Google Chrome.lnk")), () => Chrome == true),
 
 			// install ublock origin extension
 			("Installing uBlock Origin Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome\ExtensionInstallForcelist", "cjpalhdlnbpafiamejdnhcphjbkeiagm"), () => Chrome == true && uBlock == true),
@@ -236,7 +236,7 @@ public static class BrowsersStage
 			("Disabling Thorium services", async () => RegistryHelper.DeleteKey(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Active Setup\Installed Components\{7D2B3E1D-D096-4594-9D8F-A6667F12E0AC}"), () => Thorium == true),
 
 			// pin thorium to the taskbar
-			("Pinning Thorium to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Thorium.lnk")}"""), () => Thorium == true),
+			("Pinning Thorium to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Thorium.lnk")), () => Thorium == true),
 
 			// install privacy badger extension
 			("Installing Privacy Badger Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium\ExtensionInstallForcelist", "pkehgijcmpdhfbdbbnkijodmdjhbjlgp"), () => Thorium == true && PrivacyBadger == true),
@@ -302,7 +302,7 @@ public static class BrowsersStage
 			("Disabling Helium services", async () => RegistryHelper.DeleteKey(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Active Setup\Installed Components\{FB68A146-637A-48C2-A0C4-1565DE45FEBD}"), () => Helium == true),
 
 			// pin helium to the taskbar
-			("Pinning Helium to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Helium.lnk")}"""), () => Helium == true),
+			("Pinning Helium to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Helium.lnk")), () => Helium == true),
 
 			// install privacy badger extension
 			("Installing Privacy Badger Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Helium\ExtensionInstallForcelist", "pkehgijcmpdhfbdbbnkijodmdjhbjlgp"), () => Helium == true && PrivacyBadger == true),
@@ -358,7 +358,7 @@ public static class BrowsersStage
 			("Cleaning up Brave files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "BraveBrowserStandaloneSetup.exe")), () => Brave == true),
 
 			// pin brave to the taskbar
-			("Pinning Brave to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Brave.lnk")}"""), () => Brave == true),
+			("Pinning Brave to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Brave.lnk")), () => Brave == true),
 
 			// remove brave shortcut from the desktop
 			("Removing Brave shortcut from the desktop", async () => File.Delete(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), "Brave.lnk")), () => Brave == true),
@@ -435,7 +435,7 @@ public static class BrowsersStage
 			("Cleaning up Vivaldi files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "Vivaldi.x64.exe")), () => Vivaldi == true),
 
 			// pin vivaldi to the taskbar
-			("Pinning Vivaldi to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Vivaldi.lnk")}"""), () => Vivaldi == true),
+			("Pinning Vivaldi to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Vivaldi.lnk")), () => Vivaldi == true),
 
 			// install ublock origin extension
 			("Installing uBlock Origin Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Vivaldi\ExtensionInstallForcelist", "cjpalhdlnbpafiamejdnhcphjbkeiagm"), () => Vivaldi == true && uBlock == true),
@@ -506,7 +506,7 @@ public static class BrowsersStage
 			("Cleaning up Arc files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "Arc.x64.msix")), () => Arc == true),
 
 			// pin arc to the taskbar
-			("Pinning Arc to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @"-Type UWA -Path TheBrowserCompany.Arc_ttt1ap7aakyb4!Arc"), () => Arc == true),
+			("Pinning Arc to the taskbar", async () => await ProcessActions.PinToTaskbar("UWA", "TheBrowserCompany.Arc_ttt1ap7aakyb4!Arc"), () => Arc == true),
 
 			// install ublock origin extension
 			("Installing uBlock Origin Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium\ExtensionInstallForcelist", "cjpalhdlnbpafiamejdnhcphjbkeiagm"), () => Arc == true && uBlock == true),
@@ -562,7 +562,7 @@ public static class BrowsersStage
 			("Cleaning up Comet files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "Comet.exe")), () => Comet == true),
 
 			// pin comet to the taskbar
-			("Pinning Comet to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $@"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Comet.lnk")}"""), () => Comet == true),
+			("Pinning Comet to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Comet.lnk")), () => Comet == true),
 
 			// install ublock origin extension
 			("Installing uBlock Origin Extension", async () => await InstallChromiumExtension(@"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Chromium\ExtensionInstallForcelist", "cjpalhdlnbpafiamejdnhcphjbkeiagm"), () => Comet == true && uBlock == true),
@@ -626,7 +626,7 @@ public static class BrowsersStage
 			("Cleaning up Firefox files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "FirefoxSetup.exe")), () => Firefox == true),
 
 			// pin firefox to the taskbar
-			("Pinning Firefox to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @$"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Firefox.lnk")}"""), () => Firefox == true),
+			("Pinning Firefox to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Firefox.lnk")), () => Firefox == true),
 
 			// disable firefox startup entry
 			("Disabling Firefox startup entry", async () => TaskSchedulerHelper.Toggle(@"\Mozilla\Firefox Default Browser Agent", false), () => Firefox == true),
@@ -685,7 +685,7 @@ public static class BrowsersStage
 			("Cleaning up Zen files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "zen.installer.exe")), () => Zen == true),
 
 			// pin zen to the taskbar
-			("Pinning Zen to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", $"-Type Link -Path \"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Zen.lnk")}\""), () => Zen == true),
+			("Pinning Zen to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Zen.lnk")), () => Zen == true),
 
 			// disable zen startup entry
 			("Disabling Zen startup entry", async () => TaskSchedulerHelper.Toggle(@"\Mozilla\Zen Default Browser Agent", false), () => Zen == true),
@@ -744,7 +744,7 @@ public static class BrowsersStage
 			("Cleaning up Waterfox files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "WaterfoxSetup.exe")), () => Waterfox == true),
 
 			// pin waterfox to the taskbar
-			("Pinning Waterfox to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @$"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Waterfox.lnk")}"), () => Waterfox == true),
+			("Pinning Waterfox to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "Waterfox.lnk")), () => Waterfox == true),
 
 			// disable waterfox startup entry
 			("Disabling Waterfox startup entry", async () => TaskSchedulerHelper.Toggle(@"\BrowserWorks\Waterfox Default Browser Agent", false), () => Waterfox == true),
@@ -803,7 +803,7 @@ public static class BrowsersStage
 			("Cleaning up LibreWolf files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "librewolf-windows-x86_64-setup.exe")), () => LibreWolf == true),
 
 			// pin librewolf to the taskbar
-			("Pinning LibreWolf to the taskbar", async () => await ProcessActions.RunPowerShellScript("taskbarpin.ps1", @$"-Type Link -Path ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "LibreWolf", "LibreWolf.lnk")}"), () => LibreWolf == true),
+			("Pinning LibreWolf to the taskbar", async () => await ProcessActions.PinToTaskbar("Link", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Microsoft", "Windows", "Start Menu", "Programs", "LibreWolf", "LibreWolf.lnk")), () => LibreWolf == true),
 
 			// optimize librewolf settings
 			("Optimizing LibreWolf settings", async () => Directory.CreateDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "LibreWolf", "distribution")), () => LibreWolf == true),

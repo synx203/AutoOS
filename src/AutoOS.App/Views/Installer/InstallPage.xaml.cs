@@ -75,8 +75,8 @@ public sealed partial class InstallPage : Page
 			await PreparingStage.Run();
 		}
 		currentStageCounter = 1;
-		await RunStage("Configuring Powerplans...", PowerStage.GetActions(), 5);
 		await RunStage("Configuring Security...", await SecurityStage.GetActions(), 5);
+		await RunStage("Configuring Powerplans...", PowerStage.GetActions(), 5);
 		await RunStage("Configuring Windows Activation...", ActivationStage.GetActions(), 2);
 		await RunStage("Configuring Graphics Cards...", await GraphicsStage.GetActions(), 10);
 		await RunStage("Configuring Network Adapters...", NetworkStage.GetActions(), 5);
