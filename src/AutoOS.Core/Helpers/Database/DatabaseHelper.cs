@@ -52,7 +52,11 @@ public static partial class DatabaseHelper
 			{
 				if (Directory.Exists(tempDatabasePath))
 				{
-					Directory.Delete(tempDatabasePath, true);
+					try
+					{
+						Directory.Delete(tempDatabasePath, true);
+					}
+					catch { }
 				}
 			}
 		}

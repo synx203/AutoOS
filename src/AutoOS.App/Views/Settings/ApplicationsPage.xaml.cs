@@ -161,9 +161,9 @@ public sealed partial class ApplicationsPage : Page
 
 		var miscellaneousList = new List<GridViewItem>
 		{
+			new() { Text = "CapFrameX", ImageSource = "ms-appx:///Assets/Fluent/CapFrameX.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "CapFrameX", "CapFrameX.exe")) },
 			new() { Text = "Minitool Partition Wizard", ImageSource = "ms-appx:///Assets/Fluent/MinitoolPartitionWizard.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "MiniTool Partition Wizard 13", "partitionwizard.exe")) },
 			new() { Text = "AOMEI Partition Assistant", ImageSource = "ms-appx:///Assets/Fluent/AomeiPartitionAssistant.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "AOMEI Partition Assistant", "PartAssist.exe")) },
-			new() { Text = "CapFrameX", ImageSource = "ms-appx:///Assets/Fluent/CapFrameX.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "CapFrameX", "CapFrameX.exe")) },
 			new() { Text = "WizTree", ImageSource = "ms-appx:///Assets/Fluent/WizTree.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WizTree", "WizTree64.exe")) },
 			new() { Text = "Bulk Crap Uninstaller", ImageSource = "ms-appx:///Assets/Fluent/BulkCrapUninstaller.png", IsInstalled = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "BCUninstaller", "BCUninstaller.exe")) },
 			new() { Text = "Bluetooth Audio Receiver", ImageSource = "ms-appx:///Assets/Fluent/BluetoothAudioReceiver.png", IsInstalled = Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", "55746MarkSmirnov.BluetoothAudioReveicer_xwrbx6997tsfc")) },
@@ -276,9 +276,9 @@ public sealed partial class ApplicationsPage : Page
 
 		var selectedMiscellaneousItems = Miscellaneous.SelectedItems.Cast<GridViewItem>().ToList();
 		var selectedMiscellaneous = selectedMiscellaneousItems.Select(item => item.Text).ToList();
+		selection.CapFrameX = selectedMiscellaneous.Contains("CapFrameX");
 		selection.MinitoolPartitionWizard = selectedMiscellaneous.Contains("Minitool Partition Wizard");
 		selection.AomeiPartitionAssistant = selectedMiscellaneous.Contains("AOMEI Partition Assistant");
-		selection.CapFrameX = selectedMiscellaneous.Contains("CapFrameX");
 		selection.WizTree = selectedMiscellaneous.Contains("WizTree");
 		selection.BulkCrapUninstaller = selectedMiscellaneous.Contains("Bulk Crap Uninstaller");
 		selection.BluetoothAudioReceiver = selectedMiscellaneous.Contains("Bluetooth Audio Receiver");

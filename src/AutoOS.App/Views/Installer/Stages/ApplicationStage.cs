@@ -92,9 +92,9 @@ public class ApplicationSelection
 	public bool Teams { get; set; }
 	public bool Outlook { get; set; }
 	public bool OneDrive { get; set; }
+	public bool CapFrameX { get; set; }
 	public bool MinitoolPartitionWizard { get; set; }
 	public bool AomeiPartitionAssistant { get; set; }
-	public bool CapFrameX { get; set; }
 	public bool WizTree { get; set; }
 	public bool BulkCrapUninstaller { get; set; }
 	public bool BluetoothAudioReceiver { get; set; }
@@ -203,9 +203,9 @@ public static class ApplicationStage
 		bool Outlook = selection?.Outlook ?? PreparingStage.Outlook;
 		bool OneDrive = selection?.OneDrive ?? PreparingStage.OneDrive;
 
+		bool CapFrameX = selection?.CapFrameX ?? PreparingStage.CapFrameX;
 		bool MinitoolPartitionWizard = selection?.MinitoolPartitionWizard ?? PreparingStage.MinitoolPartitionWizard;
 		bool AomeiPartitionAssistant = selection?.AomeiPartitionAssistant ?? PreparingStage.AomeiPartitionAssistant;
-		bool CapFrameX = selection?.CapFrameX ?? PreparingStage.CapFrameX;
 		bool WizTree = selection?.WizTree ?? PreparingStage.WizTree;
 		bool BulkCrapUninstaller = selection?.BulkCrapUninstaller ?? PreparingStage.BulkCrapUninstaller;
 		bool BluetoothAudioReceiver = selection?.BluetoothAudioReceiver ?? PreparingStage.BluetoothAudioReceiver;
@@ -1676,6 +1676,15 @@ public static class ApplicationStage
 			("Disabling Office telemetry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Policies\Microsoft\Office\16.0\OSM\PreventedSolutiontypes", "documentfiles", 1, RegistryValueKind.DWord, true), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
 			("Disabling Office telemetry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.CurrentUser, @"HKEY_CURRENT_USER\Software\Policies\Microsoft\Office\16.0\OSM\PreventedSolutiontypes", "templatefiles", 1, RegistryValueKind.DWord, true), () => Word == true || Excel == true || PowerPoint == true || OneNote == true || Teams == true || Outlook == true || OneDrive == true),
 			("Disabling Office telemetry", async () => await Process.Start(new ProcessStartInfo { FileName = "reg.exe", Arguments = @"unload HKU\DefaultUser", CreateNoWindow = true })!.WaitForExitAsync(), () => selection == null),
+			
+			// download capframex
+			("Downloading CapFrameX", async () => await DownloadHelper.Download("https://cxblobs.blob.core.windows.net/releases/release_1.8.5_installer.zip", Path.GetTempPath(), "release_installer.zip"), () => CapFrameX == true),
+
+			// install capframex
+			("Installing CapFrameX", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "release_installer.zip"), Path.Combine(Path.GetTempPath(), "CapFrameX")), () => CapFrameX == true),
+			("Installing CapFrameX", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "CapFrameX", "CapFrameXBootstrapper.exe"), Arguments = "/quiet /norestart" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => CapFrameX == true),
+			("Cleaning up CapFrameX files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "release_installer.zip")), () => CapFrameX == true),
+			("Cleaning up CapFrameX files", async () => Directory.Delete(Path.Combine(Path.GetTempPath(), "CapFrameX"), true), () => CapFrameX == true),
 
 			// download minitool partition wizard
 			("Downloading MiniTool Partition Wizard", async () => await DownloadHelper.Download("https://cdn2.minitool.com/?p=pw&e=pw-free-offline", Path.GetTempPath(), "pw-free-offline.exe", reporter: reporter), () => MinitoolPartitionWizard == true),
@@ -1704,15 +1713,6 @@ public static class ApplicationStage
 			// activate aomei partition assistant
 			("Activating AOMEI Partition Assistant", async () => { var iniHelper = new InIHelper(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "AOMEI Partition Assistant", "cfg.ini")); iniHelper.AddValue("KEY", "AOPR-CM948-83ZJZ-4NQW1", "CONFIG"); }, () => AomeiPartitionAssistant == true),
 
-			// download capframex
-			("Downloading CapFrameX", async () => await DownloadHelper.Download("https://cxblobs.blob.core.windows.net/releases/release_1.8.5_installer.zip", Path.GetTempPath(), "release_installer.zip"), () => CapFrameX == true),
-
-			// install capframex
-			("Installing CapFrameX", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "release_installer.zip"), Path.Combine(Path.GetTempPath(), "CapFrameX")), () => CapFrameX == true),
-			("Installing CapFrameX", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "CapFrameX", "CapFrameXBootstrapper.exe"), Arguments = "/quiet /norestart" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => CapFrameX == true),
-			("Cleaning up CapFrameX files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "release_installer.zip")), () => CapFrameX == true),
-			("Cleaning up CapFrameX files", async () => Directory.Delete(Path.Combine(Path.GetTempPath(), "CapFrameX"), true), () => CapFrameX == true),
-			
 			// download wiztree
 			("Downloading WizTree", async () => await DownloadHelper.Download("https://diskanalyzer.com/files/wiztree_4_31_setup.exe", Path.GetTempPath(), "wiztree_setup.exe", reporter: reporter), () => WizTree == true),
 

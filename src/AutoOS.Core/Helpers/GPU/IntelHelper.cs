@@ -67,7 +67,7 @@ namespace AutoOS.Core.Helpers.GPU
 			else if (isArc)
 				driverPageUrl = "https://www.intel.com/content/www/us/en/download/785597/intel-arc-graphics-windows.html";
 			else
-				await LogHelper.LogError(new Exception($"Unsupported Codename: {codename}, {CpuHelper.GetCpuArchitecture().DisplayName}"), null, null);
+				await LogHelper.LogError(new Exception($"Unsupported Codename: {codename}"), null, null);
 
 			var startInfo = new ProcessStartInfo
 			{

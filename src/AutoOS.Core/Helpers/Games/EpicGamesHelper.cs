@@ -699,34 +699,7 @@ public static partial class EpicGamesHelper
 		Process.Start(new ProcessStartInfo(EpicGamesPath) { WindowStyle = ProcessWindowStyle.Hidden });
 
 		// wait for token to get used
-		while (true)
-		{
-			await Task.Delay(500);
-
-			if (!ValidateData(ActiveEpicGamesAccountPath))
-			{
-				await UpdateInvalidEpicGamesToken();
-				return;
-			}
-
-			if (GetAccountData(ActiveEpicGamesAccountPath).TokenUseCount == 1)
-				break;
-		}
-
-		// wait for new token
-		while (true)
-		{
-			await Task.Delay(500);
-
-			if (!ValidateData(ActiveEpicGamesAccountPath))
-			{
-				await UpdateInvalidEpicGamesToken();
-				return;
-			}
-
-			if (GetAccountData(ActiveEpicGamesAccountPath).TokenUseCount == 0)
-				break;
-		}
+		await Task.Delay(4000);
 
 		// close epic games launcher
 		CloseEpicGames();
