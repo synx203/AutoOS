@@ -55,7 +55,7 @@ public static class ProcessActions
 
 	public static async Task PinToTaskbar(string type, string path)
 	{
-		string xmlPath = @"C:\Windows\Setup\Scripts\TaskbarLayoutModification.xml";
+		string xmlPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Setup", "Scripts", "TaskbarLayoutModification.xml");
 		var xmlDoc = new XmlDocument();
 		xmlDoc.Load(xmlPath);
 
