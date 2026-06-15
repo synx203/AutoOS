@@ -1297,11 +1297,11 @@ public static class ApplicationStage
 			("Disabling Corsair iCUE startup entry", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "Corsair iCUE5 Software", new byte[] { 0x01 }, RegistryValueKind.Binary), () => CorsairICue == true),
 
 			// download openrgb
-			("Downloading OpenRGB", async () => await DownloadHelper.Download("https://codeberg.org/OpenRGB/OpenRGB/releases/download/release_candidate_1.0rc2/OpenRGB_1.0rc2_Windows_64_0fca93e.msi", Path.GetTempPath(), "OpenRGB_Windows_64_0fca93e.msi", reporter: reporter), () => OpenRGB == true),
+			("Downloading OpenRGB", async () => await DownloadHelper.Download("https://codeberg.org/OpenRGB/OpenRGB/releases/download/release_candidate_1.0rc2/OpenRGB_1.0rc2_Windows_64_0fca93e.msi", Path.GetTempPath(), "OpenRGB_Windows_64.msi", reporter: reporter), () => OpenRGB == true),
 
 			// install openrgb
-			("Installing OpenRGB", async () => await Process.Start(new ProcessStartInfo { FileName = "msiexec.exe", Arguments = $@"/i ""{Path.Combine(Path.GetTempPath(), "OpenRGB_Windows_64_0fca93e.msi")}"" /qn" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => OpenRGB ==  true),
-			("Cleaning up OpenRGB files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "OpenRGB_Windows_64_0fca93e.msi")), () => OpenRGB ==  true),
+			("Installing OpenRGB", async () => await Process.Start(new ProcessStartInfo { FileName = "msiexec.exe", Arguments = $@"/i ""{Path.Combine(Path.GetTempPath(), "OpenRGB_Windows_64.msi")}"" /qn" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => OpenRGB ==  true),
+			("Cleaning up OpenRGB files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "OpenRGB_Windows_64.msi")), () => OpenRGB ==  true),
 
 			// download fancontrol
 			("Downloading FanControl", async () => await DownloadHelper.Download(JsonDocument.Parse(await new HttpClient { DefaultRequestHeaders = { { "User-Agent", "AutoOS" } } }.GetStringAsync("https://api.github.com/repos/Rem0o/FanControl.Releases/releases")).RootElement.EnumerateArray().First(release => !release.GetProperty("prerelease").GetBoolean() && release.GetProperty("assets").EnumerateArray().Any(asset => asset.GetProperty("name").GetString().Contains("Installer.exe"))).GetProperty("assets").EnumerateArray().First(asset => asset.GetProperty("name").GetString().Contains("Installer.exe")).GetProperty("browser_download_url").GetString(), Path.GetTempPath(), "FanControl.exe", reporter: reporter), () => FanControl == true),
