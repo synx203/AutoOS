@@ -56,6 +56,7 @@ public class ApplicationSelection
 	public bool LogitechOnboardMemoryManager { get; set; }
 	public bool Wootility { get; set; }
 	public bool EndgameGear { get; set; }
+	public bool GloriousCORE { get; set; }
 	public bool SteelSeriesGG { get; set; }
 	public bool RazerSynapse { get; set; }
 	public bool CorsairICue { get; set; }
@@ -105,6 +106,7 @@ public class ApplicationSelection
 	public bool BluetoothAudioReceiver { get; set; }
 	public bool AnyDesk { get; set; }
 	public bool Apollo { get; set; }
+	public bool WinDbg { get; set; }
 }
 
 public static class ApplicationStage
@@ -166,6 +168,7 @@ public static class ApplicationStage
 		bool LogitechOnboardMemoryManager = selection?.LogitechOnboardMemoryManager ?? PreparingStage.LogitechOnboardMemoryManager;
 		bool Wootility = selection?.Wootility ?? PreparingStage.Wootility;
 		bool EndgameGear = selection?.EndgameGear ?? PreparingStage.EndgameGear;
+		bool GloriousCORE = selection?.GloriousCORE ?? PreparingStage.GloriousCORE;
 		bool SteelSeriesGG = selection?.SteelSeriesGG ?? PreparingStage.SteelSeriesGG;
 		bool RazerSynapse = selection?.RazerSynapse ?? PreparingStage.RazerSynapse;
 		bool CorsairICue = selection?.CorsairICue ?? PreparingStage.CorsairICue;
@@ -221,6 +224,7 @@ public static class ApplicationStage
 		bool BluetoothAudioReceiver = selection?.BluetoothAudioReceiver ?? PreparingStage.BluetoothAudioReceiver;
 		bool AnyDesk = selection?.AnyDesk ?? PreparingStage.AnyDesk;
 		bool Apollo = selection?.Apollo ?? PreparingStage.Apollo;
+		bool WinDbg = selection?.WinDbg ?? PreparingStage.WinDbg;
 
 		string icloudVersion = "";
 		string bitwardenVersion = "";
@@ -1202,6 +1206,15 @@ public static class ApplicationStage
 			// disabling endgame gear startup entries
 			("Disabling Endgame Gear startup entries", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run", "Endgame Gear Utility Startup", new byte[] { 0x03 }, RegistryValueKind.Binary), () => EndgameGear == true),
 
+			// download glorious core
+			("Downloading Glorious CORE", async () => await DownloadHelper.Download("https://gloriouscore.nyc3.digitaloceanspaces.com/CORE2/app/GloriousCORE_2.1.15_Setup.zip", Path.GetTempPath(), "GloriousCORE_Setup.zip"), () => GloriousCORE == true),
+
+			// install glorious core
+			("Installing Glorious CORE", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "GloriousCORE_Setup.zip"), Path.Combine(Path.GetTempPath(), "GloriousCORE_Setup")), () => GloriousCORE == true),
+			("Installing Glorious CORE", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "GloriousCORE_Setup", "GloriousCORE_2.1.15_Setup.exe"), Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART" , WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => GloriousCORE == true),
+			("Cleaning up Glorious CORE files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "GloriousCORE_Setup.zip")), () => GloriousCORE == true),
+			("Cleaning up Glorious CORE files", async () => Directory.Delete(Path.Combine(Path.GetTempPath(), "GloriousCORE_Setup"), true), () => GloriousCORE == true),
+
 			// download steelseries gg
 			("Downloading SteelSeries GG", async () => await DownloadHelper.Download("https://steelseries.com/gg/downloads/latest/windows", Path.GetTempPath(), "SteelSeriesGGSetup.exe", reporter: reporter), () => SteelSeriesGG == true),
 
@@ -1802,7 +1815,13 @@ public static class ApplicationStage
 			
 			// install apollo
 			("Installing Apollo", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "Apollo.exe"), Arguments = "/S", WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => Apollo == true),
-			("Cleaning up Apollo files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "Apollo.exe")), () => Apollo == true)
+			("Cleaning up Apollo files", async () => File.Delete(Path.Combine(Path.GetTempPath(), "Apollo.exe")), () => Apollo == true),
+
+			// download windbg
+			("Downloading WinDbg", async () => await StoreHelper.Download("Microsoft.WinDbg_8wekyb3d8bbwe", reporter: reporter), () => WinDbg == true),
+
+			// install windbg
+			("Installing WinDbg", async () => await StoreHelper.Install("Microsoft.WinDbg_8wekyb3d8bbwe"), () => WinDbg == true)
 		};
 
 		if (selection != null)
