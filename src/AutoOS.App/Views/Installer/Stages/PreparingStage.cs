@@ -90,6 +90,7 @@ public static partial class PreparingStage
 	public static bool LogitechOnboardMemoryManager;
 	public static bool Wootility;
 	public static bool EndgameGear;
+	public static bool GloriousCORE;
 	public static bool MCHOSE;
 	public static bool SteelSeriesGG;
 	public static bool RazerSynapse;
@@ -155,6 +156,7 @@ public static partial class PreparingStage
 	public static bool Apollo;
 	public static bool AutoHotkey;
 	public static bool EmEditor;
+	public static bool WinDbg;
 
 	public static List<GpuInfo> GPUs { get; set; } = [];
 	public static bool MSI;
@@ -273,6 +275,7 @@ public static partial class PreparingStage
 			LogitechOnboardMemoryManager = (localSettings.Values["Peripherals"]?.ToString().Contains("Logitech Onboard Memory Manager") ?? false);
 			Wootility = (localSettings.Values["Peripherals"]?.ToString().Contains("Wootility") ?? false);
 			EndgameGear = (localSettings.Values["Peripherals"]?.ToString().Contains("Endgame Gear") ?? false);
+			GloriousCORE = (localSettings.Values["Peripherals"]?.ToString().Contains("Glorious CORE") ?? false);
 			CorsairICue = (localSettings.Values["Peripherals"]?.ToString().Contains("Corsair iCUE") ?? false);
 			OpenRGB = (localSettings.Values["Peripherals"]?.ToString().Contains("OpenRGB") ?? false);
 			FanControl = (localSettings.Values["Peripherals"]?.ToString().Contains("FanControl") ?? false);
@@ -335,6 +338,7 @@ public static partial class PreparingStage
 			Apollo = (localSettings.Values["Miscellaneous"]?.ToString().Contains("Apollo") ?? false);
 			AutoHotkey = (localSettings.Values["Miscellaneous"]?.ToString().Contains("AutoHotkey") ?? false);
 			EmEditor = (localSettings.Values["Miscellaneous"]?.ToString().Contains("EmEditor") ?? false);
+			WinDbg = (localSettings.Values["Miscellaneous"]?.ToString().Contains("WinDbg") ?? false);
 
 			var gpuArray = JsonNode.Parse(localSettings.Values["GPUs"]?.ToString() ?? "[]")?.AsArray();
 			if (gpuArray != null)
