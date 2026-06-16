@@ -243,7 +243,7 @@ public partial class DeviceAffinityViewModel : INotifyPropertyChanged
 	public void ApplySettings()
 	{
 		var targetDevice = DeviceHelper.GetDevices(_selectedItem.DeviceType).FirstOrDefault(device => string.Equals(device.PnpDeviceId, _selectedItem.PnpDeviceId, StringComparison.OrdinalIgnoreCase));
-		
+
 		var result = DeviceHelper.ApplySettingsToDevices(
 			[targetDevice],
 			MsiSupported,

@@ -10,10 +10,10 @@ public static partial class NetworkHelper
 	{
 		var settings = new List<NetworkAdvancedSetting>();
 		if (string.IsNullOrEmpty(device.RegistryPath)) return settings;
-		
+
 		using var deviceKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(device.RegistryPath);
 		if (deviceKey == null) return settings;
-		
+
 		using var paramsKey = deviceKey.OpenSubKey(@"Ndi\Params");
 		if (paramsKey == null) return settings;
 
@@ -21,7 +21,7 @@ public static partial class NetworkHelper
 		{
 			using var paramKey = paramsKey.OpenSubKey(paramKeyName);
 			if (paramKey == null) continue;
-			
+
 			var typeValue = paramKey.GetValue("type")?.ToString()?.ToLowerInvariant();
 			var type = typeValue switch
 			{

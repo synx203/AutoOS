@@ -31,7 +31,7 @@ public sealed partial class DisplayPage : Page
 				IsClosable = true,
 				IsOpen = true,
 				Severity = InfoBarSeverity.Success,
-				Margin = new Thickness(4,-28,4,36)
+				Margin = new Thickness(4, -28, 4, 36)
 			};
 
 			infoBar.CloseButtonClick += (_, _) =>

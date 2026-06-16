@@ -165,7 +165,7 @@ public static partial class MonitorHelper
 				UseShellExecute = false
 			})!.WaitForExitAsync();
 		}
-	
+
 		await Process.Start(new ProcessStartInfo
 		{
 			FileName = "reg.exe",

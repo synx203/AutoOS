@@ -83,7 +83,7 @@ public sealed partial class GraphicsPage : Page
 
 	private async void ProgressButton_Checked(object sender, RoutedEventArgs e)
 	{
-		
+
 		string newestVersion = string.Empty;
 		string newestDownloadUrl = string.Empty;
 
@@ -819,7 +819,7 @@ public sealed partial class GraphicsPage : Page
 
 		// toggle hdmi/dp audio
 		GpuHelper.ToggleHdmiDpAudio(gpu, toggleSwitch.IsOn);
-		
+
 		// delay
 		await Task.Delay(500);
 

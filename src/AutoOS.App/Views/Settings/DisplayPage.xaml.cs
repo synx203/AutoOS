@@ -225,7 +225,7 @@ public sealed partial class DisplayPage : Page
 
 		// reset
 		await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "CRU", "reset-all.exe")) { Arguments = "/q" })!.WaitForExitAsync();
-		
+
 		// restart
 		await Process.Start(new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "CRU", "restart64.exe")) { Arguments = "/q" })!.WaitForExitAsync();
 

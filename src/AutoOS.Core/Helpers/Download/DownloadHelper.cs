@@ -22,7 +22,7 @@ public static partial class DownloadHelper
 			}
 		}
 	};
-	
+
 	public static async Task Download(string url, string path, string file = null, IStatusReporter reporter = null)
 	{
 		Directory.CreateDirectory(path);
@@ -210,7 +210,7 @@ public static partial class DownloadHelper
 					fallbackError = ex;
 				}
 			}
-			
+
 			if (File.Exists(fileName) && new FileInfo(fileName).Length != 0)
 			{
 				errorDetails.AppendLine("Fallback download succeeded");

@@ -1,4 +1,4 @@
-using AutoOS.Core.Helpers.Games;
+﻿using AutoOS.Core.Helpers.Games;
 using AutoOS.Core.Helpers.Processes;
 using AutoOS.Core.Helpers.Services;
 using Microsoft.UI.Xaml.Input;
@@ -68,7 +68,7 @@ public partial class HeaderCarousel : ItemsControl
 	private StackPanel SteamGrowl;
 
 	private readonly ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
-	
+
 	private TextBlock AgeRatingDescriptionText;
 	private TextBlock ElementsText;
 
@@ -340,9 +340,9 @@ public partial class HeaderCarousel : ItemsControl
 		else if (isLeft || isRight)
 		{
 			if (isLeft && (currentFocused == activeInstance.Play ||
-						   currentFocused == activeInstance.StopProcesses ||
-						   IsElementDescendantOf(currentFocused, activeInstance.Metadata_ScrollViewer) ||
-						   IsElementDescendantOf(currentFocused, activeInstance.SearchBox)))
+			currentFocused == activeInstance.StopProcesses ||
+				IsElementDescendantOf(currentFocused, activeInstance.Metadata_ScrollViewer) ||
+				IsElementDescendantOf(currentFocused, activeInstance.SearchBox)))
 			{
 				suppressHorizontal = true;
 				_lastHorizontalState = true;
@@ -720,7 +720,7 @@ public partial class HeaderCarousel : ItemsControl
 				Version = game.Version,
 				Width = 240,
 				Height = 320
-			}); 
+			});
 		}
 	}
 
@@ -1230,9 +1230,9 @@ public partial class HeaderCarousel : ItemsControl
 				: items.OrderByDescending(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase),
 			"Launcher" => ascending
 				? items.OrderBy(g => g.Launcher ?? "", StringComparer.CurrentCultureIgnoreCase)
-					  .ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase)
+				.ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase)
 				: items.OrderByDescending(g => g.Launcher ?? "", StringComparer.CurrentCultureIgnoreCase)
-					  .ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase),
+				.ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase),
 			"Rating" => ascending
 				? items.OrderBy(g => g.Rating)
 				.ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase)
@@ -1240,16 +1240,16 @@ public partial class HeaderCarousel : ItemsControl
 				.ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase),
 			"Time Played" => ascending
 				? items.OrderBy(g => ParseMinutes(g.PlayTime))
-					  .ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase)
+				.ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase)
 				: items.OrderByDescending(g => ParseMinutes(g.PlayTime))
-					  .ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase),
+				.ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase),
 			"Recently Played" => ascending
 				? items.OrderBy(g =>
 					localSettings.Values.TryGetValue($"LastPlayed_{g.Title}", out var val) && val is long ts ? ts : 0)
-					   .ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase)
+				.ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase)
 				: items.OrderByDescending(g =>
 					localSettings.Values.TryGetValue($"LastPlayed_{g.Title}", out var val) && val is long ts ? ts : 0)
-					   .ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase),
+				.ThenBy(g => g.Title ?? "", StringComparer.CurrentCultureIgnoreCase),
 			_ => items
 		};
 
@@ -1413,9 +1413,9 @@ public partial class HeaderCarousel : ItemsControl
 		// refresh library
 		foreach (var item in Items.OfType<HeaderCarouselItem>().Where(item => item.Launcher == "Epic Games" || item.Launcher == "Ubisoft Connect" || item.Launcher == "The EA App" || item.Launcher == "Origin").ToList())
 			Items.Remove(item);
-		
+
 		AddGames(await EpicGamesHelper.GetGames());
-		
+
 		LoadSortSettings();
 		NoGames_StackPanel.Visibility = Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 		SwitchPresenter.Value = false;
@@ -1744,7 +1744,7 @@ public partial class HeaderCarousel : ItemsControl
 			Items.Remove(item);
 
 		AddGames(await SteamHelper.GetGames());
-		
+
 		LoadSortSettings();
 		NoGames_StackPanel.Visibility = Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 		SwitchPresenter.Value = false;
@@ -2000,112 +2000,112 @@ public partial class HeaderCarousel : ItemsControl
 		var catalogItemId = tile.CatalogItemId;
 		var artifactId = tile.ArtifactId;
 
-			if (launcher == "Epic Games")
+		if (launcher == "Epic Games")
+		{
+			string exchangeCode = await EpicGamesHelper.Exchange();
+			var (accountId, displayName, _, _) = EpicGamesHelper.GetAccountData(EpicGamesHelper.ActiveEpicGamesAccountPath);
+
+			var arguments = $@"{launchCommand} -AUTH_LOGIN=unused -AUTH_PASSWORD={exchangeCode} -AUTH_TYPE=exchangeCode -epicenv=Prod -EpicPortal -epicapp={appName} -epicusername={displayName} -epicuserid={accountId} -epiclocale=en -epicsandboxid={catalogNamespace}";
+
+			var iniHelper = new InIHelper(EpicGamesHelper.ActiveEpicGamesAccountPath);
+			string settingsSection = $"{accountId}_Settings";
+
+			if (iniHelper.ReadValue($"{catalogNamespace}:{catalogItemId}:{appName}_AdditionalCommandsEnabled", settingsSection) == "True")
 			{
-				string exchangeCode = await EpicGamesHelper.Exchange();
-				var (accountId, displayName, _, _) = EpicGamesHelper.GetAccountData(EpicGamesHelper.ActiveEpicGamesAccountPath);
+				string additionalCommands = iniHelper.ReadValue($"{catalogNamespace}:{catalogItemId}:{appName}_AdditionalCommands", settingsSection);
 
-				var arguments = $@"{launchCommand} -AUTH_LOGIN=unused -AUTH_PASSWORD={exchangeCode} -AUTH_TYPE=exchangeCode -epicenv=Prod -EpicPortal -epicapp={appName} -epicusername={displayName} -epicuserid={accountId} -epiclocale=en -epicsandboxid={catalogNamespace}";
-
-				var iniHelper = new InIHelper(EpicGamesHelper.ActiveEpicGamesAccountPath);
-				string settingsSection = $"{accountId}_Settings";
-
-				if (iniHelper.ReadValue($"{catalogNamespace}:{catalogItemId}:{appName}_AdditionalCommandsEnabled", settingsSection) == "True")
+				if (!string.IsNullOrEmpty(additionalCommands))
 				{
-					string additionalCommands = iniHelper.ReadValue($"{catalogNamespace}:{catalogItemId}:{appName}_AdditionalCommands", settingsSection);
-
-					if (!string.IsNullOrEmpty(additionalCommands))
-					{
-						arguments += $" {additionalCommands}";
-					}
+					arguments += $" {additionalCommands}";
 				}
-
-				var startInfo = new ProcessStartInfo
-				{
-					FileName = Path.Combine(installLocation, launchExecutable),
-					Arguments = arguments,
-					WorkingDirectory = Path.GetDirectoryName(Path.Combine(installLocation, launchExecutable)),
-					UseShellExecute = false
-				};
-
-				Process.Start(startInfo);
-			}
-			else if (launcher == "Ubisoft Connect")
-			{
-				Process.Start(new ProcessStartInfo($"uplay://launch/{gameId}/0") { UseShellExecute = true });
-			}
-			else if (launcher == "The EA App" || launcher == "Origin")
-			{
-				string exchangeCode = await EpicGamesHelper.Exchange();
-				var (accountId, displayName, _, _) = EpicGamesHelper.GetAccountData(EpicGamesHelper.ActiveEpicGamesAccountPath);
-
-				var startInfo = new ProcessStartInfo
-				{
-					FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Electronic Arts", "EA Desktop", "EA Desktop", "Link2EA.exe"),
-					Arguments = $@"""link2ea://launchgame/{appName}?AUTH_PASSWORD={exchangeCode}&AUTH_TYPE=exchangeCode&epicusername={Uri.EscapeDataString(displayName)}&epicuserid={accountId}&epiclocale=en&platform=epic"" """" """" """" """" """" """" """" """"",
-					WorkingDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Electronic Arts", "EA Desktop", "EA Desktop"),
-					UseShellExecute = false
-				};
-				Process.Start(startInfo);
-			}
-			else if (launcher == "Steam")
-			{
-				Process.Start(new ProcessStartInfo
-				{
-					FileName = SteamHelper.SteamPath,
-					Arguments = $"-silent steam://rungameid/{gameId} "
-				});
-			}
-			else if (launcher == "Eden")
-			{
-				var startInfo = new ProcessStartInfo
-				{
-					FileName = launcherLocation,
-					Arguments = $@"-f -g ""{gameLocation}""",
-					CreateNoWindow = true,
-				};
-
-				Process.Start(startInfo);
-			}
-			else if (launcher == "Citron")
-			{
-				var startInfo = new ProcessStartInfo
-				{
-					FileName = launcherLocation,
-					Arguments = $@"-f -g ""{gameLocation}""",
-					CreateNoWindow = true,
-				};
-
-				Process.Start(startInfo);
-			}
-			else if (launcher == "Ryujinx")
-			{
-				var startInfo = new ProcessStartInfo
-				{
-					FileName = launcherLocation,
-					Arguments = $@"-r ""{dataLocation}"" -fullscreen ""{gameLocation}""",
-					CreateNoWindow = true,
-				};
-
-				Process.Start(startInfo);
 			}
 
-			localSettings.Values[$"LastPlayed_{tile.Title}"] = DateTimeOffset.Now.ToUnixTimeSeconds();
+			var startInfo = new ProcessStartInfo
+			{
+				FileName = Path.Combine(installLocation, launchExecutable),
+				Arguments = arguments,
+				WorkingDirectory = Path.GetDirectoryName(Path.Combine(installLocation, launchExecutable)),
+				UseShellExecute = false
+			};
 
-			if (currentSortKey.Equals("Recently Played", StringComparison.OrdinalIgnoreCase))
+			Process.Start(startInfo);
+		}
+		else if (launcher == "Ubisoft Connect")
+		{
+			Process.Start(new ProcessStartInfo($"uplay://launch/{gameId}/0") { UseShellExecute = true });
+		}
+		else if (launcher == "The EA App" || launcher == "Origin")
+		{
+			string exchangeCode = await EpicGamesHelper.Exchange();
+			var (accountId, displayName, _, _) = EpicGamesHelper.GetAccountData(EpicGamesHelper.ActiveEpicGamesAccountPath);
+
+			var startInfo = new ProcessStartInfo
 			{
-				LoadSortSettings();
-			}
-			else
+				FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Electronic Arts", "EA Desktop", "EA Desktop", "Link2EA.exe"),
+				Arguments = $@"""link2ea://launchgame/{appName}?AUTH_PASSWORD={exchangeCode}&AUTH_TYPE=exchangeCode&epicusername={Uri.EscapeDataString(displayName)}&epicuserid={accountId}&epiclocale=en&platform=epic"" """" """" """" """" """" """" """" """"",
+				WorkingDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Electronic Arts", "EA Desktop", "EA Desktop"),
+				UseShellExecute = false
+			};
+			Process.Start(startInfo);
+		}
+		else if (launcher == "Steam")
+		{
+			Process.Start(new ProcessStartInfo
 			{
-				if (selectedTile != null)
-				{
-					int idx = Items.IndexOf(selectedTile);
-					if (idx >= 0)
-						(ContainerFromIndex(idx) as Control)?.Focus(FocusState.Programmatic);
-				}
+				FileName = SteamHelper.SteamPath,
+				Arguments = $"-silent steam://rungameid/{gameId} "
+			});
+		}
+		else if (launcher == "Eden")
+		{
+			var startInfo = new ProcessStartInfo
+			{
+				FileName = launcherLocation,
+				Arguments = $@"-f -g ""{gameLocation}""",
+				CreateNoWindow = true,
+			};
+
+			Process.Start(startInfo);
+		}
+		else if (launcher == "Citron")
+		{
+			var startInfo = new ProcessStartInfo
+			{
+				FileName = launcherLocation,
+				Arguments = $@"-f -g ""{gameLocation}""",
+				CreateNoWindow = true,
+			};
+
+			Process.Start(startInfo);
+		}
+		else if (launcher == "Ryujinx")
+		{
+			var startInfo = new ProcessStartInfo
+			{
+				FileName = launcherLocation,
+				Arguments = $@"-r ""{dataLocation}"" -fullscreen ""{gameLocation}""",
+				CreateNoWindow = true,
+			};
+
+			Process.Start(startInfo);
+		}
+
+		localSettings.Values[$"LastPlayed_{tile.Title}"] = DateTimeOffset.Now.ToUnixTimeSeconds();
+
+		if (currentSortKey.Equals("Recently Played", StringComparison.OrdinalIgnoreCase))
+		{
+			LoadSortSettings();
+		}
+		else
+		{
+			if (selectedTile != null)
+			{
+				int idx = Items.IndexOf(selectedTile);
+				if (idx >= 0)
+					(ContainerFromIndex(idx) as Control)?.Focus(FocusState.Programmatic);
 			}
 		}
+	}
 
 	private async void Update_Click(object sender, RoutedEventArgs e)
 	{
@@ -2275,7 +2275,7 @@ public partial class HeaderCarousel : ItemsControl
 
 		await Task.Run(() =>
 		{
-			try 
+			try
 			{
 				Process.GetProcessesByName("ClassicWindowSwitcher").FirstOrDefault()?.Kill();
 
@@ -2283,8 +2283,9 @@ public partial class HeaderCarousel : ItemsControl
 				Process.Start("explorer.exe");
 
 				// start windhawk service
-				ServicesHelper.StartService("Windhawk"); 
-			} catch { }
+				ServicesHelper.StartService("Windhawk");
+			}
+			catch { }
 
 			// restart services
 			var serviceNames = new[]
@@ -2462,8 +2463,8 @@ public partial class HeaderCarousel : ItemsControl
 			{
 				var running = Process.GetProcesses();
 				return (!string.IsNullOrEmpty(offlineExecutable) && running.Any(p => p.ProcessName.Contains(Path.GetFileNameWithoutExtension(offlineExecutable), StringComparison.OrdinalIgnoreCase))) ||
-					   (!string.IsNullOrEmpty(onlineExecutable) && running.Any(p => p.ProcessName.Contains(Path.GetFileNameWithoutExtension(onlineExecutable), StringComparison.OrdinalIgnoreCase))) ||
-					   (ProcessNames?.Any(process => !string.IsNullOrEmpty(process) && running.Any(p => p.ProcessName.Contains(Path.GetFileNameWithoutExtension(process), StringComparison.OrdinalIgnoreCase))) ?? false);
+			(!string.IsNullOrEmpty(onlineExecutable) && running.Any(p => p.ProcessName.Contains(Path.GetFileNameWithoutExtension(onlineExecutable), StringComparison.OrdinalIgnoreCase))) ||
+			(ProcessNames?.Any(process => !string.IsNullOrEmpty(process) && running.Any(p => p.ProcessName.Contains(Path.GetFileNameWithoutExtension(process), StringComparison.OrdinalIgnoreCase))) ?? false);
 			});
 		}
 		else if (Launcher == "Ubisoft Connect")

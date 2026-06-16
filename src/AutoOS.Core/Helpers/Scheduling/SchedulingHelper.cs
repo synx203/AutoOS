@@ -109,7 +109,7 @@ public static partial class SchedulingHelper
 			if (affinityChanged)
 			{
 				DeviceHelper.SetAffinityPolicy(device.PnpDeviceId, 4, 0, assignmentSetOverride);
-				
+
 				device.DevicePolicy = 4;
 				device.DevicePriority = 0;
 				device.AssignmentSetOverride = assignmentSetOverride;

@@ -8,7 +8,7 @@ public static partial class ExtractHelper
 	{
 		if (!File.Exists(inputPath))
 			throw new FileNotFoundException("File not found", inputPath);
-		
+
 		await Process.Start(new ProcessStartInfo
 		{
 			FileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "7-Zip", "7z.exe"),

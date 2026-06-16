@@ -15,7 +15,7 @@ public static partial class ProcessesHelper
 	{
 		HANDLE handle = PInvoke.OpenProcess(PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_INFORMATION | PROCESS_ACCESS_RIGHTS.PROCESS_VM_READ, false, (uint)proc.Id);
 
-		if ((IntPtr)handle.Value == IntPtr.Zero) 
+		if ((IntPtr)handle.Value == IntPtr.Zero)
 			return string.Empty;
 
 		try
@@ -70,7 +70,7 @@ public static partial class ProcessesHelper
 	{
 		HANDLE handle = PInvoke.OpenProcess(PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_LIMITED_INFORMATION, false, (uint)proc.Id);
 
-		if ((IntPtr)handle.Value == IntPtr.Zero) 
+		if ((IntPtr)handle.Value == IntPtr.Zero)
 			return string.Empty;
 
 		using var safeHandle = new SafeProcessHandle((IntPtr)handle.Value, true);
@@ -88,7 +88,7 @@ public static partial class ProcessesHelper
 			if (Marshal.GetLastWin32Error() == 122)
 			{
 				bufferSize *= 2;
-				if (bufferSize > 32768) 
+				if (bufferSize > 32768)
 					return string.Empty;
 			}
 			else

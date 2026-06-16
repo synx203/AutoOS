@@ -49,7 +49,7 @@ namespace AutoOS.Core.Helpers.RAM
 						int extSpeed = BitConverter.ToInt32(buffer, offset + 0x54);
 						if (extSpeed > 0) speed = extSpeed;
 					}
-					
+
 					if (speed > info.MaxSpeedMHz) info.MaxSpeedMHz = speed;
 
 					byte memType = buffer[offset + 0x12];

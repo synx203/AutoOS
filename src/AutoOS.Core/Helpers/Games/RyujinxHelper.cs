@@ -1,4 +1,4 @@
-using DevWinUI;
+﻿using DevWinUI;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.Json;
@@ -64,7 +64,7 @@ public static partial class RyujinxHelper
 				if (!Directory.Exists(gameDir)) continue;
 
 				var matches = Directory.EnumerateFiles(gameDir)
-									   .Where(f => validExtensions.Contains(Path.GetExtension(f)));
+				.Where(f => validExtensions.Contains(Path.GetExtension(f)));
 
 				candidatesPerDir[gameDir] = [.. matches];
 			}
@@ -162,7 +162,7 @@ public static partial class RyujinxHelper
 
 	[GeneratedRegex(@"[^\u0000-\u007F'’]+", RegexOptions.Compiled)]
 	private static partial Regex CleanNameRegex();
-	
+
 	[GeneratedRegex(@"[^a-z0-9]", RegexOptions.Compiled)]
 	private static partial Regex SimpleCleanNameRegex();
 }

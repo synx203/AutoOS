@@ -68,7 +68,7 @@ namespace AutoOS.Views.Settings
 			SoundHelper.RegisterDeviceChangeCallback(() =>
 			{
 				DispatcherQueue?.TryEnqueue(() =>
-				{   
+				{
 					GetAudioDevices();
 				});
 			});
@@ -122,7 +122,7 @@ namespace AutoOS.Views.Settings
 				OnPropertyChanged(propertyName);
 			}
 		}
-		
+
 		private unsafe DeviceInfo ProcessEndpoint(IMMDeviceEnumerator* enumerator, EDataFlow flow)
 		{
 			IMMDevice* endpoint = null;

@@ -13,7 +13,7 @@ public sealed partial class GamesPage : Page
 	{
 		Instance = this;
 		InitializeComponent();
-		
+
 	}
 
 	private void ToggleFullscreen(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)

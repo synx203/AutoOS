@@ -9,24 +9,24 @@ namespace AutoOS.Views.Settings.Scheduling;
 public partial class SchedulingItem : INotifyPropertyChanged
 {
 	public DeviceType DeviceType { get; set; }
- 
+
 	private string _deviceDescription;
 	public string DeviceDescription
 	{
 		get => _deviceDescription;
 		set { _deviceDescription = value; OnPropertyChanged(); OnPropertyChanged(nameof(Name)); }
 	}
- 
+
 	private string _friendlyName;
 	public string FriendlyName
 	{
 		get => _friendlyName;
 		set { _friendlyName = value; OnPropertyChanged(); OnPropertyChanged(nameof(Name)); }
 	}
- 
+
 	public string DevObjName { get; set; }
 	public string PnpDeviceId { get; set; }
- 
+
 	private string _location;
 	public string Location
 	{

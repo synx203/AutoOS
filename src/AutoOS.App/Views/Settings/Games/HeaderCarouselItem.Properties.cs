@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml.Media;
 using Windows.Media.Core;
 
 namespace AutoOS.Views.Settings.Games;
+
 public partial class HeaderCarouselItem
 {
 	public string Id
@@ -58,7 +59,7 @@ public partial class HeaderCarouselItem
 	}
 	public static readonly DependencyProperty TitleProperty =
 		DependencyProperty.Register(nameof(Title), typeof(string), typeof(HeaderCarouselItem), new PropertyMetadata(defaultValue: null));
-		
+
 	public string Developers
 	{
 		get => (string)GetValue(DevelopersProperty);

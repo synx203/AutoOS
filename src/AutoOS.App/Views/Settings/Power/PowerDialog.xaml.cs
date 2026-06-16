@@ -37,7 +37,7 @@ namespace AutoOS.Views.Settings.Power
 
 				index++;
 			}
-			
+
 			State.OnPropertyChanged(nameof(State.AcValueItem));
 			State.OnPropertyChanged(nameof(State.DcValueItem));
 		}

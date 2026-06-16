@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace AutoOS.Views.Settings.BIOS;
 
@@ -102,7 +102,7 @@ public static class BiosSettingUpdater
 
 	public static void UpdateOption(BiosSettingModel setting, List<string> lines = null)
 	{
-		if (setting.Line < 0 || setting.Line >= lines.Count) 
+		if (setting.Line < 0 || setting.Line >= lines.Count)
 			return;
 
 		int optionsIdx = -1;
@@ -175,8 +175,8 @@ public static class BiosSettingUpdater
 				string withoutStar = trimmed.StartsWith('*') ? trimmed[1..] : trimmed;
 
 				lines[ptr] = (setting.SelectedOption != null && idx == setting.SelectedOption.Index)
-							 ? indent + "*" + withoutStar
-							 : indent + withoutStar;
+				? indent + "*" + withoutStar
+				: indent + withoutStar;
 				ptr++;
 				continue;
 			}

@@ -1,4 +1,4 @@
-using AutoOS.Core.Helpers.Logging;
+﻿using AutoOS.Core.Helpers.Logging;
 using AutoOS.Core.Helpers.Picker;
 using AutoOS.Views.Installer.Actions;
 using AutoOS.Views.Installer.Stages;
@@ -286,7 +286,7 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
 					.OrderBy(s =>
 						ruleOrder.TryGetValue(
 							(s.SetupQuestion.ToLowerInvariant(),
-							 (s.RecommendedOption?.Label ?? s.RecommendedValue ?? string.Empty).ToLowerInvariant()),
+						(s.RecommendedOption?.Label ?? s.RecommendedValue ?? string.Empty).ToLowerInvariant()),
 							out var index) ? index : int.MaxValue)
 					.ThenBy(s => s.SetupQuestion, StringComparer.OrdinalIgnoreCase)
 					.ToList();
@@ -585,7 +585,7 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
 		}
 
 		if ((errorOutput.Contains("WARNING : Cannot update protected variable", StringComparison.OrdinalIgnoreCase) ||
-			 errorOutput.Contains("WARNING : Error in writing variable", StringComparison.OrdinalIgnoreCase)) &&
+			errorOutput.Contains("WARNING : Error in writing variable", StringComparison.OrdinalIgnoreCase)) &&
 			!errorOutput.Contains("Script file imported successfully.", StringComparison.OrdinalIgnoreCase))
 		{
 			if (manufacturer.Contains("asus") || manufacturer.Contains("asustek"))

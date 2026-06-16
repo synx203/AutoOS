@@ -59,7 +59,7 @@ public class ProgressButtonReporter(ProgressButton progressButton) : IStatusRepo
 		}, null);
 	}
 
-	public void SetTitle(string title){   }
+	public void SetTitle(string title) { }
 }
 
 public class UpdateDialogReporter(UpdateDialog updateDialog) : IStatusReporter

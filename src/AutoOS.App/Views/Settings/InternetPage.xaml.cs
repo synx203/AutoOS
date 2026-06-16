@@ -208,7 +208,7 @@ public sealed partial class InternetPage : Page
 			HorizontalAlignment = HorizontalAlignment.Right,
 			Margin = new Thickness(0, -52, 16, 0)
 		};
-		
+
 		var applyBtn = new Button { Content = "Apply", Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
 		applyBtn.Click += async (s, e) =>
 		{
@@ -221,7 +221,7 @@ public sealed partial class InternetPage : Page
 			{
 				foreach (var change in changes)
 					Core.Helpers.Network.NetworkHelper.SetAdvancedSetting(device, change.Key, change.Value.Value);
-				
+
 				return DeviceHelper.RestartDevice(device);
 			});
 
@@ -246,7 +246,7 @@ public sealed partial class InternetPage : Page
 
 		stackPanel.Children.Add(cancelBtn);
 		stackPanel.Children.Add(applyBtn);
-		
+
 		infoBar.Content = stackPanel;
 
 		infoBarContainer.Children.Clear();
@@ -272,7 +272,7 @@ public sealed partial class InternetPage : Page
 		}
 
 		bool anyChanged = Core.Helpers.Network.NetworkHelper.OptimizeAdapter(device);
-		
+
 		if (anyChanged)
 		{
 			UpdateSettings(settingsGroup, device);
@@ -282,7 +282,7 @@ public sealed partial class InternetPage : Page
 		{
 			await Task.Delay(500);
 		}
-		
+
 		button.IsChecked = false;
 	}
 

@@ -1,4 +1,4 @@
-using AutoOS.Core.Helpers.Registry;
+﻿using AutoOS.Core.Helpers.Registry;
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.ServiceProcess;
@@ -96,7 +96,7 @@ public sealed partial class ServicesPage : Page
 		{
 			// build service list
 			await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, new ProcessStartInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Applications", "Service-list-builder", "service-list-builder.exe"), $@"--config ""{Path.Combine(PathHelper.GetAppDataFolderPath(), "Service-list-builder", "lists.ini")}"" --disable-service-warning --output-dir ""{Path.Combine(PathHelper.GetAppDataFolderPath(), "Service-list-builder", "build")}""") { CreateNoWindow = true });
-			
+
 			// get latest build
 			string folderName = Directory.GetDirectories(Path.Combine(PathHelper.GetAppDataFolderPath(), "Service-list-builder", "build")).OrderByDescending(d => Directory.GetLastWriteTime(d)).FirstOrDefault()?.Split('\\').Last();
 
@@ -156,7 +156,7 @@ public sealed partial class ServicesPage : Page
 
 		// check state
 		WIFI.IsChecked = services.All(service => File.ReadAllLines(list).Any(line => line.Trim() == service))
-						 && drivers.All(driver => File.ReadAllLines(list).Any(line => line.Trim() == driver));
+		&& drivers.All(driver => File.ReadAllLines(list).Any(line => line.Trim() == driver));
 
 		isInitializingWIFIState = false;
 	}
@@ -311,7 +311,7 @@ public sealed partial class ServicesPage : Page
 
 		// check state
 		Bluetooth.IsChecked = services.All(service => File.ReadAllLines(list).Any(line => line.Trim() == service))
-						 && drivers.All(driver => File.ReadAllLines(list).Any(line => line.Trim() == driver));
+		&& drivers.All(driver => File.ReadAllLines(list).Any(line => line.Trim() == driver));
 
 		isInitializingBluetoothState = false;
 	}

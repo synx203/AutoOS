@@ -40,7 +40,7 @@ public sealed partial class CpuThread : INotifyPropertyChanged
 	public uint CpuId { get; set; }
 	public string Name { get; set; } = string.Empty;
 	public ulong BitMask { get; set; }
-	
+
 	public bool IsSelected
 	{
 		get => _isSelected;
@@ -74,11 +74,11 @@ public sealed partial class CpuCoreGroup : INotifyPropertyChanged
 	private void OnPropertyChanged([CallerMemberName] string name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 	public string Name { get; set; } = string.Empty;
 	public List<CpuCore> Cores { get; set; } = [];
-	
+
 	private int _maxColumns = 5;
-	public int MaxColumns 
-	{ 
-		get => _maxColumns; 
+	public int MaxColumns
+	{
+		get => _maxColumns;
 		set { if (_maxColumns != value) { _maxColumns = value; OnPropertyChanged(nameof(RecommendedColumns)); } }
 	}
 

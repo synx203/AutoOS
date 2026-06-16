@@ -14,7 +14,7 @@ public sealed partial class BrowsersPage : Page
 	{
 		InitializeComponent();
 		GetItems();
-		
+
 		Browsers.ItemsSource = browserItems;
 		Extensions.ItemsSource = extensionItems;
 
@@ -74,7 +74,7 @@ public sealed partial class BrowsersPage : Page
 	{
 		var selectedBrowsersItems = Browsers.SelectedItems.Cast<GridViewItem>().ToList();
 		var selectedBrowsers = selectedBrowsersItems.Select(item => item.Text).ToList();
-		
+
 		var selectedExtensionsItems = Extensions.SelectedItems.Cast<GridViewItem>().ToList();
 		var selectedExtensions = selectedExtensionsItems.Select(item => item.Text).ToList();
 

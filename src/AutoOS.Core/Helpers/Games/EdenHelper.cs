@@ -25,7 +25,7 @@ public static partial class EdenHelper
 				Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 				await File.WriteAllTextAsync(filePath, content);
 			}
-			
+
 			// get game list
 			using var stream = File.OpenRead(Path.Combine(dataPath, "cache", "game_list", "game_metadata_cache.json"));
 			using var configDoc = await JsonDocument.ParseAsync(stream);
@@ -53,7 +53,7 @@ public static partial class EdenHelper
 				{
 					// check if game id exists in database
 					string id = "0" + edenEntry.GetProperty("program_id").GetString();
-					if (!jsonById.TryGetValue(id, out var entry)) 
+					if (!jsonById.TryGetValue(id, out var entry))
 						return;
 
 					// get name from database

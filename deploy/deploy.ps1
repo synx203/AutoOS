@@ -264,12 +264,12 @@ $IsoPicker.Filter = "ISO Files (*.iso)|*.iso"
 $IsoPicker.Title = "Select the Windows ISO file"
 $IsoPicker.Multiselect = $false
 if ($IsoPicker.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) {
-    Write-Host "No ISO selected. Exiting." -ForegroundColor Red
-    return
+	Write-Host "No ISO selected. Exiting." -ForegroundColor Red
+	return
 }
 if ([System.IO.Path]::GetFileName($IsoPicker.FileName) -ne "25H2.iso") {
-    Write-Host "Invalid file. Please select 25H2.iso you downloaded in Step 2." -ForegroundColor Red
-    return
+	Write-Host "Invalid file. Please select 25H2.iso you downloaded in Step 2." -ForegroundColor Red
+	return
 }
 
 Write-Host "Please select your drivers folder you created in Step 3..."
@@ -373,8 +373,8 @@ try {
 			$status = Get-BitLockerVolume -MountPoint "C:"
 			
 			if ($status.VolumeStatus -eq "FullyDecrypted") {
-				Write-Host "`r" -NoNewline
-				Write-Host "BitLocker is fully disabled."
+				Write-Host "`r                                              " -NoNewline
+				Write-Host "`rBitLocker is fully disabled."
 				break
 			}
 			

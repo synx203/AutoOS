@@ -61,10 +61,10 @@ public static class ProcessActions
 
 		XmlNamespaceManager nsMgr = new(xmlDoc.NameTable);
 		nsMgr.AddNamespace("taskbar", "http://schemas.microsoft.com/Start/2014/TaskbarLayout");
-		
+
 		XmlNode pinList = xmlDoc.SelectSingleNode("//taskbar:TaskbarPinList", nsMgr);
 		string nsUri = nsMgr.LookupNamespace("taskbar");
-		
+
 		XmlNode newNode;
 		if (type == "UWA")
 		{
@@ -76,13 +76,13 @@ public static class ProcessActions
 			newNode = xmlDoc.CreateElement("taskbar", "DesktopApp", nsUri);
 			((XmlElement)newNode).SetAttribute("DesktopApplicationLinkPath", path);
 		}
-		
+
 		pinList.AppendChild(newNode);
 		xmlDoc.Save(xmlPath);
-		
+
 		RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer", "StartLayoutFile", xmlPath, RegistryValueKind.ExpandString);
 		RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Explorer", "LockedStartLayout", 1, RegistryValueKind.DWord);
-		
+
 		foreach (var process in Process.GetProcessesByName("explorer"))
 		{
 			process.Kill();
@@ -102,7 +102,7 @@ public static class ProcessActions
 				await process.WaitForExitAsync();
 			}
 		}
-		
+
 		Registry.SetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", "AutoRestartShell", 1, RegistryValueKind.DWord);
 
 		string dll = @"StartAllBack\StartAllBackX64.dll";

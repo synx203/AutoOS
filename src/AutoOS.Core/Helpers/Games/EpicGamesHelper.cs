@@ -1,4 +1,4 @@
-using AutoOS.Core.Common;
+﻿using AutoOS.Core.Common;
 using AutoOS.Core.Helpers.Logging;
 using System.Collections.Concurrent;
 using DevWinUI;
@@ -40,25 +40,25 @@ public static partial class EpicGamesHelper
 
 	private const string itemOfferQuery = @"
 		query searchStoreQuery(
-		  $allowCountries: String, $category: String, $comingSoon: Boolean, $count: Int, $country: String!,
-		  $keywords: String, $locale: String, $namespace: String, $itemNs: String, $sortBy: String,
-		  $sortDir: String, $start: Int, $tag: String, $releaseDate: String,
-		  $priceRange: String, $freeGame: Boolean, $onSale: Boolean,
-		  $effectiveDate: String
+		$allowCountries: String, $category: String, $comingSoon: Boolean, $count: Int, $country: String!,
+		$keywords: String, $locale: String, $namespace: String, $itemNs: String, $sortBy: String,
+		$sortDir: String, $start: Int, $tag: String, $releaseDate: String,
+		$priceRange: String, $freeGame: Boolean, $onSale: Boolean,
+		$effectiveDate: String
 		) {
-		  Catalog {
+		Catalog {
 			searchStore(
-			  allowCountries: $allowCountries, category: $category, comingSoon: $comingSoon, count: $count,
-			  country: $country, keywords: $keywords, locale: $locale, namespace: $namespace,
-			  itemNs: $itemNs, sortBy: $sortBy, sortDir: $sortDir, releaseDate: $releaseDate,
-			  start: $start, tag: $tag, priceRange: $priceRange, freeGame: $freeGame, onSale: $onSale,
-			  effectiveDate: $effectiveDate
+			allowCountries: $allowCountries, category: $category, comingSoon: $comingSoon, count: $count,
+			country: $country, keywords: $keywords, locale: $locale, namespace: $namespace,
+			itemNs: $itemNs, sortBy: $sortBy, sortDir: $sortDir, releaseDate: $releaseDate,
+			start: $start, tag: $tag, priceRange: $priceRange, freeGame: $freeGame, onSale: $onSale,
+			effectiveDate: $effectiveDate
 			) {
-			  elements {
+			elements {
 				id
-			  }
 			}
-		  }
+			}
+			}
 		}
 		";
 
@@ -1091,7 +1091,7 @@ public static partial class EpicGamesHelper
 						Genres = genresData?.AsArray()?.Select(g => g?["name"]?.GetValue<string>())
 											.Where(n => !string.IsNullOrWhiteSpace(n)).ToList() ?? [],
 						Features = featuresData?["features"]?.AsArray()?.Select(f => f?.GetValue<string>())
-											  .Where(f => !string.IsNullOrWhiteSpace(f)).ToList() ?? [],
+							.Where(f => !string.IsNullOrWhiteSpace(f)).ToList() ?? [],
 						Rating = ratingData["averageRating"]?.GetValue<double?>() ?? 0.0,
 						PlayTime = playTime,
 						AgeRatingUrl = ageRatingData[ratingKey]?["ratingImage"]?.ToString(),

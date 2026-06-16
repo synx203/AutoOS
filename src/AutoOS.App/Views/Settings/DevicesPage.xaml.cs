@@ -162,7 +162,7 @@ public sealed partial class DevicesPage : Page
 
 		// disable hittestvisible to avoid double-clicking
 		toggleSwitch.IsHitTestVisible = false;
-		
+
 		// remove infobar
 		DevicesInfo.Children.Clear();
 
@@ -184,7 +184,7 @@ public sealed partial class DevicesPage : Page
 
 		// re-enable hittestvisible
 		toggleSwitch.IsHitTestVisible = true;
-		
+
 		// remove infobar
 		DevicesInfo.Children.Clear();
 

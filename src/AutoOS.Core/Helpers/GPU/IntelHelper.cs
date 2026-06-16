@@ -1,4 +1,4 @@
-using AutoOS.Core.Common;
+﻿using AutoOS.Core.Common;
 using AutoOS.Core.Helpers.CPU;
 using AutoOS.Core.Helpers.Download;
 using AutoOS.Core.Helpers.Extract;
@@ -135,7 +135,7 @@ namespace AutoOS.Core.Helpers.GPU
 				// download intel driver
 				($@"Downloading INTEL driver {newestVersion}", async () => await DownloadHelper.Download(newestDownloadUrl, Path.Combine(Path.GetTempPath(), "INTEL"), "driver.zip", reporter), () => Intel_3rd == true || Intel_4th_5th == true || Intel_6th == true),
 
-				 // extract intel driver
+				// extract intel driver
 				($@"Extracting INTEL driver {newestVersion}", async () => await ExtractHelper.Extract(Path.Combine(Path.GetTempPath(), "INTEL", "driver.zip"), Path.Combine(Path.GetTempPath(), "INTEL", "driver")), () => Intel_3rd == true || Intel_4th_5th == true || Intel_6th == true),
 
 				// download intel driver

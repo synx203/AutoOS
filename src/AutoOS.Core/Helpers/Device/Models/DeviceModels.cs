@@ -108,7 +108,7 @@ public partial class DeviceInfo : INotifyPropertyChanged
 		get => _isMuted;
 		set { if (_isMuted != value) { _isMuted = value; OnPropertyChanged(); } }
 	}
-	
+
 	private float _leftVolume;
 	public float LeftVolume
 	{

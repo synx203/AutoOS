@@ -97,7 +97,7 @@ public sealed partial class ApplicationsPage : Page
 			new() { Text = "FanControl", ImageSource = "ms-appx:///Assets/Fluent/FanControl.png" },
 			new() { Text = "GHelper", ImageSource = "ms-appx:///Assets/Fluent/GHelper.png" }
 		};
-		
+
 		Controllers.ItemsSource = new List<GridViewItem>
 		{
 			new() { Text = "ViGEmBus", ImageSource = "ms-appx:///Assets/Fluent/ViGEmBus.png" },
@@ -230,7 +230,7 @@ public sealed partial class ApplicationsPage : Page
 
 		isInitializingPeripheralsState = false;
 	}
-	
+
 	private void GetControllers()
 	{
 		var selectedControllers = localSettings.Values["Controllers"] as string;
@@ -369,7 +369,7 @@ public sealed partial class ApplicationsPage : Page
 
 		localSettings.Values["Peripherals"] = string.Join(", ", selectedPeripherals);
 	}
-	
+
 	private void Controllers_Changed(object sender, SelectionChangedEventArgs e)
 	{
 		if (isInitializingControllersState) return;

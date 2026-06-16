@@ -302,7 +302,7 @@ public static partial class LogHelper
 				if (fieldsArray.Count >= 25) break;
 
 				int length = Math.Min(1024, value.Length - offset);
-				
+
 				if (length == 1024)
 				{
 					int lastNewline = value.LastIndexOf('\n', offset + length - 1, length);
@@ -313,7 +313,7 @@ public static partial class LogHelper
 				}
 
 				string chunk = value.Substring(offset, length).TrimEnd();
-				if (string.IsNullOrEmpty(chunk)) 
+				if (string.IsNullOrEmpty(chunk))
 				{
 					offset += length;
 					continue;
@@ -323,7 +323,7 @@ public static partial class LogHelper
 				if (fieldName.Length > 256) fieldName = fieldName.Substring(0, 256);
 
 				fieldsArray.Add((JsonNode)new JsonObject { ["name"] = fieldName, ["value"] = chunk, ["inline"] = inline });
-				
+
 				offset += length;
 			}
 		}

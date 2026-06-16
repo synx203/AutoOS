@@ -1,4 +1,4 @@
-// Credit: LuSlower
+﻿// Credit: LuSlower
 // https://github.com/LuSlower/chiptool
 // Modified: Uses [LibraryImport] instead of [DllImport]
 
@@ -102,8 +102,8 @@ public partial class ReadWriteHelper : IDisposable
 		if (parts.Length != 3) return false;
 
 		return uint.TryParse(parts[0], System.Globalization.NumberStyles.HexNumber, null, out bus) &&
-			   uint.TryParse(parts[1], System.Globalization.NumberStyles.HexNumber, null, out dev) &&
-			   uint.TryParse(parts[2], System.Globalization.NumberStyles.HexNumber, null, out func);
+		uint.TryParse(parts[1], System.Globalization.NumberStyles.HexNumber, null, out dev) &&
+		uint.TryParse(parts[2], System.Globalization.NumberStyles.HexNumber, null, out func);
 	}
 
 	// IO Port

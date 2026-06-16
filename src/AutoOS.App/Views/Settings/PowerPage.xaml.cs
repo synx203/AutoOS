@@ -346,7 +346,7 @@ namespace AutoOS.Views.Settings
 			{
 				foreach (var setting in subgroup.Settings)
 				{
-					setting.IsVisible = string.IsNullOrEmpty(query) || 
+					setting.IsVisible = string.IsNullOrEmpty(query) ||
 										setting.Name.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
 										setting.Guid.ToString().Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
 										setting.SubgroupGuid.ToString().Contains(query, StringComparison.CurrentCultureIgnoreCase);
@@ -377,8 +377,8 @@ namespace AutoOS.Views.Settings
 					foreach (var setting in subgroup.Settings)
 					{
 						bool isDifferent = setting.IsAcDifferent || setting.IsDcDifferent;
-						
-						bool matchesSearch = string.IsNullOrEmpty(query) || 
+
+						bool matchesSearch = string.IsNullOrEmpty(query) ||
 											setting.Name.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
 											setting.Guid.ToString().Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
 											setting.SubgroupGuid.ToString().Contains(query, StringComparison.CurrentCultureIgnoreCase);
@@ -641,7 +641,7 @@ namespace AutoOS.Views.Settings
 				return;
 
 			int i = 1;
-			while (_powerPlans.Any(p => string.Equals(p.Name, i == 1 ? $"{plan.Name} - Copy" : $"{plan.Name} - Copy ({i})", StringComparison.CurrentCultureIgnoreCase))) 
+			while (_powerPlans.Any(p => string.Equals(p.Name, i == 1 ? $"{plan.Name} - Copy" : $"{plan.Name} - Copy ({i})", StringComparison.CurrentCultureIgnoreCase)))
 				i++;
 
 			var newPlan = new PowerPlan

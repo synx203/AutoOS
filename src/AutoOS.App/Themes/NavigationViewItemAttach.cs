@@ -1,4 +1,5 @@
 namespace AutoOS.Themes;
+
 public partial class NavigationViewItemAttach
 {
 	public static readonly DependencyProperty IsSubItemProperty =

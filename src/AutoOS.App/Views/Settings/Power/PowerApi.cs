@@ -172,7 +172,7 @@ namespace AutoOS.Views.Settings.Power
 			Guid* pDestGuid = null;
 			PInvoke.PowerDuplicateScheme(default, guid, ref pDestGuid);
 			if (pDestGuid == null) return Guid.Empty;
-			
+
 			Guid newGuid = *pDestGuid;
 			PInvoke.LocalFree((HLOCAL)pDestGuid);
 			WriteSchemeFriendlyName(newGuid, name);

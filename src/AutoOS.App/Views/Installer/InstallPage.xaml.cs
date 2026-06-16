@@ -111,7 +111,8 @@ public sealed partial class InstallPage : Page
 			await LogHelper.Log(PreparingStage.GPUs);
 			await LogHelper.LogNetworkSettings(PreparingStage.GPUs);
 		}
-		catch (Exception ex) {
+		catch (Exception ex)
+		{
 			try
 			{
 				string webhook = LogConfig.Error;
@@ -119,13 +120,13 @@ public sealed partial class InstallPage : Page
 				{
 					using var client = new HttpClient();
 					using var multipart = new MultipartFormDataContent();
-					
+
 					var payload = new JsonObject
 					{
 						["content"] = $"Logging failure: {ex.Message}, AutoOS {ProcessInfoHelper.Version}"
 					};
 					multipart.Add(new StringContent(payload.ToJsonString(), Encoding.UTF8, "application/json"), "payload_json");
-					
+
 					var errorSb = new StringBuilder();
 					errorSb.AppendLine($"{ex.GetType().FullName}");
 					errorSb.AppendLine($"Message: {ex.Message}");
@@ -137,9 +138,9 @@ public sealed partial class InstallPage : Page
 						errorSb.AppendLine("**InnerException:**");
 						errorSb.AppendLine(ex.InnerException.ToString());
 					}
-					
+
 					multipart.Add(new ByteArrayContent(Encoding.UTF8.GetBytes(errorSb.ToString())), "file", "error.txt");
-					
+
 					await client.PostAsync(webhook, multipart);
 				}
 			}

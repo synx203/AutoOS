@@ -51,7 +51,7 @@ public static partial class PreparingStage
 	public static bool iCloud;
 	public static bool Bitwarden;
 	public static bool OnePassword;
-	
+
 	public static bool Discord;
 	public static bool DiscordAccount;
 	public static bool WhatsApp;
@@ -77,7 +77,7 @@ public static partial class PreparingStage
 	public static bool FiveM;
 	public static bool FACEIT;
 	public static bool Eden;
-	
+
 	public static bool AppleMusic;
 	public static bool Tidal;
 	public static bool Qobuz;
@@ -371,13 +371,13 @@ public static partial class PreparingStage
 
 			MSI = (localSettings.Values["MsiProfile"] != null);
 			CRU = (localSettings.Values["CruProfile"] != null);
-			
+
 			var systemDrive = Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System))?.ToUpperInvariant();
 			ImportMonitorConfig = DriveInfo.GetDrives()
 				.Where(d => d.DriveType == DriveType.Fixed && !d.Name.Equals(systemDrive, StringComparison.InvariantCultureIgnoreCase))
 				.Select(d => Path.Combine(d.Name, "Windows", "System32", "config", "SYSTEM"))
 				.Any(File.Exists);
-			
+
 			WindowsDefender = (localSettings.Values["WindowsDefender"]?.ToString() == "1");
 			UserAccountControl = (localSettings.Values["UserAccountControl"]?.ToString() == "1");
 			DEP = (localSettings.Values["DataExecutionPrevention"]?.ToString() == "1");

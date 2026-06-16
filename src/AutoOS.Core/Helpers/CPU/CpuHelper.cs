@@ -10,7 +10,7 @@ public static partial class CpuHelper
 	public static CpuArchitecture GetCpuArchitecture()
 	{
 		using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
-		
+
 		var vendorId = key?.GetValue("VendorIdentifier")?.ToString() ?? "";
 		var processorName = key?.GetValue("ProcessorNameString")?.ToString() ?? "";
 		var identifier = key?.GetValue("Identifier")?.ToString() ?? "";
@@ -22,7 +22,7 @@ public static partial class CpuHelper
 			vendor = CpuVendor.AMD;
 
 		uint family = 0, model = 0, stepping = 0;
-		
+
 		var parts = identifier.Split(' ');
 		for (int i = 0; i < parts.Length; i++)
 		{
@@ -36,7 +36,7 @@ public static partial class CpuHelper
 
 		uint displayFamily = family;
 		uint displayModel = model;
-		
+
 		var arch = new CpuArchitecture
 		{
 			Vendor = vendor,
@@ -166,7 +166,7 @@ public static partial class CpuHelper
 
 		uint bufferSize = 0;
 		PInvoke.GetSystemCpuSetInformation(null, 0, &bufferSize, HANDLE.Null, 0);
-		
+
 		if (bufferSize == 0) return info;
 
 		IntPtr buffer = Marshal.AllocHGlobal((int)bufferSize);

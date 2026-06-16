@@ -1,4 +1,5 @@
 namespace AutoOS.Themes;
+
 public partial class NavigationViewItemStyleSelector : StyleSelector
 {
 	public Style TopLevelTemplate { get; set; }

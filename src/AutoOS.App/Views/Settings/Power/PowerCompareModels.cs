@@ -128,13 +128,13 @@ namespace AutoOS.Views.Settings.Power
 		public override bool IsAcDifferent
 		{
 			get => _isAcDifferent;
-			set 
-			{ 
-				if (_isAcDifferent != value) 
-				{ 
-					_isAcDifferent = value; 
+			set
+			{
+				if (_isAcDifferent != value)
+				{
+					_isAcDifferent = value;
 					OnPropertyChanged();
-				} 
+				}
 			}
 		}
 
@@ -142,13 +142,13 @@ namespace AutoOS.Views.Settings.Power
 		public override bool IsDcDifferent
 		{
 			get => _isDcDifferent;
-			set 
-			{ 
-				if (_isDcDifferent != value) 
-				{ 
-					_isDcDifferent = value; 
+			set
+			{
+				if (_isDcDifferent != value)
+				{
+					_isDcDifferent = value;
 					OnPropertyChanged();
-				} 
+				}
 			}
 		}
 	}

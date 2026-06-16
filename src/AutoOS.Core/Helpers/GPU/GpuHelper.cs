@@ -17,7 +17,7 @@ public static partial class GpuHelper
 		}
 	})
 	{
-	DefaultRequestHeaders =
+		DefaultRequestHeaders =
 		{
 			UserAgent =
 			{
@@ -91,7 +91,7 @@ public static partial class GpuHelper
 						ecc = Microsoft.Win32.Registry.GetValue(registryPath, "RMEnableL1ECC", null) is not int eccValue || eccValue == 1;
 						gspFirmware = Microsoft.Win32.Registry.GetValue(registryPath, "EnableGpuFirmware", null) is int firmwareValue && firmwareValue == 1;
 						hdcp = Microsoft.Win32.Registry.GetValue(registryPath, "RMHdcpKeyglobZero", null) is int intValue && intValue == 0;
-					 }
+					}
 					else if (vendorId == "1002")
 					{
 						currentVersion = (Microsoft.Win32.Registry.GetValue(registryPath, "RadeonSoftwareVersion", null) ?? Microsoft.Win32.Registry.GetValue(registryPath, "FireproSoftwareVersion", null))?.ToString();
@@ -141,8 +141,8 @@ public static partial class GpuHelper
 								}
 							}
 						}
-						finally 
-						{ 
+						finally
+						{
 							PInvoke.SetupDiDestroyDeviceInfoList(hAudioInfo);
 						}
 					}
@@ -182,9 +182,9 @@ public static partial class GpuHelper
 				});
 			}
 		}
-		finally 
-		{ 
-			PInvoke.SetupDiDestroyDeviceInfoList(hDevInfo); 
+		finally
+		{
+			PInvoke.SetupDiDestroyDeviceInfoList(hDevInfo);
 		}
 
 		return gpus;
@@ -377,9 +377,9 @@ public static partial class GpuHelper
 				}
 			}
 		}
-		finally 
-		{ 
-			PInvoke.SetupDiDestroyDeviceInfoList(hAudioInfo); 
+		finally
+		{
+			PInvoke.SetupDiDestroyDeviceInfoList(hAudioInfo);
 		}
 	}
 }

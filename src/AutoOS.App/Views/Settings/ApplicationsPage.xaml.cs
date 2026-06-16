@@ -25,7 +25,7 @@ public sealed partial class ApplicationsPage : Page
 	{
 		InitializeComponent();
 		GetItems();
-		
+
 		Messaging.ItemsSource = messagingItems;
 		Launchers.ItemsSource = launchersItems;
 		Music.ItemsSource = musicItems;
@@ -199,7 +199,7 @@ public sealed partial class ApplicationsPage : Page
 			miscellaneousItems.Add(item);
 	}
 
-	private void GridView_SelectionChanged(object sender, SelectionChangedEventArgs e) 
+	private void GridView_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		InstallButton.IsEnabled = Office.SelectedItems.Count > 0 || Development.SelectedItems.Count > 0 || Overclocking.SelectedItems.Count > 0 || Music.SelectedItems.Count > 0 || Peripherals.SelectedItems.Count > 0 || Controllers.SelectedItems.Count > 0 || Messaging.SelectedItems.Count > 0 || Launchers.SelectedItems.Count > 0 || Miscellaneous.SelectedItems.Count > 0 || MusicProduction.SelectedItems.Count > 0 || Multimedia.SelectedItems.Count > 0;
 	}
@@ -207,7 +207,7 @@ public sealed partial class ApplicationsPage : Page
 	private async void InstallButton_Click(object sender, RoutedEventArgs e)
 	{
 		var selection = new ApplicationSelection();
-		
+
 		var selectedMessagingItems = Messaging.SelectedItems.Cast<GridViewItem>().ToList();
 		var selectedMessaging = selectedMessagingItems.Select(item => item.Text).ToList();
 		selection.Discord = selectedMessaging.Contains("Discord");
@@ -356,19 +356,19 @@ public sealed partial class ApplicationsPage : Page
 			updateDialog.SetSuccess();
 			await Task.Delay(1000);
 			updater.Hide();
-			
+
 			foreach (var item in selectedMessagingItems)
 				messagingItems.Remove(item);
-			
+
 			foreach (var item in selectedLaunchersItems)
 				launchersItems.Remove(item);
 
 			foreach (var item in selectedMusicItems)
 				musicItems.Remove(item);
-			
+
 			foreach (var item in selectedPeripheralsItems)
 				peripheralsItems.Remove(item);
-			
+
 			foreach (var item in selectedControllersItems)
 				controllersItems.Remove(item);
 

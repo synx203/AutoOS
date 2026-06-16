@@ -277,7 +277,7 @@ public static class BiosSettingRecommendationsList
 		new BiosSettingRecommendation { SetupQuestion = "Intel (VMX) Virtualization Technology", Type = "Option", RecommendedOption = "Enabled" }, // required for faceit
 		new BiosSettingRecommendation { SetupQuestion = "Intel Adaptive Thermal Monitor", Type = "Option", RecommendedOption = "Disabled" },
 		new BiosSettingRecommendation { SetupQuestion = "Intel C-State", Type = "Option", RecommendedOption = "Disabled" },
-		new BiosSettingRecommendation { SetupQuestion = "Intel Platform Trust Technology (PTT)", Type = "Option", RecommendedOption = "Disabled" },
+		//new BiosSettingRecommendation { SetupQuestion = "Intel Platform Trust Technology (PTT)", Type = "Option", RecommendedOption = "Disabled" },
 		new BiosSettingRecommendation { SetupQuestion = "Intel RMT State", Type = "Option", RecommendedOption = "Disabled" },
 		new BiosSettingRecommendation { SetupQuestion = "Intel Rapid Recovery Technology", Type = "Option", RecommendedOption = "Disabled" },
 		new BiosSettingRecommendation { SetupQuestion = "Intel Ready Mode Technology", Type = "Option", RecommendedOption = "Disabled" },

@@ -1,4 +1,5 @@
 namespace AutoOS.Assets.NavViewMenu;
+
 public partial class NavigationPageMappingsInstaller
 {
 	public static Dictionary<string, Type> PageDictionary { get; } = new Dictionary<string, Type>

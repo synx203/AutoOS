@@ -584,7 +584,7 @@ public static partial class DeviceHelper
 		var hw = sharedHw ?? localHw;
 
 		if (device.BaseAddress == 0) return false;
-		
+
 		hw.ReadMemory32(device.BaseAddress + 0x18, out uint rtsoff);
 		ulong runtime = device.BaseAddress + (rtsoff & ~0x1Fu);
 
@@ -685,7 +685,7 @@ public static partial class DeviceHelper
 			obj = new JsonObject { ["PnpDeviceId"] = device.PnpDeviceId };
 			array.Add((JsonNode)obj);
 		}
-		
+
 		obj["Intervals"] = intervals;
 		ApplicationData.Current.LocalSettings.Values["XHCIs"] = array.ToJsonString();
 	}

@@ -719,7 +719,7 @@ public static partial class SoundHelper
 
 		var json = localSettings.Values["Sound"]?.ToString();
 		var array = JsonNode.Parse(json ?? "[]")?.AsArray() ?? [];
-		
+
 		JsonObject obj = null;
 		foreach (var item in array)
 		{
@@ -785,10 +785,10 @@ public static partial class SoundHelper
 
 			if (!string.IsNullOrEmpty(args))
 			{
-				Process.Start(new ProcessStartInfo 
-				{ 
-					FileName = Path.Combine(ApplicationData.Current.LocalFolder.Path, "AutoOS.Sound.exe"), 
-					Arguments = args.Trim(), 
+				Process.Start(new ProcessStartInfo
+				{
+					FileName = Path.Combine(ApplicationData.Current.LocalFolder.Path, "AutoOS.Sound.exe"),
+					Arguments = args.Trim(),
 					CreateNoWindow = true,
 					UseShellExecute = false
 				});

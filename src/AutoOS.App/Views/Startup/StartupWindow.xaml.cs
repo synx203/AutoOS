@@ -40,7 +40,7 @@ namespace AutoOS.Views.Startup
 			Status = StatusText;
 			Progress = ProgressBar;
 			TitleBarName = "AutoOS Startup";
-			
+
 			await StartupStage.Run();
 		}
 

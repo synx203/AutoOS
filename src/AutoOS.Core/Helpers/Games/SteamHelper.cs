@@ -1,4 +1,4 @@
-using AutoOS.Core.Common;
+﻿using AutoOS.Core.Common;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
@@ -29,24 +29,24 @@ public static partial class SteamHelper
 
 	public static List<SteamAccountInfo> GetSteamAccounts()
 	{
-			if (!File.Exists(SteamLoginUsersPath))
-				return [];
+		if (!File.Exists(SteamLoginUsersPath))
+			return [];
 
-			string content = File.ReadAllText(SteamLoginUsersPath);
-			if (string.IsNullOrWhiteSpace(content))
-				return [];
+		string content = File.ReadAllText(SteamLoginUsersPath);
+		if (string.IsNullOrWhiteSpace(content))
+			return [];
 
-			KVDocument kv;
-			try
-			{
-				kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(content)), new KVSerializerOptions { HasEscapeSequences = true });
-			}
-			catch (KeyValueException)
-			{
-				kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(content)), new KVSerializerOptions { HasEscapeSequences = false });
-			}
+		KVDocument kv;
+		try
+		{
+			kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(content)), new KVSerializerOptions { HasEscapeSequences = true });
+		}
+		catch (KeyValueException)
+		{
+			kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(content)), new KVSerializerOptions { HasEscapeSequences = false });
+		}
 
-			return [.. kv.Root.Children
+		return [.. kv.Root.Children
 				.Select(children =>
 				{
 					string steam64Id = children.Key;
@@ -67,23 +67,23 @@ public static partial class SteamHelper
 				})
 				.Where(x => x != null)
 				.OrderBy(x => x.AccountName, StringComparer.OrdinalIgnoreCase)];
-		}
+	}
 
 	public static string GetSteam64ID()
 	{
-			if (!File.Exists(SteamLoginUsersPath))
-				return null;
+		if (!File.Exists(SteamLoginUsersPath))
+			return null;
 
-			string content = File.ReadAllText(SteamLoginUsersPath);
-			KVDocument kv;
-			try
-			{
-				kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(content)), new KVSerializerOptions { HasEscapeSequences = true });
-			}
-			catch (KeyValueException)
-			{
-				kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(content)), new KVSerializerOptions { HasEscapeSequences = false });
-			}
+		string content = File.ReadAllText(SteamLoginUsersPath);
+		KVDocument kv;
+		try
+		{
+			kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(content)), new KVSerializerOptions { HasEscapeSequences = true });
+		}
+		catch (KeyValueException)
+		{
+			kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(content)), new KVSerializerOptions { HasEscapeSequences = false });
+		}
 		return kv.Root.Children.FirstOrDefault(children => children.Value["MostRecent"]?.ToString() == "1" && children.Value["AllowAutoLogin"]?.ToString() == "1").Key;
 	}
 
@@ -345,7 +345,7 @@ public static partial class SteamHelper
 		var options = new KVSerializerOptions { HasEscapeSequences = true };
 		using var stream = File.OpenRead(localConfigPath);
 		var kv = KVSerializer.Create(KVSerializationFormat.KeyValues1Text).Deserialize(stream, options);
-		
+
 		var softwareNode = kv.Root.Children.FirstOrDefault(children => string.Equals(children.Key, "Software", StringComparison.OrdinalIgnoreCase));
 		if (softwareNode.Equals(default(KeyValuePair<string, KVObject>))) return (playtimeData, ownedAppIds);
 
@@ -636,7 +636,7 @@ public static partial class SteamHelper
 		}
 		catch
 		{
-			
+
 		}
 
 		return [.. games];
@@ -709,8 +709,8 @@ public static partial class SteamHelper
 		var data = gameData.GetProperty("data");
 
 		bool comingSoon = data.TryGetProperty("release_date", out var releaseDateElem) &&
-						  releaseDateElem.TryGetProperty("coming_soon", out var comingSoonElem) &&
-						  comingSoonElem.GetBoolean();
+			releaseDateElem.TryGetProperty("coming_soon", out var comingSoonElem) &&
+			comingSoonElem.GetBoolean();
 		if (comingSoon) return false;
 
 		string libraryCapsuleUrl = $"https://cdn.steamstatic.com/steam/apps/{steamAppId}/library_600x900.jpg";
