@@ -353,6 +353,7 @@ public static class BrowsersStage
 
 			// download brave
 			("Downloading Brave", async () => await DownloadHelper.Download(JsonDocument.Parse(await new HttpClient { DefaultRequestHeaders = { { "User-Agent", "AutoOS" } } }.GetStringAsync("https://api.github.com/repos/brave/brave-browser/releases")).RootElement.EnumerateArray().First(r => !r.GetProperty("prerelease").GetBoolean() && r.GetProperty("assets").EnumerateArray().Any(a => a.GetProperty("name").GetString() == "BraveBrowserStandaloneSetup.exe")).GetProperty("assets").EnumerateArray().First(a => a.GetProperty("name").GetString() == "BraveBrowserStandaloneSetup.exe").GetProperty("browser_download_url").GetString(), Path.GetTempPath(), "BraveBrowserStandaloneSetup.exe", reporter ?? new InstallPageReporter()), () => Brave == true),
+			
 			// install brave
 			("Installing Brave", async () => await Process.Start(new ProcessStartInfo { FileName = Path.Combine(Path.GetTempPath(), "BraveBrowserStandaloneSetup.exe"), Arguments = "/silent /install", WindowStyle = ProcessWindowStyle.Hidden })!.WaitForExitAsync(), () => Brave == true),
 			("Installing Brave", async () => braveVersion = FileVersionInfo.GetVersionInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "BraveSoftware", "Brave-Browser", "Application", "brave.exe")).ProductVersion, () => Brave == true),
@@ -617,6 +618,13 @@ public static class BrowsersStage
 			("Disabling Comet services", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Active Setup\Installed Components\AutorunsDisabled\{1F7C13D9-45E8-47E9-A2B5-6B2EF21B91F4}", "Version", "43,0,0,0", RegistryValueKind.String), () => Comet == true),
 			("Disabling Comet services", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Active Setup\Installed Components\AutorunsDisabled\{1F7C13D9-45E8-47E9-A2B5-6B2EF21B91F4}", "IsInstalled", 1, RegistryValueKind.DWord), () => Comet == true),
 			("Disabling Comet services", async () => RegistryHelper.DeleteKey(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Active Setup\Installed Components\{1F7C13D9-45E8-47E9-A2B5-6B2EF21B91F4}"), () => Comet == true),
+			("Disabling Comet services", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\CometElevationService", "Start", 4, RegistryValueKind.DWord), () => Comet == true),
+			("Disabling Comet services", async () => ServicesHelper.StopService("CometElevationService"), () => Comet == true),
+			("Disabling Comet services", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\CometUpdaterInternalService{cometVersion}", "Start", 4, RegistryValueKind.DWord), () => Comet == true),
+			("Disabling Comet services", async () => ServicesHelper.StopService($@"CometUpdaterInternalService{cometVersion}"), () => Comet == true),
+			("Disabling Comet services", async () => RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, $@"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\CometUpdaterService{cometVersion}", "Start", 4, RegistryValueKind.DWord), () => Comet == true),
+			("Disabling Comet services", async () => ServicesHelper.StopService($@"CometUpdaterService{cometVersion}"), () => Comet == true),
+			("Disabling Comet services", async () => TaskSchedulerHelper.Toggle("CometUpdaterTaskSystem", false), () => Comet == true),
 
 			// download firefox
 			("Downloading Firefox", async () => firefoxVersion = JsonDocument.Parse(await ProcessActions.httpClient.GetStringAsync("https://product-details.mozilla.org/1.0/firefox_versions.json")).RootElement.GetProperty("LATEST_FIREFOX_VERSION").GetString(), () => Firefox == true),

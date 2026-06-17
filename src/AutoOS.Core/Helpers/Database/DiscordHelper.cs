@@ -1,6 +1,8 @@
 using AutoOS.Core.Common;
 using System.Diagnostics;
 using System.Text.Json.Nodes;
+using Windows.Win32;
+using Windows.Win32.Foundation;
 
 namespace AutoOS.Core.Helpers.Database;
 
@@ -180,10 +182,13 @@ public static partial class DiscordHelper
 
 	public static async Task KillDiscord()
 	{
-		foreach (var process in Process.GetProcessesByName("Discord"))
+		foreach (Process process in Process.GetProcessesByName("Discord"))
 		{
-			process.Kill();
-			await process.WaitForExitAsync();
+			if (process.MainWindowHandle != IntPtr.Zero)
+			{
+				PInvoke.PostMessage((HWND)process.MainWindowHandle, PInvoke.WM_CLOSE, default(WPARAM), default(LPARAM));
+				process.WaitForExit();
+			}
 		}
 	}
 

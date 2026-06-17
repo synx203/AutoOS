@@ -252,6 +252,11 @@ public sealed partial class SecurityPage : Page
 			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender", "DisableAntiVirus", 1, RegistryValueKind.DWord);
 			await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Windows Defender", "MpCmdRun.exe"), "-DisableService -HighPriority") { CreateNoWindow = true });
 			while (new ServiceController("WdFilter").Status != ServiceControllerStatus.Stopped) await Task.Delay(100);
+			foreach (Process process in Process.GetProcessesByName("SecurityHealthSystray"))
+			{
+				process.Kill(); process.WaitForExit();
+			}
+			RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, () => ServicesHelper.StopService("SecurityHealthService"));
 			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\MsSecCore", "Start", 4, RegistryValueKind.DWord);
 			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SecurityHealthService", "Start", 4, RegistryValueKind.DWord);
 			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Sense", "Start", 4, RegistryValueKind.DWord);
