@@ -122,17 +122,30 @@ public sealed partial class SecurityPage : Page
 			RegistryHelper.DeleteValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender", "PassiveMode");
 			RegistryHelper.DeleteValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender", "DisableAntiSpyware");
 			RegistryHelper.DeleteValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender", "DisableAntiVirus");
-			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\MsSecCore", "Start", 0, RegistryValueKind.DWord);
-			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SecurityHealthService", "Start", 3, RegistryValueKind.DWord);
-			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Sense", "Start", 3, RegistryValueKind.DWord);
-			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdBoot", "Start", 0, RegistryValueKind.DWord);
-			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdFilter", "Start", 0, RegistryValueKind.DWord);
-			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisDrv", "Start", 3, RegistryValueKind.DWord);
-			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisSvc", "Start", 3, RegistryValueKind.DWord);
-			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefsvc", "Start", 3, RegistryValueKind.DWord);
-			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefusersvc", "Start", 2, RegistryValueKind.DWord);
-			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WinDefend", "Start", 2, RegistryValueKind.DWord);
-			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\wscsvc", "Start", 2, RegistryValueKind.DWord);
+
+			if (Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\MsSecCore", false)?.GetValue("Start") as int? != 0)
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\MsSecCore", "Start", 0, RegistryValueKind.DWord);
+			if (Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\SecurityHealthService", false)?.GetValue("Start") as int? != 3)
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SecurityHealthService", "Start", 3, RegistryValueKind.DWord);
+			if (Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\Sense", false)?.GetValue("Start") as int? != 3)
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Sense", "Start", 3, RegistryValueKind.DWord);
+			if (Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\WdBoot", false)?.GetValue("Start") as int? != 0)
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdBoot", "Start", 0, RegistryValueKind.DWord);
+			if (Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\WdFilter", false)?.GetValue("Start") as int? != 0)
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdFilter", "Start", 0, RegistryValueKind.DWord);
+			if (Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\WdNisDrv", false)?.GetValue("Start") as int? != 3)
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisDrv", "Start", 3, RegistryValueKind.DWord);
+			if (Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\WdNisSvc", false)?.GetValue("Start") as int? != 3)
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WdNisSvc", "Start", 3, RegistryValueKind.DWord);
+			if (Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\webthreatdefsvc", false)?.GetValue("Start") as int? != 3)
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefsvc", "Start", 3, RegistryValueKind.DWord);
+			if (Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\webthreatdefusersvc", false)?.GetValue("Start") as int? != 2)
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\webthreatdefusersvc", "Start", 2, RegistryValueKind.DWord);
+			if (Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\WinDefend", false)?.GetValue("Start") as int? != 2)
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WinDefend", "Start", 2, RegistryValueKind.DWord);
+			if (Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\wscsvc", false)?.GetValue("Start") as int? != 2)
+				RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\wscsvc", "Start", 2, RegistryValueKind.DWord);
+
 			await RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Windows Defender", "MpCmdRun.exe"), "-EnableService -HighPriority") { CreateNoWindow = true });
 		}
 		else
@@ -257,6 +270,9 @@ public sealed partial class SecurityPage : Page
 				process.Kill(); process.WaitForExit();
 			}
 			RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, () => ServicesHelper.StopService("SecurityHealthService"));
+			RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, () => ServicesHelper.StopService("webthreatdefsvc"));
+			RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, () => ServicesHelper.StopService("webthreatdefusersvc"));
+			RegistryHelper.RunAs(RegistryHelper.Identity.TrustedInstaller, () => ServicesHelper.StopService("wscsvc"));
 			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\MsSecCore", "Start", 4, RegistryValueKind.DWord);
 			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SecurityHealthService", "Start", 4, RegistryValueKind.DWord);
 			RegistryHelper.SetValue(RegistryHelper.Identity.TrustedInstaller, @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Sense", "Start", 4, RegistryValueKind.DWord);

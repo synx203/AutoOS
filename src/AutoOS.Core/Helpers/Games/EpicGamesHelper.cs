@@ -1,4 +1,4 @@
-﻿using AutoOS.Core.Common;
+using AutoOS.Core.Common;
 using AutoOS.Core.Helpers.Logging;
 using System.Collections.Concurrent;
 using DevWinUI;
@@ -19,16 +19,12 @@ namespace AutoOS.Core.Helpers.Games;
 public static partial class EpicGamesHelper
 {
 	public static readonly string EpicGamesPath = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Epic Games", "Launcher", "Portal", "Binaries", "Win64", "EpicGamesLauncher.exe")) ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Epic Games", "Launcher", "Portal", "Binaries", "Win64", "EpicGamesLauncher.exe") : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Epic Games", "Launcher", "Portal", "Binaries", "Win64", "EpicGamesLauncher.exe");
-
 	public static readonly string ActiveEpicGamesAccountPath = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"EpicGamesLauncher\Saved\Config\WindowsEditor", "GameUserSettings.ini")) ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"EpicGamesLauncher\Saved\Config\WindowsEditor", "GameUserSettings.ini") : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"EpicGamesLauncher\Saved\Config\Windows", "GameUserSettings.ini");
-
 	public static readonly string EpicGamesAccountDir = Directory.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"EpicGamesLauncher\Saved\Config\WindowsEditor")) ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"EpicGamesLauncher\Saved\Config\WindowsEditor") : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"EpicGamesLauncher\Saved\Config\Windows");
-
 	public static readonly string EpicGamesInstalledGamesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Epic", "UnrealEngineLauncher", "LauncherInstalled.dat");
-
 	public static readonly string EpicGamesManifestDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Epic", "EpicGamesLauncher", "Data", "Manifests");
-
 	public static readonly string EpicGamesThirdPartyManifestDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Epic", "EpicGamesLauncher", "Data", "ThirPartyManagedApps");
+	public static readonly string EpicGamesInstalledItemsDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Epic", "EpicOnlineServicesShared", "InstallHelper", "InstalledItems");
 
 	private static readonly HttpClient httpClient = new();
 	private static readonly HttpClient loginClient = new();
@@ -517,11 +513,9 @@ public static partial class EpicGamesHelper
 				// use the latest one
 				if (newestFilePath == null || file.LastWriteTime > new FileInfo(newestFilePath).LastWriteTime)
 				{
-					newestFilePath = file.FullName;
-
 					// copy the file
 					Directory.CreateDirectory(Path.GetDirectoryName(ActiveEpicGamesAccountPath)!);
-					File.Copy(newestFilePath, ActiveEpicGamesAccountPath, true);
+					File.Copy(file.FullName, ActiveEpicGamesAccountPath, true);
 
 					// disable tray and notifications
 					DisableMinimizeToTray(ActiveEpicGamesAccountPath);
@@ -646,17 +640,43 @@ public static partial class EpicGamesHelper
 			}
 		}
 
-		// launch epic games to get new token
-		Process.Start(new ProcessStartInfo(EpicGamesPath) { WindowStyle = ProcessWindowStyle.Hidden });
+		// copy install dir to new drive
+		FileSystem.CopyDirectory(Path.Combine(oldDrive, EpicGamesInstalledItemsDir[Path.GetPathRoot(EpicGamesInstalledItemsDir).Length..]), EpicGamesInstalledItemsDir, true);
 
-		// wait for token to get used
-		await Task.Delay(5000);
+		// set new game paths in installed items manifests
+		foreach (var file in Directory.GetFiles(EpicGamesInstalledItemsDir, "*.egi", System.IO.SearchOption.AllDirectories))
+		{
+			var egiJson = JsonNode.Parse(await File.ReadAllTextAsync(file));
 
-		// close epic games launcher
-		CloseEpicGames();
+			if (egiJson is JsonObject egiObj && egiObj["v4"] is JsonObject v4Obj)
+			{
+				string originalPath = v4Obj["dir"]!.ToString();
+				string relativePath = originalPath[Path.GetPathRoot(originalPath)!.Length..];
 
-		// update the backed up config
-		File.Copy(ActiveEpicGamesAccountPath, Path.Combine(EpicGamesAccountDir, GetAccountData(ActiveEpicGamesAccountPath).AccountId, "GameUserSettings.ini"), true);
+				foreach (var drive in DriveInfo.GetDrives().Where(drive => drive.DriveType == DriveType.Fixed && drive.Name != systemDrive))
+				{
+					if (Directory.Exists(Path.Combine(drive.Name, relativePath)))
+					{
+						// store found drive
+						char newDrive = drive.Name[0];
+
+						// update dir
+						v4Obj["dir"] = newDrive + originalPath[1..];
+
+						// update other paths
+						foreach (var prop in new[] { "metaDir", "manifestPath", "pendingManifestPath" })
+						{
+							if (v4Obj.ContainsKey(prop) && v4Obj[prop]!.ToString() is string val && val.Length >= 2 && val[1] == ':')
+								v4Obj[prop] = newDrive + val[1..];
+						}
+
+						// write updated egi files as a single line
+						await File.WriteAllTextAsync(file, egiObj.ToJsonString(new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
+						break;
+					}
+				}
+			}
+		}
 	}
 
 	public static async Task EpicGamesLogin(IStatusReporter reporter = null)
