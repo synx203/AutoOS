@@ -875,39 +875,12 @@ public static partial class EpicGamesHelper
 				_ => "PEGI"
 			};
 
-			var manifestFiles = Directory.Exists(EpicGamesManifestDir) ? Directory.GetFiles(EpicGamesManifestDir, "*.item", System.IO.SearchOption.TopDirectoryOnly).Select(file => new FileInfo(file)).ToList() : [];
-
-			var latestManifests = new Dictionary<string, FileInfo>();
-
-			foreach (var file in manifestFiles)
-			{
-				var json = JsonNode.Parse(File.ReadAllText(file.FullName));
-				var manifestHash = json?["ManifestHash"]?.GetValue<string>();
-				if (string.IsNullOrEmpty(manifestHash))
-					continue;
-
-				if (!latestManifests.ContainsKey(manifestHash))
-				{
-					latestManifests[manifestHash] = file;
-				}
-				else
-				{
-					if (file.LastWriteTime > latestManifests[manifestHash].LastWriteTime)
-					{
-						File.Delete(latestManifests[manifestHash].FullName);
-						latestManifests[manifestHash] = file;
-					}
-					else
-					{
-						File.Delete(file.FullName);
-					}
-				}
-			}
+			var manifestFiles = Directory.Exists(EpicGamesManifestDir) ? Directory.GetFiles(EpicGamesManifestDir, "*.item", System.IO.SearchOption.TopDirectoryOnly).ToList() : [];
 
 			var allManifests = new List<JsonNode>();
-			foreach (var file in latestManifests.Values)
+			foreach (var file in manifestFiles)
 			{
-				var node = JsonNode.Parse(File.ReadAllText(file.FullName));
+				var node = JsonNode.Parse(File.ReadAllText(file));
 				allManifests.Add(node);
 			}
 
