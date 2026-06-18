@@ -363,7 +363,7 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
 		}
 	}
 
-	private void MergeNext_Click(object sender, RoutedEventArgs e)
+	private void Merge_Click(object sender, RoutedEventArgs e)
 	{
 		BiosSettingUpdater.IsBatchUpdating = true;
 
@@ -388,42 +388,6 @@ public sealed partial class BiosSettingPage : Page, INotifyPropertyChanged
 		BiosSettingUpdater.IsBatchUpdating = false;
 
 		var modifiedSettings = toMerge
-			.Where(s =>
-				(s.OriginalValue != null && s.Value != s.OriginalValue) ||
-				(s.SelectedOption != null && s.SelectedOption != s.OriginalSelectedOption) ||
-				(s.SelectedOption == null && s.OriginalSelectedOption != null)
-			)
-			.ToList();
-
-		if (modifiedSettings.Count > 0)
-		{
-			BiosSettingUpdater.SaveAllSettings(modifiedSettings);
-		}
-	}
-
-	private void MergeAll_Click(object sender, RoutedEventArgs e)
-	{
-		BiosSettingUpdater.IsBatchUpdating = true;
-
-		foreach (var setting in recommendedSettings)
-		{
-			setting.OriginalValue ??= setting.Value;
-			setting.OriginalSelectedOption ??= setting.SelectedOption;
-
-			if (setting.RecommendedOption != null)
-			{
-				foreach (var option in setting.Options)
-					option.IsSelected = option == setting.RecommendedOption;
-			}
-			else if (!string.IsNullOrEmpty(setting.RecommendedValue))
-			{
-				setting.Value = setting.RecommendedValue;
-			}
-		}
-
-		BiosSettingUpdater.IsBatchUpdating = false;
-
-		var modifiedSettings = recommendedSettings
 			.Where(s =>
 				(s.OriginalValue != null && s.Value != s.OriginalValue) ||
 				(s.SelectedOption != null && s.SelectedOption != s.OriginalSelectedOption) ||
