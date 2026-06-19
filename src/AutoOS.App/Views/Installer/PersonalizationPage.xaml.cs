@@ -1,5 +1,4 @@
 using Microsoft.Win32;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Windows.Storage;
 using Windows.Win32.Foundation;
@@ -14,7 +13,6 @@ public sealed partial class PersonalizationPage : Page
 {
 	private bool isInitializingThemeState = true;
 	private bool isInitializingSchedule = true;
-	private bool isInitializingContextMenuState = true;
 	private bool isInitializingTrayIconsState = true;
 	private bool isInitializingTaskbarAlignmentState = true;
 
@@ -36,7 +34,6 @@ public sealed partial class PersonalizationPage : Page
 		GetItems();
 		GetTheme();
 		_ = GetSchedule();
-		GetContextMenuState();
 		GetTaskbarAlignmentState();
 		GetTrayIconsState();
 	}
@@ -243,27 +240,6 @@ public sealed partial class PersonalizationPage : Page
 		LightTimeCard.Visibility = mode == "Custom" ? Visibility.Visible : Visibility.Collapsed;
 		DarkTimeCard.Visibility = mode == "Custom" ? Visibility.Visible : Visibility.Collapsed;
 		TimelineCard.Visibility = (mode == "Custom" || mode == "Sunset to sunrise") ? Visibility.Visible : Visibility.Collapsed;
-	}
-
-	private void GetContextMenuState()
-	{
-		ContextMenu.IsOn = Registry.CurrentUser.OpenSubKey(@"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32") != null;
-
-		isInitializingContextMenuState = false;
-	}
-
-	private async void ContextMenu_Toggled(object sender, RoutedEventArgs e)
-	{
-		if (isInitializingContextMenuState) return;
-
-		if (ContextMenu.IsOn)
-		{
-			Registry.SetValue(@"HKEY_CURRENT_USER\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32", "", "", RegistryValueKind.String);
-		}
-		else
-		{
-			Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}", false);
-		}
 	}
 
 	private void GetTrayIconsState()
