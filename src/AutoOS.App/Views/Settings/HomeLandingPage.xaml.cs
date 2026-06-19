@@ -35,9 +35,9 @@ namespace AutoOS.Views.Settings
 		public HomeLandingPage()
 		{
 			InitializeComponent();
-#if !DEBUG
+			#if !DEBUG
 				Loaded += CheckForUpdates;
-#endif
+			#endif
 		}
 
 		private async void CheckForUpdates(object sender, RoutedEventArgs e)
