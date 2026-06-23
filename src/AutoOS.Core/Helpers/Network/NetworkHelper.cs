@@ -131,6 +131,7 @@ public static partial class NetworkHelper
 			anyChanged |= ApplySetting(device, settings, "Channel Width for 2.4GHz", "Auto");
 			anyChanged |= ApplySetting(device, settings, "Channel Width for 5GHz", "Auto");
 			anyChanged |= ApplySetting(device, settings, "Channel Width for 6GHz", "Auto");
+			anyChanged |= ApplySetting(device, settings, "Channel-Load usage for AP Selection", "Disabled");
 			anyChanged |= ApplySetting(device, settings, "D0 PacketCoalescing", "Disable");
 			anyChanged |= ApplySetting(device, settings, "Dynamic MIMO Power Save", "Disable");
 			anyChanged |= ApplySetting(device, settings, "EnableAdaptivity", "Auto");

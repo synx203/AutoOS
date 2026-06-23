@@ -604,13 +604,13 @@ public static partial class EpicGamesHelper
 		// copy manifests folder to new drive
 		string srcThirdParty = Path.Combine(oldDrive, EpicGamesThirdPartyManifestDir[Path.GetPathRoot(EpicGamesThirdPartyManifestDir).Length..]);
 		if (Directory.Exists(srcThirdParty))
-			FileSystem.CopyDirectory(srcThirdParty, EpicGamesThirdPartyManifestDir);
+			FileSystem.CopyDirectory(srcThirdParty, EpicGamesThirdPartyManifestDir, true);
 
 		string srcManifest = Path.Combine(oldDrive, EpicGamesManifestDir[Path.GetPathRoot(EpicGamesManifestDir).Length..]);
 		if (Directory.Exists(srcManifest))
 		{
 			// set new game paths in manifests
-			FileSystem.CopyDirectory(srcManifest, EpicGamesManifestDir);
+			FileSystem.CopyDirectory(srcManifest, EpicGamesManifestDir, true);
 			foreach (var file in Directory.GetFiles(EpicGamesManifestDir, "*.item", System.IO.SearchOption.AllDirectories))
 			{
 				var itemJson = JsonNode.Parse(await File.ReadAllTextAsync(file));
