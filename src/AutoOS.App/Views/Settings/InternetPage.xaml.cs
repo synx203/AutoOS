@@ -69,7 +69,9 @@ public sealed partial class InternetPage : Page
 	{
 		var sortedOptions = setting.Options.OrderBy(opt => opt.Name, Comparer<string>.Create(NaturalSort)).ToList();
 
-		int selectedIndex = sortedOptions.FindIndex(opt => opt.Value == setting.CurrentValue);
+		int selectedIndex = sortedOptions.FindIndex(opt => string.Equals(opt.Value, setting.CurrentValue, StringComparison.OrdinalIgnoreCase));
+		if (selectedIndex < 0)
+			selectedIndex = sortedOptions.FindIndex(opt => string.Equals(opt.Value, setting.DefaultValue, StringComparison.OrdinalIgnoreCase));
 		if (selectedIndex < 0) selectedIndex = 0;
 
 		var comboBox = new ComboBox
@@ -304,7 +306,11 @@ public sealed partial class InternetPage : Page
 			{
 				case ComboBox combobox:
 					var options = (List<NetworkSettingOption>)combobox.ItemsSource;
-					combobox.SelectedIndex = options.FindIndex(opt => opt.Value == newValue);
+					int idx = options.FindIndex(opt => string.Equals(opt.Value, newValue, StringComparison.OrdinalIgnoreCase));
+					if (idx < 0)
+						idx = options.FindIndex(opt => string.Equals(opt.Value, setting.DefaultValue, StringComparison.OrdinalIgnoreCase));
+					if (idx < 0) idx = 0;
+					combobox.SelectedIndex = idx;
 					break;
 
 				case NumberBox numberbox:

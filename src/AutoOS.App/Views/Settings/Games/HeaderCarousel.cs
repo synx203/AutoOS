@@ -2151,6 +2151,7 @@ public partial class HeaderCarousel : ItemsControl
 				"explorer",
 				"Everything",
 				//"Files",
+				"FortniteBootstrapper",
 				"FortniteClient-Win64-Shipping_EAC_EOS",
 				"GameBar",
 				"GameBarFTServer",
